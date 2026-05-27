@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MessageSquare } from "lucide-react";
 
-export const Route = createFileRoute("/mensajes")({
+export const Route = createFileRoute("/_authenticated/mensajes")({
   head: () => ({ meta: [{ title: "Mensajes · Vinea Control" }] }),
   component: () => (
     <div className="p-6 md:p-10 max-w-3xl mx-auto">

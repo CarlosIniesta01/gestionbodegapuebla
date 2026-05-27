@@ -5,7 +5,7 @@ import { StatCard } from "@/components/StatCard";
 import { DEPOSITOS_INICIALES, ESTADO_META } from "@/lib/bodega-data";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Inicio · Vinea Control" },

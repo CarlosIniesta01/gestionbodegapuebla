@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Droplets, Grape, Beaker, Sparkles, Package, AlertTriangle, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 
-export const Route = createFileRoute("/trabajos")({
+export const Route = createFileRoute("/_authenticated/trabajos")({
   head: () => ({ meta: [{ title: "Trabajos · Vinea Control" }] }),
   component: Trabajos,
 });

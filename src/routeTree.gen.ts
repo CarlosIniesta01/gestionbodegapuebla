@@ -9,86 +9,92 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrabajosRouteImport } from './routes/trabajos'
-import { Route as RecetasRouteImport } from './routes/recetas'
-import { Route as PendientesRouteImport } from './routes/pendientes'
-import { Route as MensajesRouteImport } from './routes/mensajes'
-import { Route as BodegaRouteImport } from './routes/bodega'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as ActividadRouteImport } from './routes/actividad'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticated/trabajos'
+import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticated/recetas'
+import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
+import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
+import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedActividadRouteImport } from './routes/_authenticated/actividad'
 
-const TrabajosRoute = TrabajosRouteImport.update({
-  id: '/trabajos',
-  path: '/trabajos',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RecetasRoute = RecetasRouteImport.update({
-  id: '/recetas',
-  path: '/recetas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PendientesRoute = PendientesRouteImport.update({
-  id: '/pendientes',
-  path: '/pendientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MensajesRoute = MensajesRouteImport.update({
-  id: '/mensajes',
-  path: '/mensajes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BodegaRoute = BodegaRouteImport.update({
-  id: '/bodega',
-  path: '/bodega',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ActividadRoute = ActividadRouteImport.update({
-  id: '/actividad',
-  path: '/actividad',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTrabajosRoute = AuthenticatedTrabajosRouteImport.update({
+  id: '/trabajos',
+  path: '/trabajos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedRecetasRoute = AuthenticatedRecetasRouteImport.update({
+  id: '/recetas',
+  path: '/recetas',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
+  id: '/pendientes',
+  path: '/pendientes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
+  id: '/mensajes',
+  path: '/mensajes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBodegaRoute = AuthenticatedBodegaRouteImport.update({
+  id: '/bodega',
+  path: '/bodega',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedActividadRoute = AuthenticatedActividadRouteImport.update({
+  id: '/actividad',
+  path: '/actividad',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/actividad': typeof ActividadRoute
-  '/admin': typeof AdminRoute
-  '/bodega': typeof BodegaRoute
-  '/mensajes': typeof MensajesRoute
-  '/pendientes': typeof PendientesRoute
-  '/recetas': typeof RecetasRoute
-  '/trabajos': typeof TrabajosRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/actividad': typeof AuthenticatedActividadRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/bodega': typeof AuthenticatedBodegaRoute
+  '/mensajes': typeof AuthenticatedMensajesRoute
+  '/pendientes': typeof AuthenticatedPendientesRoute
+  '/recetas': typeof AuthenticatedRecetasRoute
+  '/trabajos': typeof AuthenticatedTrabajosRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/actividad': typeof ActividadRoute
-  '/admin': typeof AdminRoute
-  '/bodega': typeof BodegaRoute
-  '/mensajes': typeof MensajesRoute
-  '/pendientes': typeof PendientesRoute
-  '/recetas': typeof RecetasRoute
-  '/trabajos': typeof TrabajosRoute
+  '/actividad': typeof AuthenticatedActividadRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/bodega': typeof AuthenticatedBodegaRoute
+  '/mensajes': typeof AuthenticatedMensajesRoute
+  '/pendientes': typeof AuthenticatedPendientesRoute
+  '/recetas': typeof AuthenticatedRecetasRoute
+  '/trabajos': typeof AuthenticatedTrabajosRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/actividad': typeof ActividadRoute
-  '/admin': typeof AdminRoute
-  '/bodega': typeof BodegaRoute
-  '/mensajes': typeof MensajesRoute
-  '/pendientes': typeof PendientesRoute
-  '/recetas': typeof RecetasRoute
-  '/trabajos': typeof TrabajosRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated/actividad': typeof AuthenticatedActividadRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
+  '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
+  '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
+  '/_authenticated/recetas': typeof AuthenticatedRecetasRoute
+  '/_authenticated/trabajos': typeof AuthenticatedTrabajosRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -103,7 +109,6 @@ export interface FileRouteTypes {
     | '/trabajos'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/actividad'
     | '/admin'
     | '/bodega'
@@ -111,99 +116,120 @@ export interface FileRouteTypes {
     | '/pendientes'
     | '/recetas'
     | '/trabajos'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/actividad'
-    | '/admin'
-    | '/bodega'
-    | '/mensajes'
-    | '/pendientes'
-    | '/recetas'
-    | '/trabajos'
+    | '/_authenticated'
+    | '/_authenticated/actividad'
+    | '/_authenticated/admin'
+    | '/_authenticated/bodega'
+    | '/_authenticated/mensajes'
+    | '/_authenticated/pendientes'
+    | '/_authenticated/recetas'
+    | '/_authenticated/trabajos'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ActividadRoute: typeof ActividadRoute
-  AdminRoute: typeof AdminRoute
-  BodegaRoute: typeof BodegaRoute
-  MensajesRoute: typeof MensajesRoute
-  PendientesRoute: typeof PendientesRoute
-  RecetasRoute: typeof RecetasRoute
-  TrabajosRoute: typeof TrabajosRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trabajos': {
-      id: '/trabajos'
-      path: '/trabajos'
-      fullPath: '/trabajos'
-      preLoaderRoute: typeof TrabajosRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/recetas': {
-      id: '/recetas'
-      path: '/recetas'
-      fullPath: '/recetas'
-      preLoaderRoute: typeof RecetasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pendientes': {
-      id: '/pendientes'
-      path: '/pendientes'
-      fullPath: '/pendientes'
-      preLoaderRoute: typeof PendientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mensajes': {
-      id: '/mensajes'
-      path: '/mensajes'
-      fullPath: '/mensajes'
-      preLoaderRoute: typeof MensajesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bodega': {
-      id: '/bodega'
-      path: '/bodega'
-      fullPath: '/bodega'
-      preLoaderRoute: typeof BodegaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/actividad': {
-      id: '/actividad'
-      path: '/actividad'
-      fullPath: '/actividad'
-      preLoaderRoute: typeof ActividadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/trabajos': {
+      id: '/_authenticated/trabajos'
+      path: '/trabajos'
+      fullPath: '/trabajos'
+      preLoaderRoute: typeof AuthenticatedTrabajosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/recetas': {
+      id: '/_authenticated/recetas'
+      path: '/recetas'
+      fullPath: '/recetas'
+      preLoaderRoute: typeof AuthenticatedRecetasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/pendientes': {
+      id: '/_authenticated/pendientes'
+      path: '/pendientes'
+      fullPath: '/pendientes'
+      preLoaderRoute: typeof AuthenticatedPendientesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mensajes': {
+      id: '/_authenticated/mensajes'
+      path: '/mensajes'
+      fullPath: '/mensajes'
+      preLoaderRoute: typeof AuthenticatedMensajesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/bodega': {
+      id: '/_authenticated/bodega'
+      path: '/bodega'
+      fullPath: '/bodega'
+      preLoaderRoute: typeof AuthenticatedBodegaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/actividad': {
+      id: '/_authenticated/actividad'
+      path: '/actividad'
+      fullPath: '/actividad'
+      preLoaderRoute: typeof AuthenticatedActividadRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedActividadRoute: typeof AuthenticatedActividadRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedBodegaRoute: typeof AuthenticatedBodegaRoute
+  AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
+  AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
+  AuthenticatedRecetasRoute: typeof AuthenticatedRecetasRoute
+  AuthenticatedTrabajosRoute: typeof AuthenticatedTrabajosRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedActividadRoute: AuthenticatedActividadRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedBodegaRoute: AuthenticatedBodegaRoute,
+  AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
+  AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
+  AuthenticatedRecetasRoute: AuthenticatedRecetasRoute,
+  AuthenticatedTrabajosRoute: AuthenticatedTrabajosRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ActividadRoute: ActividadRoute,
-  AdminRoute: AdminRoute,
-  BodegaRoute: BodegaRoute,
-  MensajesRoute: MensajesRoute,
-  PendientesRoute: PendientesRoute,
-  RecetasRoute: RecetasRoute,
-  TrabajosRoute: TrabajosRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

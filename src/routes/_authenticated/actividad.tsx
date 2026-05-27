@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Activity } from "lucide-react";
 
-export const Route = createFileRoute("/actividad")({
+export const Route = createFileRoute("/_authenticated/actividad")({
   head: () => ({ meta: [{ title: "Actividad · Vinea Control" }] }),
   component: () => (
     <div className="p-6 md:p-10 max-w-3xl mx-auto">

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ListTodo } from "lucide-react";
 
-export const Route = createFileRoute("/pendientes")({
+export const Route = createFileRoute("/_authenticated/pendientes")({
   head: () => ({ meta: [{ title: "Pendientes · Vinea Control" }] }),
   component: () => <Placeholder title="Pendientes" desc="Tareas asignadas por el enólogo aparecerán aquí." />,
 });
