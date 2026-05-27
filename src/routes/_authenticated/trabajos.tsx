@@ -110,7 +110,10 @@ function Trabajos() {
       )}
 
       {bodegaId && (
-        <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
+        <>
+          <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
+          <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} />
+        </>
       )}
     </div>
   );
