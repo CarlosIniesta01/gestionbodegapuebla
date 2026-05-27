@@ -111,7 +111,7 @@ export const createTrabajo = createServerFn({ method: "POST" })
       created_by: userId,
     };
     const { data: row, error } = await supabase
-      .from("trabajos").insert(payload).select("*").single();
+      .from("trabajos").insert(payload as any).select("*").single();
     if (error) throw new Error(error.message);
     await supabase.from("trabajo_eventos").insert({
       trabajo_id: row.id,
