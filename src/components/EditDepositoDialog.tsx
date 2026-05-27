@@ -47,8 +47,12 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
     if (open) {
       setCodigo(deposito?.codigo ?? "");
       setZonaId(deposito?.zona_id ?? zonas[0]?.id ?? "");
-      setCapacidad(deposito?.capacidad ?? 20000);
-      setLitros(deposito?.litros ?? 0);
+      const cap = deposito?.capacidad ?? 20000;
+      const lit = deposito?.litros ?? 0;
+      setCapacidad(cap);
+      setLitros(lit);
+      setCapText(cap === 0 ? "" : String(cap));
+      setLitText(lit === 0 ? "" : String(lit));
       setEstado(deposito?.estado ?? "vacio");
       setContenido(deposito?.contenido ?? "");
       setRadio(deposito?.radio ?? 24);
