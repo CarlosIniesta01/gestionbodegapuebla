@@ -90,8 +90,8 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "trasiego":
         return (
           <>
-            <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} codigos={codigos} />
-            <DepSelect label="Depósito destino" value={destino} onChange={setDestino} codigos={codigos} />
+            <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} depositos={depositos} zonas={zonas} />
+            <DepSelect label="Depósito destino" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
             <NumField label="Litros" value={datos.litros ?? ""} onChange={(v) => setD("litros", v)} />
             <TxtField label="Variedad" value={datos.variedad ?? ""} onChange={(v) => setD("variedad", v)} />
           </>
@@ -99,7 +99,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "vendimia":
         return (
           <>
-            <DepSelect label="Depósito" value={destino} onChange={setDestino} codigos={codigos} />
+            <DepSelect label="Depósito" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
             <TxtField label="Variedad" value={datos.variedad ?? ""} onChange={(v) => setD("variedad", v)} />
           </>
         );
@@ -107,7 +107,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "producto":
         return (
           <>
-            <DepSelect label="Depósito" value={destino} onChange={setDestino} codigos={codigos} />
+            <DepSelect label="Depósito" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
             <TxtField label="Producto" value={datos.producto ?? ""} onChange={(v) => setD("producto", v)} />
             <NumField label="Dosis (g/hl o ml/hl)" value={datos.dosis ?? ""} onChange={(v) => setD("dosis", v)} />
             <TxtField label="Lote / proveedor" value={datos.lote ?? ""} onChange={(v) => setD("lote", v)} />
@@ -116,7 +116,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "limpieza":
         return (
           <>
-            <DepSelect label="Depósito / equipo" value={destino} onChange={setDestino} codigos={codigos} />
+            <DepSelect label="Depósito / equipo" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
             <TxtField label="Producto" value={datos.producto ?? ""} onChange={(v) => setD("producto", v)} />
             <TxtField label="Método (CIP, manual…)" value={datos.metodo ?? ""} onChange={(v) => setD("metodo", v)} />
           </>
@@ -124,7 +124,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "embotellado":
         return (
           <>
-            <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} codigos={codigos} />
+            <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} depositos={depositos} zonas={zonas} />
             <NumField label="Botellas" value={datos.botellas ?? ""} onChange={(v) => setD("botellas", v)} />
             <TxtField label="Formato (75cl, magnum…)" value={datos.formato ?? ""} onChange={(v) => setD("formato", v)} />
             <TxtField label="Etiqueta / referencia" value={datos.etiqueta ?? ""} onChange={(v) => setD("etiqueta", v)} />
@@ -134,12 +134,12 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "incidencia":
         return (
           <>
-            <DepSelect label="Depósito (si aplica)" value={destino} onChange={setDestino} codigos={codigos} />
+            <DepSelect label="Depósito (si aplica)" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
             <TxtField label="Severidad (leve/media/alta)" value={datos.severidad ?? ""} onChange={(v) => setD("severidad", v)} />
           </>
         );
       case "observacion":
-        return <DepSelect label="Depósito (opcional)" value={destino} onChange={setDestino} codigos={codigos} />;
+        return <DepSelect label="Depósito (opcional)" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />;
     }
   };
 
