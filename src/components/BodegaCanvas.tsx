@@ -138,7 +138,7 @@ export function BodegaCanvas() {
               }}
             >
               {/* Zones */}
-              {map.zonas.map((z) => (
+              {zonasLayout.map((z) => (
                 <div key={z.id} data-zona-root="1">
                   <ZonaContainer
                     zona={z}
