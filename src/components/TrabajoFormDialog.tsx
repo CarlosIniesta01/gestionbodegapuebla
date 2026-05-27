@@ -173,9 +173,13 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
               </Select>
             </div>
             <div>
-              <Label>Programar</Label>
+              <Label className="flex items-center gap-1.5">
+                <CalendarIcon className="size-3.5 text-white" />
+                Programar
+              </Label>
               <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
             </div>
+
           </div>
 
           <div className="border-t border-border pt-3 space-y-3">
