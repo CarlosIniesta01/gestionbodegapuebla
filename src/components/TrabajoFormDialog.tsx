@@ -91,7 +91,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
             <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} codigos={codigos} />
             <DepSelect label="Depósito destino" value={destino} onChange={setDestino} codigos={codigos} />
             <NumField label="Litros" value={datos.litros ?? ""} onChange={(v) => setD("litros", v)} />
-            <TxtField label="Bomba / equipo" value={datos.bomba ?? ""} onChange={(v) => setD("bomba", v)} />
+            <TxtField label="Variedad" value={datos.variedad ?? ""} onChange={(v) => setD("variedad", v)} />
           </>
         );
       case "vendimia":
