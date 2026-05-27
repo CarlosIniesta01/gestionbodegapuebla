@@ -14,16 +14,267 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bodegas: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          organization_id: string
+          ubicacion: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          organization_id: string
+          ubicacion?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          organization_id?: string
+          ubicacion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bodegas_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membership_zonas: {
+        Row: {
+          membership_id: string
+          zona_id: string
+        }
+        Insert: {
+          membership_id: string
+          zona_id: string
+        }
+        Update: {
+          membership_id?: string
+          zona_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_zonas_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          estado: Database["public"]["Enums"]["membership_estado"]
+          id: string
+          role_id: string
+          user_id: string
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["membership_estado"]
+          id?: string
+          role_id: string
+          user_id: string
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["membership_estado"]
+          id?: string
+          role_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          categoria: string
+          descripcion: string | null
+          key: string
+          label: string
+        }
+        Insert: {
+          categoria: string
+          descripcion?: string | null
+          key: string
+          label: string
+        }
+        Update: {
+          categoria?: string
+          descripcion?: string | null
+          key?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          nombre: string | null
+          telefono: string | null
+          ultima_conexion: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          nombre?: string | null
+          telefono?: string | null
+          ultima_conexion?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          nombre?: string | null
+          telefono?: string | null
+          ultima_conexion?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          permission_key: string
+          role_id: string
+        }
+        Insert: {
+          permission_key: string
+          role_id: string
+        }
+        Update: {
+          permission_key?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          activo: boolean
+          bodega_id: string | null
+          color: string
+          created_at: string
+          descripcion: string | null
+          icono: string
+          id: string
+          is_system: boolean
+          key: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id?: string | null
+          color?: string
+          created_at?: string
+          descripcion?: string | null
+          icono?: string
+          id?: string
+          is_system?: boolean
+          key: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string | null
+          color?: string
+          created_at?: string
+          descripcion?: string | null
+          icono?: string
+          id?: string
+          is_system?: boolean
+          key?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_user_bodegas: { Args: never; Returns: string[] }
+      has_permission: {
+        Args: { _bodega: string; _perm: string }
+        Returns: boolean
+      }
+      is_bodega_admin: { Args: { _bodega: string }; Returns: boolean }
+      user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
-      [_ in never]: never
+      membership_estado: "activo" | "inactivo" | "suspendido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +401,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      membership_estado: ["activo", "inactivo", "suspendido"],
+    },
   },
 } as const
