@@ -59,17 +59,19 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
   const Icon = meta.icon;
 
   function submit() {
-    if (!titulo.trim()) { toast.error("Pon un título"); return; }
     const datosNum: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(datos)) {
       if (v === "") continue;
       const n = Number(v);
       datosNum[k] = Number.isFinite(n) && /^[\d.,-]+$/.test(v) ? n : v;
     }
+    // Autotítulo si no se ha escrito
+    const autoBits = [meta.label, origen, destino].filter(Boolean).join(" · ");
+    const finalTitulo = titulo.trim() || autoBits || meta.label;
     m.mutate({ data: {
       bodegaId,
       tipo,
-      titulo: titulo.trim(),
+      titulo: finalTitulo,
       descripcion: descripcion.trim() || undefined,
       prioridad: prioridad as any,
       scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
@@ -155,20 +157,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
         </DialogHeader>
 
         <div className="space-y-3">
-          <div>
-            <Label>Tipo</Label>
-            <Select value={tipo} onValueChange={(v) => setTipo(v as TrabajoTipo)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TRABAJO_TIPOS.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
 
-          <div>
-            <Label>Título</Label>
-            <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={`${meta.label}...`} maxLength={200} />
-          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>

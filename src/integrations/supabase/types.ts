@@ -46,6 +46,130 @@ export type Database = {
           },
         ]
       }
+      elaboracion_depositos: {
+        Row: {
+          deposito_codigo: string
+          elaboracion_id: string
+          id: string
+          litros: number
+          variedad: string | null
+          zona: string | null
+        }
+        Insert: {
+          deposito_codigo: string
+          elaboracion_id: string
+          id?: string
+          litros: number
+          variedad?: string | null
+          zona?: string | null
+        }
+        Update: {
+          deposito_codigo?: string
+          elaboracion_id?: string
+          id?: string
+          litros?: number
+          variedad?: string | null
+          zona?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elaboracion_depositos_elaboracion_id_fkey"
+            columns: ["elaboracion_id"]
+            isOneToOne: false
+            referencedRelation: "elaboraciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      elaboracion_productos: {
+        Row: {
+          cantidad: number
+          elaboracion_id: string
+          id: string
+          lote: string
+          observaciones: string | null
+          producto_id: string
+          unidad: string
+        }
+        Insert: {
+          cantidad: number
+          elaboracion_id: string
+          id?: string
+          lote: string
+          observaciones?: string | null
+          producto_id: string
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          elaboracion_id?: string
+          id?: string
+          lote?: string
+          observaciones?: string | null
+          producto_id?: string
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elaboracion_productos_elaboracion_id_fkey"
+            columns: ["elaboracion_id"]
+            isOneToOne: false
+            referencedRelation: "elaboraciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "elaboracion_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      elaboraciones: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          created_by: string
+          fecha: string
+          id: string
+          lote_embotellado: string | null
+          nombre: string
+          observaciones: string | null
+          trabajo_id: string
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          created_by: string
+          fecha?: string
+          id?: string
+          lote_embotellado?: string | null
+          nombre: string
+          observaciones?: string | null
+          trabajo_id: string
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          created_by?: string
+          fecha?: string
+          id?: string
+          lote_embotellado?: string | null
+          nombre?: string
+          observaciones?: string | null
+          trabajo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elaboraciones_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_zonas: {
         Row: {
           membership_id: string
@@ -188,6 +312,51 @@ export type Database = {
         }
         Relationships: []
       }
+      productos: {
+        Row: {
+          activo: boolean
+          bodega_id: string
+          created_at: string
+          created_by: string
+          fecha_caducidad: string | null
+          id: string
+          lote: string
+          nombre: string
+          observaciones: string | null
+          proveedor: string | null
+          tipo: Database["public"]["Enums"]["producto_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id: string
+          created_at?: string
+          created_by: string
+          fecha_caducidad?: string | null
+          id?: string
+          lote: string
+          nombre: string
+          observaciones?: string | null
+          proveedor?: string | null
+          tipo?: Database["public"]["Enums"]["producto_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string
+          created_at?: string
+          created_by?: string
+          fecha_caducidad?: string | null
+          id?: string
+          lote?: string
+          nombre?: string
+          observaciones?: string | null
+          proveedor?: string | null
+          tipo?: Database["public"]["Enums"]["producto_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -294,6 +463,32 @@ export type Database = {
             columns: ["bodega_id"]
             isOneToOne: false
             referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trabajo_asignados: {
+        Row: {
+          rol: string
+          trabajo_id: string
+          user_id: string
+        }
+        Insert: {
+          rol?: string
+          trabajo_id: string
+          user_id: string
+        }
+        Update: {
+          rol?: string
+          trabajo_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabajo_asignados_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
             referencedColumns: ["id"]
           },
         ]
@@ -420,6 +615,7 @@ export type Database = {
     Enums: {
       membership_estado: "activo" | "inactivo" | "suspendido"
       mensaje_canal: "general" | "deposito" | "trabajo"
+      producto_tipo: "enologico" | "limpieza" | "otro"
       trabajo_estado: "pendiente" | "en_curso" | "completado" | "cancelado"
       trabajo_prioridad: "baja" | "normal" | "alta" | "urgente"
       trabajo_tipo:
@@ -559,6 +755,7 @@ export const Constants = {
     Enums: {
       membership_estado: ["activo", "inactivo", "suspendido"],
       mensaje_canal: ["general", "deposito", "trabajo"],
+      producto_tipo: ["enologico", "limpieza", "otro"],
       trabajo_estado: ["pendiente", "en_curso", "completado", "cancelado"],
       trabajo_prioridad: ["baja", "normal", "alta", "urgente"],
       trabajo_tipo: [

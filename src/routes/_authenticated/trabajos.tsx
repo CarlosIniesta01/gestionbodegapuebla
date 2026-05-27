@@ -9,6 +9,7 @@ import { TRABAJO_TIPOS, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { TrabajoFormDialog } from "@/components/TrabajoFormDialog";
+import { EmbotelladoDialog } from "@/components/embotellado/EmbotelladoDialog";
 import { TrabajoCard } from "@/components/TrabajoCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/trabajos")({
 function Trabajos() {
   const { bodegaId, isLoading } = useActiveBodega();
   const [open, setOpen] = React.useState(false);
+  const [embOpen, setEmbOpen] = React.useState(false);
   const [defaultTipo, setDefaultTipo] = React.useState<TrabajoTipo>("trasiego");
   const [filtroTipo, setFiltroTipo] = React.useState<"all" | TrabajoTipo>("all");
 
@@ -50,7 +52,10 @@ function Trabajos() {
   if (isLoading) return <div className="p-6 text-muted-foreground">Cargando…</div>;
   if (!bodegaId) return <div className="p-6 text-muted-foreground">No tienes acceso a ninguna bodega.</div>;
 
-  const launch = (tipo: TrabajoTipo) => { setDefaultTipo(tipo); setOpen(true); };
+  const launch = (tipo: TrabajoTipo) => {
+    if (tipo === "embotellado") { setEmbOpen(true); return; }
+    setDefaultTipo(tipo); setOpen(true);
+  };
   const trabajos = q.data ?? [];
 
   return (
@@ -105,7 +110,10 @@ function Trabajos() {
       )}
 
       {bodegaId && (
-        <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
+        <>
+          <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
+          <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} />
+        </>
       )}
     </div>
   );
