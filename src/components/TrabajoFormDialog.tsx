@@ -59,17 +59,19 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
   const Icon = meta.icon;
 
   function submit() {
-    if (!titulo.trim()) { toast.error("Pon un título"); return; }
     const datosNum: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(datos)) {
       if (v === "") continue;
       const n = Number(v);
       datosNum[k] = Number.isFinite(n) && /^[\d.,-]+$/.test(v) ? n : v;
     }
+    // Autotítulo si no se ha escrito
+    const autoBits = [meta.label, origen, destino].filter(Boolean).join(" · ");
+    const finalTitulo = titulo.trim() || autoBits || meta.label;
     m.mutate({ data: {
       bodegaId,
       tipo,
-      titulo: titulo.trim(),
+      titulo: finalTitulo,
       descripcion: descripcion.trim() || undefined,
       prioridad: prioridad as any,
       scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
