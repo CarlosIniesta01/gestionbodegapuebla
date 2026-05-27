@@ -171,7 +171,7 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
       user_id: userId,
       tipo: "creado",
       contenido: `Elaboración "${data.nombre}" · ${totalLitros} L de ${data.depositos.length} depósito(s) · ${data.productos.length} producto(s) · lote ${data.lote_embotellado}`,
-      meta: datos,
+      meta: datos as any,
     });
     return { trabajo, elaboracion: elab };
   });
