@@ -23,17 +23,8 @@ export function BodegaCanvas() {
   const selected = map.depositos.find((d) => d.id === selectedDepId) ?? null;
   const zonaSelected = selected ? map.zonas.find((z) => z.id === selected.zona_id) : null;
 
-  // Active trasiego lines (lookup by codigo)
-  const trasiegos = useMemo(() => {
-    return PROCESOS_ACTIVOS
-      .filter((p) => p.tipo === "trasiego" && p.origen_codigo && p.destino_codigo)
-      .map((p) => {
-        const o = map.depositos.find((d) => d.codigo === p.origen_codigo);
-        const d = map.depositos.find((d) => d.codigo === p.destino_codigo);
-        return o && d ? { id: p.id, o, d } : null;
-      })
-      .filter(Boolean) as { id: string; o: Deposito; d: Deposito }[];
-  }, [map.depositos]);
+  // (trasiegos se calcula tras depositosLayout para usar posiciones auto-ordenadas)
+
 
   const depositosPorZona = useMemo(() => {
     const m: Record<string, number> = {};
