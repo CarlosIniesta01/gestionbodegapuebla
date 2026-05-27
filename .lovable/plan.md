@@ -1,101 +1,94 @@
-# Plan: Usuarios, Roles y Permisos
+# Rediseño Embotellado y catálogo de Productos
 
-Activamos **Lovable Cloud** (PostgreSQL + Auth + RLS + Realtime). Sin él no hay multi-bodega seguro.
+Es un cambio amplio que toca BD, server functions, formularios y administración. Lo divido en fases claras.
 
-## 1. Modelo de datos (multi-tenant)
+## 1. Base de datos (migración)
 
-```text
-organizations ── bodegas ── zonas / depositos / procesos / tareas / movimientos / recetas / mensajes
-                    │
-                    └── memberships (user_id, bodega_id, role_id, estado, ultima_conexion)
-                            │
-                            └── membership_zonas (membership_id, zona_id)   ← limita por zonas
+Nuevas tablas y enums:
 
-profiles (user_id PK→auth.users, nombre, avatar_url, telefono, email)
-roles (id, bodega_id NULL=global, key, nombre, color, icono, descripcion, is_system, activo)
-permissions (key PK, categoria, label)            ← catálogo fijo seedeado
-role_permissions (role_id, permission_key)        ← N:N configurable
-```
+- `productos` (catálogo por bodega)
+  - `nombre`, `tipo` enum (`enologico`, `limpieza`, `otro`)
+  - `lote` text **NOT NULL** + check `length(trim(lote)) > 0`
+  - `proveedor`, `fecha_caducidad`, `activo` bool, `observaciones`
+  - RLS: lectura miembros activos, escritura admin de bodega
+- `elaboraciones` (cabecera de "elaboración propia")
+  - `nombre`, `fecha`, `lote_embotellado`, `observaciones`, `bodega_id`, `trabajo_id` (FK lógica)
+- `elaboracion_depositos` (depósitos origen + litros usados)
+- `elaboracion_productos` (productos + lote + cantidad + unidad)
+- `trabajo_asignados` (varios empleados por trabajo) — extiende lo que hoy es `trabajos.asignado_a`
 
-- `estado` membership: `activo | inactivo | suspendido`.
-- Permisos viven en `role_permissions` (no en código). Catálogo `permissions` seedeado con todas las keys del briefing (nav.*, depositos.*, movimientos.*, procesos.*, tareas.*, recetas.*, usuarios.*, chat.*).
-- 7 roles del sistema seed: `admin, responsable, enologo, operario, limpieza, embotellado, auditor` (con color/icono). Admin puede duplicar/editar/crear/desactivar excepto los marcados `is_system` en operaciones destructivas.
+Validaciones (triggers):
+- producto sin lote → rechazado
+- elaboración: si tiene productos, todos deben tener `lote` no vacío
 
-## 2. Seguridad (RLS + SECURITY DEFINER)
+Realtime habilitado para `productos`, `elaboraciones`.
 
-Funciones `SECURITY DEFINER SET search_path = public`:
+## 2. Server functions
 
-- `current_membership(bodega uuid) → memberships row`
-- `has_permission(bodega uuid, perm text) → boolean` (join memberships→role_permissions)
-- `is_admin(bodega uuid) → boolean`
-- `user_zonas(bodega uuid) → setof uuid` (zonas asignadas, vacío = todas)
+- `productos.functions.ts`: list (filtrado activos), create, update, deactivate
+- `embotellado.functions.ts`:
+  - `crearEmbotelladoDirecto({ bodegaId, deposito, litros, formato, botellas, lote, observaciones, scheduledAt, asignados[] })`
+  - `crearElaboracionPropia({ bodegaId, nombre, fecha, lote, observaciones, scheduledAt, asignados[], depositos[{id,litros}], productos[{id,lote,cantidad,unidad,obs}] })`
+  - Ambas validan lote obligatorio en productos, crean `trabajo` tipo `embotellado`, restan litros del/los depósitos, registran `trabajo_eventos`, recalculan llenado
+- `bodega.functions.ts` extendido: `ajustarLitrosDeposito(depId, deltaLitros, motivo)`
 
-Patrón RLS en todas las tablas de negocio:
-```sql
-USING (bodega_id IN (SELECT bodega_id FROM memberships WHERE user_id = auth.uid() AND estado='activo'))
-WITH CHECK (has_permission(bodega_id, 'depositos.crear'))
-```
-Tablas con zona añaden `AND (zona_id IS NULL OR zona_id IN (SELECT user_zonas(bodega_id)))`.
+## 3. UI — Flujo Trabajos
 
-`GRANT SELECT,INSERT,UPDATE,DELETE … TO authenticated` + `GRANT ALL … TO service_role` en cada tabla pública. Sin `anon`.
+Cambio clave en `TrabajoFormDialog`:
+- Quitar campos "tipo" y "título" cuando se entra desde la pantalla visual (ya viene `defaultTipo`)
+- El título se genera automáticamente (ej. "Embotellado D-12 · Lote LB-2025-001")
+- Cada tipo abre **su propio componente** de formulario en vez de un genérico
 
-## 3. Frontend
+Para Embotellado (`EmbotelladoDialog`):
+1. Pantalla inicial: dos tarjetas grandes
+   - "Embotellar desde depósito"
+   - "Elaboración propia"
+2. Form A (directo): zona → depósito → litros → formato (select 0,75/1,5/3/otro) → botellas → lote → notas
+3. Form B (elaboración): nombre, fecha, lote, lista dinámica de depósitos (+ litros por cada uno), lista dinámica de productos (selector del catálogo, lote prellenado del producto pero editable, cantidad, unidad)
+4. Bloque común al final: **Programar** (Popover + `<Calendar>` shadcn + hora opcional) y **Asignar empleado** (multi-select de miembros activos de la bodega con avatar+rol)
 
-**Auth**
-- Email+password + Google (vía broker Lovable). Página `/login`, `/reset-password`.
-- Layout `_authenticated` con gate sincrónico + `beforeLoad` que hace `supabase.auth.getUser()`.
-- Selector de bodega en header si el usuario tiene varias memberships.
+Otros tipos (trasiego, vendimia, etc.) también se simplifican: sin "tipo"/"título" repetidos. Se hace en este mismo cambio para mantener consistencia.
 
-**Contexto de permisos**
-- `useServerFn(getMyContext)` carga: `profile, bodega_activa, role, permissions[], zonas[]`.
-- Hook `usePermission('depositos.editar')` y `<Can perm="…">children</Can>`.
-- Navegación lateral/inferior filtra items por `nav.*`.
+## 4. UI — Administración
 
-**Módulo `/admin/usuarios`** (gated por `usuarios.editar`)
-- Tabla responsive: avatar, nombre, email, **badge de rol con color+icono**, estado, última conexión, tareas activas, bodega.
-- Acciones: crear (invita por email + contraseña temporal), editar, cambiar rol, asignar zonas (multi-select visual sobre mini-mapa), suspender/activar, reset password, eliminar membership.
+Nueva pestaña **Productos** en `/admin`:
+- Tabla con buscador y filtro por tipo/activo
+- Botón "Nuevo producto" → dialog con validación (lote obligatorio, mensaje claro)
+- Acciones: editar, activar/desactivar
 
-**Módulo `/admin/roles`**
-- Cards de roles (color, icono, nº usuarios). Crear / duplicar / editar / activar.
-- Editor de permisos: matriz agrupada por categoría con switches.
+## 5. Integración con mapa / depósitos / actividad
 
-**Dashboards por rol** (`/` redirige según `role.key`)
-- Operario: tareas pendientes + depósitos asignados.
-- Enólogo: vista rápida “crear tarea / solicitar trasiego / elaboración” + procesos activos + incidencias.
-- Responsable: actividad + procesos + movimientos pendientes.
-- Administrador: KPIs globales + accesos a usuarios/roles.
+Al guardar embotellado (cualquier modo):
+- Resta litros vía `ajustarLitrosDeposito` (recalcula % llenado en el modelo de bodega)
+- Inserta evento en `trabajo_eventos` con detalle completo (depósitos + productos + lotes)
+- Aparece automáticamente en `/actividad` (ya escucha esa tabla)
+- El depósito en el mapa refleja el nuevo nivel (ya reactivo)
 
-**Badge de rol** reutilizable mostrado en chat, tareas, actividad, listado usuarios.
+## 6. Permisos
 
-## 4. Server functions (TanStack)
+Reutilizo `has_permission` existente:
+- `productos.manage` → crear/editar productos
+- `embotellado.create` → registrar embotellado
+- Admin de bodega tiene todo (via `is_bodega_admin`)
+Se siembran en `role_permissions` del rol admin durante la migración.
 
-`src/lib/admin.functions.ts` (protegidas con `requireSupabaseAuth` + check `has_permission`):
-- `getMyContext`, `listMembers`, `createMember` (admin client), `updateMemberRole`, `setMemberZonas`, `setMemberEstado`, `resetMemberPassword`, `deleteMember`.
-- `listRoles`, `upsertRole`, `deleteRole`, `setRolePermissions`, `listPermissions`.
+## Detalles técnicos
 
-Las mutaciones que tocan `auth.users` (crear usuario, reset password) usan `supabaseAdmin` desde el handler.
+- Calendario: `<Popover>` + `<Calendar mode="single" className="p-3 pointer-events-auto" />` + input hora separado
+- Multi-select empleados: `<Command>` con checkboxes; lee de `memberships` + `profiles` filtrado por `bodega_id`
+- Estructura archivos nuevos:
+  - `src/components/embotellado/EmbotelladoDialog.tsx`
+  - `src/components/embotellado/EmbotelladoDirecto.tsx`
+  - `src/components/embotellado/ElaboracionPropia.tsx`
+  - `src/components/embotellado/ProgramarYAsignar.tsx` (compartido)
+  - `src/components/admin/ProductosTab.tsx`
+  - `src/lib/api/productos.functions.ts`
+  - `src/lib/api/embotellado.functions.ts`
 
-## 5. Migración del mapa actual
+## Fuera de alcance (lo aviso)
 
-El mock `bodega-data.ts` + `useBodegaMap` (localStorage) pasa a tablas `zonas` / `depositos` filtradas por `bodega_id`. Mantengo el mismo `BodegaCanvas`; cambio la fuente de datos a TanStack Query + serverFns. Drag & drop sólo si `has_permission('depositos.mover')`.
+- No toco recetas (módulo aparte ya pendiente)
+- "Botellas" se calcula automáticamente desde litros+formato cuando ambos están, pero sigue editable
+- Compatibilidad: los trabajos de embotellado existentes siguen funcionando (los nuevos campos viven en tablas separadas)
 
-## 6. UI
-
-Mismo lenguaje SCADA actual (dark, burdeos/ámbar, Space Grotesk/Inter). Componentes nuevos: `RoleBadge`, `PermissionMatrix`, `UserAvatar`, `ZoneAssigner`, `MemberRow`, `RoleCard`. Mobile-first con Drawer en <md.
-
-## 7. Orden de implementación
-
-1. Activar Lovable Cloud.
-2. Migración SQL: tablas + seed roles/permissions + funciones SECURITY DEFINER + RLS + GRANTs.
-3. Auth (login/registro/Google/reset) + `_authenticated` + selector de bodega + `getMyContext`.
-4. `/admin/usuarios` y `/admin/roles` con todas las acciones.
-5. Refactor de navegación y rutas existentes para usar `<Can>` + filtros por permiso.
-6. Dashboards diferenciados por rol.
-7. Migrar mapa a Cloud (zonas/depositos con `bodega_id`) y aplicar permisos sobre acciones (mover/editar/crear/eliminar depósito).
-
-## Preguntas antes de empezar
-
-1. **Onboarding de usuarios**: ¿crear por invitación (email con link Lovable Cloud) o que el admin defina contraseña temporal y la comparta manualmente?
-2. **Google sign-in**: ¿lo activamos junto al email/password, o solo email/password?
-3. **Multi-organización**: ¿un usuario puede pertenecer a varias bodegas/organizaciones a la vez, o uno-a-uno?
-4. **Bodega inicial**: ¿creamos automáticamente una bodega “Mi Bodega” y conviertes al primer usuario en admin, o flujo de creación explícito?
+¿Confirmas para implementar?
