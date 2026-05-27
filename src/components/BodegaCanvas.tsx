@@ -41,6 +41,50 @@ export function BodegaCanvas() {
     return m;
   }, [map.depositos]);
 
+  // Auto-layout: posiciona depósitos en línea/grid dentro de su zona (sin solaparse)
+  const depositosLayout = useMemo(() => {
+    const zonaById = new Map(map.zonas.map((z) => [z.id, z]));
+    // Agrupar por zona y ordenar por código
+    const grupos = new Map<string, typeof map.depositos>();
+    map.depositos.forEach((d) => {
+      const arr = grupos.get(d.zona_id) ?? [];
+      arr.push(d);
+      grupos.set(d.zona_id, arr);
+    });
+    const result: typeof map.depositos = [];
+    grupos.forEach((deps, zid) => {
+      const zona = zonaById.get(zid);
+      deps.sort((a, b) => a.codigo.localeCompare(b.codigo, undefined, { numeric: true }));
+      if (!zona) { result.push(...deps); return; }
+      const padX = 16;
+      const padTop = 44; // bajo el header de la zona
+      const padBottom = 14;
+      const usableW = Math.max(40, zona.ancho - padX * 2);
+      const usableH = Math.max(40, zona.alto - padTop - padBottom);
+      const maxRadio = Math.max(...deps.map((d) => d.radio));
+      const cellW = maxRadio * 2 + 14;
+      const cellH = maxRadio * 2 + 14;
+      const cols = Math.max(1, Math.floor(usableW / cellW));
+      const rows = Math.max(1, Math.ceil(deps.length / cols));
+      // Centrar el grid dentro de la zona
+      const gridW = cols * cellW;
+      const gridH = rows * cellH;
+      const offsetX = zona.pos_x + padX + Math.max(0, (usableW - gridW) / 2);
+      const offsetY = zona.pos_y + padTop + Math.max(0, (usableH - gridH) / 2);
+      deps.forEach((d, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        result.push({
+          ...d,
+          pos_x: offsetX + col * cellW + cellW / 2,
+          pos_y: offsetY + row * cellH + cellH / 2,
+        });
+      });
+    });
+    return result;
+  }, [map.depositos, map.zonas]);
+
+
   return (
     <>
       <div className="scada-panel overflow-hidden flex flex-col h-[calc(100vh-7rem)] md:h-[calc(100vh-5rem)]">
