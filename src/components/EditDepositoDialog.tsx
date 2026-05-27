@@ -32,6 +32,17 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
   const [contenido, setContenido] = useState("");
   const [radio, setRadio] = useState(24);
 
+  const [capText, setCapText] = useState("");
+  const [litText, setLitText] = useState("");
+  const [capFocus, setCapFocus] = useState(false);
+  const [litFocus, setLitFocus] = useState(false);
+
+  const fmt = (v: string) => {
+    const d = v.replace(/\D/g, "");
+    if (!d) return "";
+    return Number(d).toLocaleString("es-ES");
+  };
+
   useEffect(() => {
     if (open) {
       setCodigo(deposito?.codigo ?? "");
