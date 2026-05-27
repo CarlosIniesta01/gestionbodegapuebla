@@ -113,7 +113,7 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
     };
     const { data: trabajo, error } = await supabase
       .from("trabajos")
-      .insert({
+      .insert(({
         bodega_id: data.bodegaId,
         tipo: "embotellado",
         titulo,
@@ -123,7 +123,7 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
         scheduled_at: data.scheduledAt ?? null,
         datos,
         created_by: userId,
-      })
+      }) as any)
       .select("*").single();
     if (error) throw new Error(error.message);
 
