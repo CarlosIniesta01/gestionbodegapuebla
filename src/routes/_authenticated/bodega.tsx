@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BodegaCanvas } from "@/components/BodegaCanvas";
 
-export const Route = createFileRoute("/bodega")({
+export const Route = createFileRoute("/_authenticated/bodega")({
   head: () => ({
     meta: [
       { title: "Mapa de bodega · Vinea Control" },
