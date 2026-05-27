@@ -26,8 +26,8 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
   const [tipo, setTipo] = React.useState<TrabajoTipo>(defaultTipo ?? "trasiego");
   React.useEffect(() => { if (defaultTipo) setTipo(defaultTipo); }, [defaultTipo, open]);
 
-  const { depositos } = useBodegaMap();
-  const codigos = React.useMemo(() => depositos.map((d) => d.codigo).sort(), [depositos]);
+  const { depositos, zonas } = useBodegaMap();
+
 
   const [titulo, setTitulo] = React.useState("");
   const [descripcion, setDescripcion] = React.useState("");
