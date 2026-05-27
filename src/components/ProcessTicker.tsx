@@ -31,13 +31,15 @@ export function ProcessTicker() {
       <div className="p-2 space-y-1.5 max-h-[420px] overflow-y-auto">
         {PROCESOS_ACTIVOS.map((p, idx) => {
           const Icon = ICONS[p.tipo];
+          const o = p.origen_codigo;
+          const d = p.destino_codigo;
           return (
             <motion.div
               key={p.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/50 group"
+              className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/50"
             >
               <div className="size-9 rounded-lg bg-state-trasiego/15 border border-state-trasiego/40 flex items-center justify-center shrink-0">
                 <Icon className="size-4 text-state-trasiego" />
@@ -45,16 +47,16 @@ export function ProcessTicker() {
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium flex items-center gap-1.5">
                   {LABELS[p.tipo]}
-                  {p.origen && p.destino && (
+                  {o && d && (
                     <span className="text-muted-foreground inline-flex items-center gap-1 text-xs font-mono">
-                      {p.origen} <ArrowRight className="size-3" /> {p.destino}
+                      {o} <ArrowRight className="size-3" /> {d}
                     </span>
                   )}
-                  {!p.origen && p.destino && (
-                    <span className="text-muted-foreground text-xs font-mono">→ {p.destino}</span>
+                  {!o && d && (
+                    <span className="text-muted-foreground text-xs font-mono">→ {d}</span>
                   )}
-                  {p.origen && !p.destino && (
-                    <span className="text-muted-foreground text-xs font-mono">{p.origen}</span>
+                  {o && !d && (
+                    <span className="text-muted-foreground text-xs font-mono">{o}</span>
                   )}
                 </div>
                 <div className="text-[11px] text-muted-foreground">

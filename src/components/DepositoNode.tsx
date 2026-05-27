@@ -3,99 +3,94 @@ import { ESTADO_META, type Deposito } from "@/lib/bodega-data";
 
 interface Props {
   deposito: Deposito;
-  cx: number;
-  cy: number;
-  r: number;
-  onClick?: () => void;
   selected?: boolean;
+  editMode?: boolean;
+  onClick?: () => void;
+  onMoveEnd?: (x: number, y: number) => void;
+  scale: number;
 }
 
-export function DepositoNode({ deposito, cx, cy, r, onClick, selected }: Props) {
+export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd, scale }: Props) {
   const meta = ESTADO_META[deposito.estado];
-  const llenado = deposito.capacidad ? deposito.litros / deposito.capacidad : 0;
+  const llenado = deposito.capacidad > 0 ? deposito.litros / deposito.capacidad : 0;
+  const pct = Math.round(llenado * 100);
   const active = deposito.estado === "trasiego" || deposito.estado === "fermentacion";
-
-  // Liquid fill height inside circle
-  const fillH = r * 2 * Math.max(0.04, llenado);
-  const fillY = cy + r - fillH;
-
-  const clipId = `clip-${deposito.id}`;
+  const size = deposito.radio * 2;
 
   return (
-    <g
-      onClick={onClick}
-      style={{ cursor: "pointer" }}
-      className="group"
+    <motion.button
+      type="button"
+      drag={editMode}
+      dragMomentum={false}
+      dragElastic={0}
+      dragTransition={{ power: 0 }}
+      onDragEnd={(_, info) => {
+        if (!editMode || !onMoveEnd) return;
+        onMoveEnd(
+          deposito.pos_x + info.offset.x / scale,
+          deposito.pos_y + info.offset.y / scale,
+        );
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+      whileHover={editMode ? { scale: 1.05 } : { scale: 1.06 }}
+      whileTap={{ scale: 0.94 }}
+      aria-label={`Depósito ${deposito.codigo}, ${meta.label}, ${deposito.litros} litros, ${pct}%`}
+      className="absolute group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
+      style={{
+        left: deposito.pos_x - deposito.radio,
+        top: deposito.pos_y - deposito.radio,
+        width: size,
+        height: size,
+        cursor: editMode ? "grab" : "pointer",
+        touchAction: editMode ? "none" : undefined,
+      }}
     >
-      {active && (
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r + 2}
-          fill="none"
-          stroke={meta.color}
-          strokeWidth={1.5}
-          opacity={0.6}
-          className="pulse-ring"
-          style={{ transformOrigin: `${cx}px ${cy}px` }}
+      {/* Pulse ring for active deposits */}
+      {active && !editMode && (
+        <span
+          className="absolute inset-0 rounded-full pulse-ring"
+          style={{ border: `1.5px solid ${meta.color}` }}
         />
       )}
 
-      {/* Outer ring */}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={r}
-        fill="oklch(0.18 0.013 250)"
-        stroke={selected ? "var(--accent)" : meta.color}
-        strokeWidth={selected ? 2.5 : 1.5}
-        opacity={0.95}
-      />
-
-      {/* Liquid */}
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx={cx} cy={cy} r={r - 2} />
-        </clipPath>
-      </defs>
-      <rect
-        x={cx - r}
-        y={fillY}
-        width={r * 2}
-        height={fillH}
-        fill={meta.color}
-        opacity={0.55}
-        clipPath={`url(#${clipId})`}
-      />
-
-      {/* Center dot for empty deposits */}
-      {deposito.estado === "vacio" && (
-        <circle cx={cx} cy={cy} r={2} fill={meta.color} opacity={0.5} />
-      )}
+      {/* Container ring */}
+      <span
+        className="absolute inset-0 rounded-full overflow-hidden"
+        style={{
+          background: "oklch(0.16 0.012 250)",
+          border: `${selected ? 2.5 : 1.5}px solid ${selected ? "var(--accent)" : meta.color}`,
+          boxShadow: active
+            ? `0 0 ${Math.max(12, deposito.radio)}px color-mix(in oklab, ${meta.color} 45%, transparent)`
+            : selected
+            ? `0 0 16px color-mix(in oklab, var(--accent) 50%, transparent)`
+            : undefined,
+        }}
+      >
+        {/* Liquid fill */}
+        <span
+          className="absolute inset-x-0 bottom-0"
+          style={{
+            height: `${Math.max(4, pct)}%`,
+            background: `linear-gradient(180deg, color-mix(in oklab, ${meta.color} 55%, transparent), color-mix(in oklab, ${meta.color} 80%, transparent))`,
+          }}
+        />
+      </span>
 
       {/* Label */}
-      <text
-        x={cx}
-        y={cy + 3}
-        textAnchor="middle"
-        fontSize={r > 18 ? 10 : 9}
-        fontWeight={600}
-        fill="oklch(0.96 0.005 250)"
-        style={{ fontFamily: "var(--font-mono)", pointerEvents: "none" }}
+      <span
+        className="absolute inset-0 flex items-center justify-center font-semibold text-foreground select-none"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: Math.max(9, deposito.radio * 0.42),
+          textShadow: "0 1px 2px oklch(0.16 0.012 250 / 0.6)",
+          pointerEvents: "none",
+        }}
       >
-        {deposito.id}
-      </text>
-
-      {/* Hover glow */}
-      <motion.circle
-        cx={cx}
-        cy={cy}
-        r={r + 6}
-        fill={meta.color}
-        opacity={0}
-        whileHover={{ opacity: 0.15 }}
-        style={{ pointerEvents: "none" }}
-      />
-    </g>
+        {deposito.codigo}
+      </span>
+    </motion.button>
   );
 }
