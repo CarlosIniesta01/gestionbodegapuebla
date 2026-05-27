@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarIcon } from "lucide-react";
+
 
 interface Props {
   open: boolean;
@@ -91,7 +93,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
             <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} codigos={codigos} />
             <DepSelect label="Depósito destino" value={destino} onChange={setDestino} codigos={codigos} />
             <NumField label="Litros" value={datos.litros ?? ""} onChange={(v) => setD("litros", v)} />
-            <TxtField label="Bomba / equipo" value={datos.bomba ?? ""} onChange={(v) => setD("bomba", v)} />
+            <TxtField label="Variedad" value={datos.variedad ?? ""} onChange={(v) => setD("variedad", v)} />
           </>
         );
       case "vendimia":
@@ -173,9 +175,13 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
               </Select>
             </div>
             <div>
-              <Label>Programar</Label>
+              <Label className="flex items-center gap-1.5">
+                <CalendarIcon className="size-3.5 text-white" />
+                Programar
+              </Label>
               <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
             </div>
+
           </div>
 
           <div className="border-t border-border pt-3 space-y-3">

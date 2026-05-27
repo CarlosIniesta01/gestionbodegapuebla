@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import {
   DEPOSITOS_INICIALES,
   ZONAS_INICIALES,
@@ -14,49 +14,86 @@ interface MapState {
   depositos: Deposito[];
 }
 
-function loadInitial(): MapState {
-  if (typeof window === "undefined") {
-    return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+// ---------- Shared module-level store ----------
+let state: MapState = { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+let hydrated = false;
+const listeners = new Set<() => void>();
+
+function emit() {
+  for (const l of listeners) l();
+}
+
+function persist() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore quota errors */
   }
+}
+
+function setState(updater: (s: MapState) => MapState) {
+  state = updater(state);
+  persist();
+  emit();
+}
+
+function hydrateOnce() {
+  if (hydrated || typeof window === "undefined") return;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
-    const parsed = JSON.parse(raw) as MapState;
-    if (!parsed.zonas?.length || !parsed.depositos) {
-      return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+    if (raw) {
+      const parsed = JSON.parse(raw) as MapState;
+      if (parsed?.zonas?.length && parsed?.depositos) {
+        state = parsed;
+      }
     }
-    return parsed;
   } catch {
-    return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+    /* ignore */
   }
+  hydrated = true;
+  // Cross-tab sync
+  window.addEventListener("storage", (e) => {
+    if (e.key !== STORAGE_KEY || !e.newValue) return;
+    try {
+      const parsed = JSON.parse(e.newValue) as MapState;
+      if (parsed?.zonas?.length && parsed?.depositos) {
+        state = parsed;
+        emit();
+      }
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+
+function getSnapshot() {
+  return state;
+}
+
+function getServerSnapshot(): MapState {
+  return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
 }
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// ---------- Hook ----------
 export function useBodegaMap() {
-  const [state, setState] = useState<MapState>(() => ({
-    zonas: ZONAS_INICIALES,
-    depositos: DEPOSITOS_INICIALES,
-  }));
-  const [hydrated, setHydrated] = useState(false);
+  const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Hydrate from localStorage on client
   useEffect(() => {
-    setState(loadInitial());
-    setHydrated(true);
+    hydrateOnce();
+    setIsHydrated(true);
+    emit();
   }, []);
-
-  // Persist on changes (after hydration)
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* ignore quota errors */
-    }
-  }, [state, hydrated]);
 
   const moveDeposito = useCallback((id: string, x: number, y: number) => {
     setState((s) => ({
@@ -95,7 +132,7 @@ export function useBodegaMap() {
     };
     setState((s) => ({ ...s, depositos: [...s.depositos, nuevo] }));
     return id;
-  }, [state.zonas]);
+  }, []);
 
   const moveZona = useCallback((id: string, x: number, y: number) => {
     setState((s) => {
@@ -141,13 +178,13 @@ export function useBodegaMap() {
   }, [updateDeposito]);
 
   const resetMap = useCallback(() => {
-    setState({ zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES });
+    setState(() => ({ zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES }));
   }, []);
 
   return {
-    zonas: state.zonas,
-    depositos: state.depositos,
-    hydrated,
+    zonas: snap.zonas,
+    depositos: snap.depositos,
+    hydrated: isHydrated,
     moveDeposito,
     updateDeposito,
     deleteDeposito,
