@@ -24,16 +24,17 @@ export function ZonaContainer({ zona, count, editMode, onMoveEnd, onEdit, onDele
         if (!editMode) return;
         onMoveEnd(zona.pos_x + info.offset.x / scale, zona.pos_y + info.offset.y / scale);
       }}
-      className="absolute rounded-2xl border pointer-events-auto"
+      className="absolute rounded-2xl pointer-events-auto"
       style={{
         left: zona.pos_x,
         top: zona.pos_y,
         width: zona.ancho,
         height: zona.alto,
-        background: `color-mix(in oklab, ${zona.color} 6%, oklch(0.20 0.014 250))`,
-        borderColor: `color-mix(in oklab, ${zona.color} 45%, var(--border))`,
-        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${zona.color} 15%, transparent)`,
+        background: `color-mix(in oklab, ${zona.color} 8%, oklch(0.18 0.014 250))`,
+        border: `2px dashed color-mix(in oklab, ${zona.color} 70%, transparent)`,
+        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${zona.color} 25%, transparent), 0 0 24px -8px color-mix(in oklab, ${zona.color} 30%, transparent)`,
       }}
+
     >
       <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
         <div className="flex items-center gap-2 min-w-0">
