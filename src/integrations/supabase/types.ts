@@ -111,6 +111,44 @@ export type Database = {
           },
         ]
       }
+      mensajes: {
+        Row: {
+          bodega_id: string
+          canal: Database["public"]["Enums"]["mensaje_canal"]
+          canal_ref: string | null
+          contenido: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bodega_id: string
+          canal?: Database["public"]["Enums"]["mensaje_canal"]
+          canal_ref?: string | null
+          contenido: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bodega_id?: string
+          canal?: Database["public"]["Enums"]["mensaje_canal"]
+          canal_ref?: string | null
+          contenido?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensajes_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -260,6 +298,112 @@ export type Database = {
           },
         ]
       }
+      trabajo_eventos: {
+        Row: {
+          contenido: string | null
+          created_at: string
+          id: string
+          meta: Json
+          tipo: string
+          trabajo_id: string
+          user_id: string
+        }
+        Insert: {
+          contenido?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          tipo: string
+          trabajo_id: string
+          user_id: string
+        }
+        Update: {
+          contenido?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          tipo?: string
+          trabajo_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabajo_eventos_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trabajos: {
+        Row: {
+          asignado_a: string | null
+          bodega_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          datos: Json
+          deposito_destino: string | null
+          deposito_origen: string | null
+          descripcion: string | null
+          estado: Database["public"]["Enums"]["trabajo_estado"]
+          id: string
+          prioridad: Database["public"]["Enums"]["trabajo_prioridad"]
+          scheduled_at: string | null
+          started_at: string | null
+          tipo: Database["public"]["Enums"]["trabajo_tipo"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          asignado_a?: string | null
+          bodega_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          datos?: Json
+          deposito_destino?: string | null
+          deposito_origen?: string | null
+          descripcion?: string | null
+          estado?: Database["public"]["Enums"]["trabajo_estado"]
+          id?: string
+          prioridad?: Database["public"]["Enums"]["trabajo_prioridad"]
+          scheduled_at?: string | null
+          started_at?: string | null
+          tipo: Database["public"]["Enums"]["trabajo_tipo"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          asignado_a?: string | null
+          bodega_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          datos?: Json
+          deposito_destino?: string | null
+          deposito_origen?: string | null
+          descripcion?: string | null
+          estado?: Database["public"]["Enums"]["trabajo_estado"]
+          id?: string
+          prioridad?: Database["public"]["Enums"]["trabajo_prioridad"]
+          scheduled_at?: string | null
+          started_at?: string | null
+          tipo?: Database["public"]["Enums"]["trabajo_tipo"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabajos_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -275,6 +419,17 @@ export type Database = {
     }
     Enums: {
       membership_estado: "activo" | "inactivo" | "suspendido"
+      mensaje_canal: "general" | "deposito" | "trabajo"
+      trabajo_estado: "pendiente" | "en_curso" | "completado" | "cancelado"
+      trabajo_prioridad: "baja" | "normal" | "alta" | "urgente"
+      trabajo_tipo:
+        | "trasiego"
+        | "vendimia"
+        | "producto"
+        | "limpieza"
+        | "embotellado"
+        | "incidencia"
+        | "observacion"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -403,6 +558,18 @@ export const Constants = {
   public: {
     Enums: {
       membership_estado: ["activo", "inactivo", "suspendido"],
+      mensaje_canal: ["general", "deposito", "trabajo"],
+      trabajo_estado: ["pendiente", "en_curso", "completado", "cancelado"],
+      trabajo_prioridad: ["baja", "normal", "alta", "urgente"],
+      trabajo_tipo: [
+        "trasiego",
+        "vendimia",
+        "producto",
+        "limpieza",
+        "embotellado",
+        "incidencia",
+        "observacion",
+      ],
     },
   },
 } as const
