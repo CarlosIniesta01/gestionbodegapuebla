@@ -201,20 +201,66 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
   );
 }
 
-function DepSelect({ label, value, onChange, codigos }: { label: string; value: string; onChange: (v: string) => void; codigos: string[] }) {
+function DepSelect({
+  label, value, onChange, depositos, zonas,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  depositos: { id: string; codigo: string; zona_id: string }[];
+  zonas: { id: string; nombre: string }[];
+}) {
+  // Resolve current zona from selected codigo (so the UI stays in sync if value comes from outside)
+  const currentZonaFromValue = React.useMemo(
+    () => depositos.find((d) => d.codigo === value)?.zona_id ?? "",
+    [depositos, value],
+  );
+  const [zonaId, setZonaId] = React.useState<string>(currentZonaFromValue);
+  React.useEffect(() => { setZonaId(currentZonaFromValue); }, [currentZonaFromValue]);
+
+  const depsZona = React.useMemo(
+    () => depositos.filter((d) => d.zona_id === zonaId).sort((a, b) => a.codigo.localeCompare(b.codigo)),
+    [depositos, zonaId],
+  );
+
   return (
     <div>
       <Label>{label}</Label>
-      <Select value={value || "__none"} onValueChange={(v) => onChange(v === "__none" ? "" : v)}>
-        <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__none">— Ninguno —</SelectItem>
-          {codigos.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      <div className="grid grid-cols-2 gap-2">
+        <Select
+          value={zonaId || "__none"}
+          onValueChange={(v) => {
+            const z = v === "__none" ? "" : v;
+            setZonaId(z);
+            // Si la zona cambia y el depósito actual no pertenece, limpiamos
+            if (value && !depositos.some((d) => d.codigo === value && d.zona_id === z)) {
+              onChange("");
+            }
+          }}
+        >
+          <SelectTrigger><SelectValue placeholder="Zona" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none">— Zona —</SelectItem>
+            {zonas.map((z) => <SelectItem key={z.id} value={z.id}>{z.nombre}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={value || "__none"}
+          onValueChange={(v) => onChange(v === "__none" ? "" : v)}
+          disabled={!zonaId}
+        >
+          <SelectTrigger><SelectValue placeholder={zonaId ? "Depósito" : "Elige zona…"} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none">— Ninguno —</SelectItem>
+            {depsZona.map((d) => <SelectItem key={d.id} value={d.codigo}>{d.codigo}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
+
 function NumField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return <div><Label>{label}</Label><Input type="number" inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} /></div>;
 }
