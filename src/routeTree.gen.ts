@@ -9,8 +9,50 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrabajosRouteImport } from './routes/trabajos'
+import { Route as RecetasRouteImport } from './routes/recetas'
+import { Route as PendientesRouteImport } from './routes/pendientes'
+import { Route as MensajesRouteImport } from './routes/mensajes'
+import { Route as BodegaRouteImport } from './routes/bodega'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ActividadRouteImport } from './routes/actividad'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TrabajosRoute = TrabajosRouteImport.update({
+  id: '/trabajos',
+  path: '/trabajos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecetasRoute = RecetasRouteImport.update({
+  id: '/recetas',
+  path: '/recetas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendientesRoute = PendientesRouteImport.update({
+  id: '/pendientes',
+  path: '/pendientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MensajesRoute = MensajesRouteImport.update({
+  id: '/mensajes',
+  path: '/mensajes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BodegaRoute = BodegaRouteImport.update({
+  id: '/bodega',
+  path: '/bodega',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActividadRoute = ActividadRouteImport.update({
+  id: '/actividad',
+  path: '/actividad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +61,130 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/actividad': typeof ActividadRoute
+  '/admin': typeof AdminRoute
+  '/bodega': typeof BodegaRoute
+  '/mensajes': typeof MensajesRoute
+  '/pendientes': typeof PendientesRoute
+  '/recetas': typeof RecetasRoute
+  '/trabajos': typeof TrabajosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/actividad': typeof ActividadRoute
+  '/admin': typeof AdminRoute
+  '/bodega': typeof BodegaRoute
+  '/mensajes': typeof MensajesRoute
+  '/pendientes': typeof PendientesRoute
+  '/recetas': typeof RecetasRoute
+  '/trabajos': typeof TrabajosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/actividad': typeof ActividadRoute
+  '/admin': typeof AdminRoute
+  '/bodega': typeof BodegaRoute
+  '/mensajes': typeof MensajesRoute
+  '/pendientes': typeof PendientesRoute
+  '/recetas': typeof RecetasRoute
+  '/trabajos': typeof TrabajosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/actividad'
+    | '/admin'
+    | '/bodega'
+    | '/mensajes'
+    | '/pendientes'
+    | '/recetas'
+    | '/trabajos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/actividad'
+    | '/admin'
+    | '/bodega'
+    | '/mensajes'
+    | '/pendientes'
+    | '/recetas'
+    | '/trabajos'
+  id:
+    | '__root__'
+    | '/'
+    | '/actividad'
+    | '/admin'
+    | '/bodega'
+    | '/mensajes'
+    | '/pendientes'
+    | '/recetas'
+    | '/trabajos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActividadRoute: typeof ActividadRoute
+  AdminRoute: typeof AdminRoute
+  BodegaRoute: typeof BodegaRoute
+  MensajesRoute: typeof MensajesRoute
+  PendientesRoute: typeof PendientesRoute
+  RecetasRoute: typeof RecetasRoute
+  TrabajosRoute: typeof TrabajosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trabajos': {
+      id: '/trabajos'
+      path: '/trabajos'
+      fullPath: '/trabajos'
+      preLoaderRoute: typeof TrabajosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recetas': {
+      id: '/recetas'
+      path: '/recetas'
+      fullPath: '/recetas'
+      preLoaderRoute: typeof RecetasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pendientes': {
+      id: '/pendientes'
+      path: '/pendientes'
+      fullPath: '/pendientes'
+      preLoaderRoute: typeof PendientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mensajes': {
+      id: '/mensajes'
+      path: '/mensajes'
+      fullPath: '/mensajes'
+      preLoaderRoute: typeof MensajesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bodega': {
+      id: '/bodega'
+      path: '/bodega'
+      fullPath: '/bodega'
+      preLoaderRoute: typeof BodegaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actividad': {
+      id: '/actividad'
+      path: '/actividad'
+      fullPath: '/actividad'
+      preLoaderRoute: typeof ActividadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +197,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActividadRoute: ActividadRoute,
+  AdminRoute: AdminRoute,
+  BodegaRoute: BodegaRoute,
+  MensajesRoute: MensajesRoute,
+  PendientesRoute: PendientesRoute,
+  RecetasRoute: RecetasRoute,
+  TrabajosRoute: TrabajosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
