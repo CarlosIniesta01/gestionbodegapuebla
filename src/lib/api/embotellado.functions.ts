@@ -33,7 +33,7 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const titulo = `Embotellado ${data.deposito} · ${data.lote}`;
-    const datos: Record<string, unknown> = {
+    const datos: any = {
       modo: "directo",
       litros: data.litros,
       formato: data.formato ?? null,
