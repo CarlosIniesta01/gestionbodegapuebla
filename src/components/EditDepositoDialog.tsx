@@ -32,12 +32,27 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
   const [contenido, setContenido] = useState("");
   const [radio, setRadio] = useState(24);
 
+  const [capText, setCapText] = useState("");
+  const [litText, setLitText] = useState("");
+  const [capFocus, setCapFocus] = useState(false);
+  const [litFocus, setLitFocus] = useState(false);
+
+  const fmt = (v: string) => {
+    const d = v.replace(/\D/g, "");
+    if (!d) return "";
+    return Number(d).toLocaleString("es-ES");
+  };
+
   useEffect(() => {
     if (open) {
       setCodigo(deposito?.codigo ?? "");
       setZonaId(deposito?.zona_id ?? zonas[0]?.id ?? "");
-      setCapacidad(deposito?.capacidad ?? 20000);
-      setLitros(deposito?.litros ?? 0);
+      const cap = deposito?.capacidad ?? 20000;
+      const lit = deposito?.litros ?? 0;
+      setCapacidad(cap);
+      setLitros(lit);
+      setCapText(cap === 0 ? "" : String(cap));
+      setLitText(lit === 0 ? "" : String(lit));
       setEstado(deposito?.estado ?? "vacio");
       setContenido(deposito?.contenido ?? "");
       setRadio(deposito?.radio ?? 24);
@@ -65,10 +80,34 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Capacidad (L)">
-              <input type="number" min={0} value={capacidad} onChange={(e) => setCapacidad(+e.target.value)} className={input} />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={capFocus ? capText : fmt(capText)}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  setCapText(digits);
+                  setCapacidad(Number(digits) || 0);
+                }}
+                onFocus={() => setCapFocus(true)}
+                onBlur={() => setCapFocus(false)}
+                className={input}
+              />
             </Field>
             <Field label="Litros actuales">
-              <input type="number" min={0} max={capacidad} value={litros} onChange={(e) => setLitros(+e.target.value)} className={input} />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={litFocus ? litText : fmt(litText)}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  setLitText(digits);
+                  setLitros(Number(digits) || 0);
+                }}
+                onFocus={() => setLitFocus(true)}
+                onBlur={() => setLitFocus(false)}
+                className={input}
+              />
             </Field>
           </div>
 
