@@ -80,10 +80,34 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Capacidad (L)">
-              <input type="number" min={0} value={capacidad} onChange={(e) => setCapacidad(+e.target.value)} className={input} />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={capFocus ? capText : fmt(capText)}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  setCapText(digits);
+                  setCapacidad(Number(digits) || 0);
+                }}
+                onFocus={() => setCapFocus(true)}
+                onBlur={() => setCapFocus(false)}
+                className={input}
+              />
             </Field>
             <Field label="Litros actuales">
-              <input type="number" min={0} max={capacidad} value={litros} onChange={(e) => setLitros(+e.target.value)} className={input} />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={litFocus ? litText : fmt(litText)}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  setLitText(digits);
+                  setLitros(Number(digits) || 0);
+                }}
+                onFocus={() => setLitFocus(true)}
+                onBlur={() => setLitFocus(false)}
+                className={input}
+              />
             </Field>
           </div>
 
