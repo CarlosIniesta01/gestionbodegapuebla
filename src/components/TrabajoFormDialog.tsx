@@ -157,20 +157,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
         </DialogHeader>
 
         <div className="space-y-3">
-          <div>
-            <Label>Tipo</Label>
-            <Select value={tipo} onValueChange={(v) => setTipo(v as TrabajoTipo)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TRABAJO_TIPOS.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
 
-          <div>
-            <Label>Título</Label>
-            <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={`${meta.label}...`} maxLength={200} />
-          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
