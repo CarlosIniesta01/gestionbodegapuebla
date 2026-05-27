@@ -75,6 +75,19 @@ export function BodegaCanvas() {
     return result;
   }, [map.depositos, map.zonas]);
 
+  // Líneas de trasiego activas — usan posiciones auto-ordenadas
+  const trasiegos = useMemo(() => {
+    return PROCESOS_ACTIVOS
+      .filter((p) => p.tipo === "trasiego" && p.origen_codigo && p.destino_codigo)
+      .map((p) => {
+        const o = depositosLayout.find((d) => d.codigo === p.origen_codigo);
+        const d = depositosLayout.find((d) => d.codigo === p.destino_codigo);
+        return o && d ? { id: p.id, o, d } : null;
+      })
+      .filter(Boolean) as { id: string; o: Deposito; d: Deposito }[];
+  }, [depositosLayout]);
+
+
 
   return (
     <>
