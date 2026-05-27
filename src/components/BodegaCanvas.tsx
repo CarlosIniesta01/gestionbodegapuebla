@@ -163,21 +163,21 @@ export function BodegaCanvas() {
                 ))}
               </svg>
 
-              {/* Deposits */}
-              {map.depositos.map((d) => (
+              {/* Deposits — auto-arranged en línea dentro de cada zona */}
+              {depositosLayout.map((d) => (
                 <DepositoNode
                   key={d.id}
                   deposito={d}
                   selected={selectedDepId === d.id}
-                  editMode={editMode}
+                  editMode={false /* posicionamiento automático: no arrastrable */}
                   scale={zoom}
                   onClick={() => {
                     if (editMode) setDepDialog({ open: true, deposito: d });
                     else setSelectedDepId(d.id);
                   }}
-                  onMoveEnd={(x, y) => map.moveDeposito(d.id, x, y)}
                 />
               ))}
+
             </div>
           </div>
 
