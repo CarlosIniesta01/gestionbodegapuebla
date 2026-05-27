@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticated/trabajos'
@@ -19,6 +20,11 @@ import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActividadRouteImport } from './routes/_authenticated/actividad'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -66,6 +72,7 @@ const AuthenticatedActividadRoute = AuthenticatedActividadRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
   '/actividad': typeof AuthenticatedActividadRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/bodega': typeof AuthenticatedBodegaRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/trabajos': typeof AuthenticatedTrabajosRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
   '/actividad': typeof AuthenticatedActividadRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/bodega': typeof AuthenticatedBodegaRoute
@@ -87,6 +95,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
   '/_authenticated/actividad': typeof AuthenticatedActividadRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/actividad'
     | '/admin'
     | '/bodega'
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/trabajos'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
     | '/actividad'
     | '/admin'
     | '/bodega'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/login'
     | '/_authenticated/actividad'
     | '/_authenticated/admin'
     | '/_authenticated/bodega'
@@ -132,10 +144,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -230,6 +250,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
