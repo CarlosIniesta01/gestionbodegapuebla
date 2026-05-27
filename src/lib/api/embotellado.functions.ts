@@ -42,7 +42,7 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
     };
     const { data: trabajo, error } = await supabase
       .from("trabajos")
-      .insert({
+      .insert(({
         bodega_id: data.bodegaId,
         tipo: "embotellado",
         titulo,
@@ -53,7 +53,7 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
         scheduled_at: data.scheduledAt ?? null,
         datos,
         created_by: userId,
-      })
+      }) as any)
       .select("*").single();
     if (error) throw new Error(error.message);
 
@@ -63,7 +63,7 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
       user_id: userId,
       tipo: "creado",
       contenido: `Embotellado desde ${data.deposito} · ${data.litros} L · lote ${data.lote}`,
-      meta: datos,
+      meta: datos as any,
     });
     return trabajo;
   });
