@@ -55,6 +55,41 @@ export const ESTADO_META: Record<
   incidencia: { label: "Incidencia", color: "oklch(0.64 0.24 25)" },
 };
 
+// Paleta por variedad / contenido del depósito.
+// Cubre keywords típicos (tinto, blanco, rosado, variedades concretas)
+// y cae en un color hash determinista si no encaja con ninguno.
+const VARIEDAD_PALETTE: Array<{ match: RegExp; color: string }> = [
+  { match: /tempranillo|cencibel/i,        color: "oklch(0.45 0.19 18)"  }, // tinto profundo
+  { match: /garnacha|grenache/i,           color: "oklch(0.52 0.21 28)"  }, // tinto granate
+  { match: /cabernet|merlot|syrah|monastrell|bobal/i, color: "oklch(0.40 0.17 12)" },
+  { match: /airén|airen/i,                 color: "oklch(0.86 0.13 95)"  }, // blanco dorado
+  { match: /verdejo|sauvignon|albariño|albarino/i,    color: "oklch(0.82 0.14 115)" }, // blanco verde
+  { match: /macabeo|viura|chardonnay/i,    color: "oklch(0.85 0.11 88)"  }, // blanco pajizo
+  { match: /moscatel|gewurztraminer/i,     color: "oklch(0.83 0.16 80)"  },
+  { match: /rosado|ros[eé]/i,              color: "oklch(0.72 0.16 10)"  }, // rosado
+  { match: /espumoso|cava|brut/i,          color: "oklch(0.78 0.08 200)" },
+  { match: /tinto/i,                       color: "oklch(0.45 0.19 18)"  }, // genérico
+  { match: /blanco/i,                      color: "oklch(0.84 0.13 95)"  }, // genérico
+];
+
+function hashColor(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  const hue = h % 360;
+  return `oklch(0.62 0.16 ${hue})`;
+}
+
+export function getDepositoColor(deposito: { estado: DepositoEstado; contenido?: string | null }): string {
+  // Estados sin contenido: usar color del estado (vacío/limpieza/incidencia/trasiego)
+  if (!deposito.contenido || deposito.estado === "vacio" || deposito.estado === "limpieza" || deposito.estado === "incidencia") {
+    return ESTADO_META[deposito.estado].color;
+  }
+  for (const { match, color } of VARIEDAD_PALETTE) {
+    if (match.test(deposito.contenido)) return color;
+  }
+  return hashColor(deposito.contenido);
+}
+
 export const CANVAS_W = 1400;
 export const CANVAS_H = 900;
 
