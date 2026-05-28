@@ -165,12 +165,12 @@ export const approvePendingUser = createServerFn({ method: "POST" })
       roleId = role.id;
     }
 
-    const { error } = await supabaseAdmin.from("memberships").insert({
+    const { error } = await supabaseAdmin.from("memberships").upsert({
       user_id: data.userId,
       bodega_id: data.bodegaId,
       role_id: roleId,
       estado: "activo",
-    });
+    }, { onConflict: "user_id,bodega_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
