@@ -49,14 +49,6 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
         touchAction: editMode ? "none" : undefined,
       }}
     >
-      {/* Pulse ring for active deposits */}
-      {active && !editMode && (
-        <span
-          className="absolute inset-0 rounded-full pulse-ring"
-          style={{ border: `1.5px solid ${color}` }}
-        />
-      )}
-
       {/* Container ring */}
       <span
         className="absolute inset-0 rounded-full overflow-hidden"
@@ -70,14 +62,36 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
             : undefined,
         }}
       >
-        {/* Liquid fill */}
-        <span
-          className="absolute inset-x-0 bottom-0"
-          style={{
-            height: `${Math.max(4, pct)}%`,
-            background: `linear-gradient(180deg, color-mix(in oklab, ${color} 55%, transparent), color-mix(in oklab, ${color} 80%, transparent))`,
-          }}
-        />
+        {/* Liquid fill with looping wave surface */}
+        {pct > 0 && (
+          <svg
+            className="absolute inset-0 w-full h-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id={`liq-${deposito.id}`} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity="0.55" />
+                <stop offset="100%" stopColor={color} stopOpacity="0.85" />
+              </linearGradient>
+            </defs>
+            <g transform={`translate(0 ${100 - Math.max(4, pct)})`}>
+              {/* Two waves drifting in opposite directions, looping seamlessly */}
+              <path
+                className="liquid-wave"
+                fill={`url(#liq-${deposito.id})`}
+                d="M0,4 C15,0 35,8 50,4 C65,0 85,8 100,4 L200,4 C215,0 235,8 250,4 C265,0 285,8 300,4 L300,120 L0,120 Z"
+              />
+              <path
+                className="liquid-wave-2"
+                fill={color}
+                fillOpacity="0.35"
+                d="M0,5 C15,9 35,1 50,5 C65,9 85,1 100,5 L200,5 C215,9 235,1 250,5 C265,9 285,1 300,5 L300,120 L0,120 Z"
+              />
+            </g>
+          </svg>
+        )}
       </span>
 
       {/* Label */}
