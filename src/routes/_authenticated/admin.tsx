@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Check, X } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Check, X, Beaker } from "lucide-react";
+import { ProductosTab } from "@/components/admin/ProductosTab";
 import { toast } from "sonner";
 
 import {
@@ -82,9 +83,10 @@ function AdminPage() {
 
       {activeBodegaId && (
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full md:w-auto">
+          <TabsList className="grid grid-cols-4 w-full md:w-auto">
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
+            <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos</TabsTrigger>
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
           </TabsList>
           <TabsContent value="users" className="mt-6">
@@ -92,6 +94,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="roles" className="mt-6">
             <RolesTab bodegaId={activeBodegaId} />
+          </TabsContent>
+          <TabsContent value="productos" className="mt-6">
+            <ProductosTab bodegaId={activeBodegaId} />
           </TabsContent>
           <TabsContent value="bodega" className="mt-6">
             <BodegaTab bodegaId={activeBodegaId} initial={activeBodega?.bodega} />
