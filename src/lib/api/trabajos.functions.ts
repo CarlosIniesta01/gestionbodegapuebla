@@ -190,3 +190,13 @@ export const listActividad = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return eventos ?? [];
   });
+
+export const deleteEvento = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { error } = await supabase.from("trabajo_eventos").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
