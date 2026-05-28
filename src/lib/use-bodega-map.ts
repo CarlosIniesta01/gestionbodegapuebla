@@ -186,7 +186,7 @@ export function useBodegaMap() {
   return {
     zonas: snap.zonas,
     depositos: snap.depositos,
-    hydrated: isHydrated,
+    hydrated: true,
     moveDeposito,
     updateDeposito,
     deleteDeposito,
