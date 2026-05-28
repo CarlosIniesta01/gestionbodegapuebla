@@ -183,25 +183,51 @@ export function BodegaCanvas() {
                 </div>
               ))}
 
-              {/* Trasiego flow lines */}
+              {/* Trasiego flow lines + llenados activos */}
               <svg
                 className="absolute inset-0 pointer-events-none"
                 width={CANVAS_W}
                 height={CANVAS_H}
                 style={{ overflow: "visible" }}
               >
-                {trasiegos.map((t) => (
-                  <g key={t.id}>
-                    <line
-                      x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
-                      stroke="var(--state-trasiego)" strokeWidth={2.5} opacity={0.3}
+                <defs>
+                  <marker id="arrowTrasiego" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="var(--state-trasiego)" />
+                  </marker>
+                </defs>
+                {trasiegos.map((t) => {
+                  const mx = (t.o.pos_x + t.d.pos_x) / 2;
+                  const my = (t.o.pos_y + t.d.pos_y) / 2;
+                  return (
+                    <g key={t.id}>
+                      <line
+                        x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
+                        stroke="var(--state-trasiego)" strokeWidth={2.5} opacity={0.3}
+                      />
+                      <line
+                        x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
+                        stroke="var(--state-trasiego)" strokeWidth={2.5} className="flow-dash"
+                        markerEnd="url(#arrowTrasiego)"
+                      />
+                      <circle cx={t.o.pos_x} cy={t.o.pos_y} r={5} fill="var(--state-trasiego)" />
+                      <circle cx={t.d.pos_x} cy={t.d.pos_y} r={4} fill="var(--state-trasiego)" />
+                      <text x={mx} y={my - 8} textAnchor="middle" fontSize="10" fill="var(--state-trasiego)" style={{ paintOrder: "stroke", stroke: "var(--background)", strokeWidth: 3 }}>
+                        {t.o.codigo} → {t.d.codigo}
+                      </text>
+                    </g>
+                  );
+                })}
+                {llenados.map((l) => (
+                  <g key={l.id}>
+                    <circle
+                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio + 6}
+                      fill="none" stroke="var(--state-trasiego)" strokeWidth={2}
+                      className="pulse-ring"
                     />
-                    <line
-                      x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
-                      stroke="var(--state-trasiego)" strokeWidth={2.5} className="flow-dash"
+                    <circle
+                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio - 2}
+                      fill="var(--state-trasiego)" opacity={0.18} className="fill-rise"
                     />
-                    <circle cx={t.o.pos_x} cy={t.o.pos_y} r={4} fill="var(--state-trasiego)" />
-                    <circle cx={t.d.pos_x} cy={t.d.pos_y} r={4} fill="var(--state-trasiego)" />
                   </g>
                 ))}
               </svg>
