@@ -3,15 +3,18 @@ import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker
 import { ESTADO_META, type Deposito } from "@/lib/bodega-data";
 import { useEffect, useState } from "react";
 
+export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
+
 interface Props {
   deposito: Deposito | null;
   onClose: () => void;
   onEdit?: () => void;
+  onQuickAction?: (action: QuickAction) => void;
   zonaName?: string;
 }
 
-export function DepositoPanel({ deposito, onClose, onEdit, zonaName }: Props) {
-  const [isMobile, setIsMobile] = useState(false);
+export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaName }: Props) {
+
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
