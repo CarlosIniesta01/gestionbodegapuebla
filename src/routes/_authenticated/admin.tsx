@@ -19,6 +19,7 @@ import {
   updateBodega,
   listPendingUsers,
   approvePendingUser,
+  rejectPendingUser,
 } from "@/lib/api/admin.functions";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
