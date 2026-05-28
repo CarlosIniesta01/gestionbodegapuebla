@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ESTADO_META, type Deposito } from "@/lib/bodega-data";
+import { ESTADO_META, getDepositoColor, type Deposito } from "@/lib/bodega-data";
 
 interface Props {
   deposito: Deposito;
@@ -12,6 +12,7 @@ interface Props {
 
 export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd, scale }: Props) {
   const meta = ESTADO_META[deposito.estado];
+  const color = getDepositoColor(deposito);
   const llenado = deposito.capacidad > 0 ? deposito.litros / deposito.capacidad : 0;
   const pct = Math.round(llenado * 100);
   const active = deposito.estado === "trasiego" || deposito.estado === "fermentacion";
@@ -52,7 +53,7 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
       {active && !editMode && (
         <span
           className="absolute inset-0 rounded-full pulse-ring"
-          style={{ border: `1.5px solid ${meta.color}` }}
+          style={{ border: `1.5px solid ${color}` }}
         />
       )}
 
@@ -61,9 +62,9 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
         className="absolute inset-0 rounded-full overflow-hidden"
         style={{
           background: "oklch(0.16 0.012 250)",
-          border: `${selected ? 2.5 : 1.5}px solid ${selected ? "var(--accent)" : meta.color}`,
+          border: `${selected ? 2.5 : 1.5}px solid ${selected ? "var(--accent)" : color}`,
           boxShadow: active
-            ? `0 0 ${Math.max(12, deposito.radio)}px color-mix(in oklab, ${meta.color} 45%, transparent)`
+            ? `0 0 ${Math.max(12, deposito.radio)}px color-mix(in oklab, ${color} 45%, transparent)`
             : selected
             ? `0 0 16px color-mix(in oklab, var(--accent) 50%, transparent)`
             : undefined,
@@ -74,7 +75,7 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
           className="absolute inset-x-0 bottom-0"
           style={{
             height: `${Math.max(4, pct)}%`,
-            background: `linear-gradient(180deg, color-mix(in oklab, ${meta.color} 55%, transparent), color-mix(in oklab, ${meta.color} 80%, transparent))`,
+            background: `linear-gradient(180deg, color-mix(in oklab, ${color} 55%, transparent), color-mix(in oklab, ${color} 80%, transparent))`,
           }}
         />
       </span>

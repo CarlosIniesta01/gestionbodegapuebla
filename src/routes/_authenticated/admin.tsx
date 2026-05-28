@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Check, X, Beaker } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck } from "lucide-react";
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { toast } from "sonner";
 
@@ -17,6 +17,8 @@ import {
   upsertRole,
   deleteRole,
   updateBodega,
+  listPendingUsers,
+  approvePendingUser,
 } from "@/lib/api/admin.functions";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,13 +84,17 @@ function AdminPage() {
       </div>
 
       {activeBodegaId && (
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid grid-cols-4 w-full md:w-auto">
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="grid grid-cols-5 w-full md:w-auto">
+            <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
             <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos</TabsTrigger>
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
           </TabsList>
+          <TabsContent value="pending" className="mt-6">
+            <PendingTab bodegaId={activeBodegaId} />
+          </TabsContent>
           <TabsContent value="users" className="mt-6">
             <UsersTab bodegaId={activeBodegaId} />
           </TabsContent>
@@ -103,6 +109,94 @@ function AdminPage() {
           </TabsContent>
         </Tabs>
       )}
+    </div>
+  );
+}
+
+// =================== PENDING ===================
+function PendingTab({ bodegaId }: { bodegaId: string }) {
+  const qc = useQueryClient();
+  const fnList = useServerFn(listPendingUsers);
+  const fnApprove = useServerFn(approvePendingUser);
+  const fnRoles = useServerFn(listRolesAndPerms);
+
+  const pendingQ = useQuery({
+    queryKey: ["admin", "pending", bodegaId],
+    queryFn: () => fnList({ data: { bodegaId } }),
+  });
+  const rolesQ = useQuery({
+    queryKey: ["admin", "rolesAndPerms", bodegaId],
+    queryFn: () => fnRoles({ data: { bodegaId } }),
+  });
+
+  const approveMut = useMutation({
+    mutationFn: (vars: { userId: string; roleId?: string }) =>
+      fnApprove({ data: { bodegaId, ...vars } }),
+    onSuccess: () => {
+      toast.success("Usuario aprobado y añadido como operario");
+      qc.invalidateQueries({ queryKey: ["admin", "pending", bodegaId] });
+      qc.invalidateQueries({ queryKey: ["admin", "members", bodegaId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
+  const operarioRole = (rolesQ.data?.roles ?? []).find((r: any) => r.key === "operario");
+
+  return (
+    <div className="space-y-4">
+      <div className="scada-panel p-4 md:p-5">
+        <div className="text-sm font-medium mb-1">Solicitudes de acceso</div>
+        <p className="text-xs text-muted-foreground">
+          Usuarios registrados que aún no pertenecen a esta bodega. Al aprobar, se les asigna por defecto el rol
+          <span className="text-foreground font-medium"> operario</span>.
+        </p>
+      </div>
+
+      <div className="scada-panel overflow-hidden">
+        <div className="px-4 py-3 border-b border-border text-sm font-medium">
+          Pendientes ({pendingQ.data?.length ?? 0})
+        </div>
+        <div className="divide-y divide-border">
+          {pendingQ.isLoading && (
+            <div className="px-4 py-6 text-sm text-muted-foreground text-center">Cargando…</div>
+          )}
+          {pendingQ.data?.length === 0 && !pendingQ.isLoading && (
+            <div className="px-4 py-6 text-sm text-muted-foreground text-center">
+              No hay solicitudes pendientes
+            </div>
+          )}
+          {(pendingQ.data ?? []).map((u: any) => (
+            <div key={u.user_id} className="px-4 py-3 flex flex-col md:flex-row md:items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm truncate">{u.nombre ?? u.email}</div>
+                <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  defaultValue={operarioRole?.id}
+                  onValueChange={(v) => approveMut.mutate({ userId: u.user_id, roleId: v })}
+                >
+                  <SelectTrigger className="w-[160px] h-9">
+                    <SelectValue placeholder="Aprobar con rol…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(rolesQ.data?.roles ?? []).filter((r: any) => r.activo).map((r: any) => (
+                      <SelectItem key={r.id} value={r.id}>{r.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  onClick={() => approveMut.mutate({ userId: u.user_id, roleId: operarioRole?.id })}
+                  disabled={approveMut.isPending || !operarioRole}
+                >
+                  <UserCheck className="size-4 mr-1" /> Aprobar
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

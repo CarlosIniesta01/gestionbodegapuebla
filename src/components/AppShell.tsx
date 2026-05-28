@@ -116,22 +116,26 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav - horizontal scroll para todos los items */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar/95 backdrop-blur border-t border-border">
-        <div className="grid grid-cols-5">
-          {NAV.slice(0, 5).map((item) => {
+        <div
+          className="flex overflow-x-auto no-scrollbar"
+          style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity" }}
+        >
+          {NAV.map((item) => {
             const active = pathname === item.to;
             const Icon = item.icon;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[10px] ${
+                className={`flex flex-col items-center gap-1 py-2.5 px-4 text-[10px] shrink-0 min-w-[72px] ${
                   active ? "text-accent" : "text-muted-foreground"
                 }`}
+                style={{ scrollSnapAlign: "start" }}
               >
                 <Icon className="size-[18px]" />
-                <span className="tracking-wide">{item.label}</span>
+                <span className="tracking-wide whitespace-nowrap">{item.label}</span>
               </Link>
             );
           })}

@@ -114,6 +114,67 @@ export const addMemberByEmail = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ============ Pending users (registrados sin membership en esta bodega) ============
+export const listPendingUsers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bodegaId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId, data.bodegaId);
+
+    // Existing members of this bodega
+    const { data: members, error: mErr } = await supabaseAdmin
+      .from("memberships")
+      .select("user_id")
+      .eq("bodega_id", data.bodegaId);
+    if (mErr) throw new Error(mErr.message);
+    const memberIds = new Set((members ?? []).map((m: any) => m.user_id));
+
+    // All registered profiles
+    const { data: profs, error: pErr } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id, email, nombre, avatar_url, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (pErr) throw new Error(pErr.message);
+
+    return (profs ?? []).filter((p: any) => !memberIds.has(p.user_id));
+  });
+
+export const approvePendingUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    bodegaId: z.string().uuid(),
+    userId: z.string().uuid(),
+    roleId: z.string().uuid().optional(), // si no se pasa, se asigna "operario"
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId, data.bodegaId);
+
+    let roleId = data.roleId;
+    if (!roleId) {
+      const { data: role, error: rErr } = await supabaseAdmin
+        .from("roles")
+        .select("id")
+        .eq("bodega_id", data.bodegaId)
+        .eq("key", "operario")
+        .maybeSingle();
+      if (rErr) throw new Error(rErr.message);
+      if (!role) throw new Error("No existe el rol 'operario' en esta bodega.");
+      roleId = role.id;
+    }
+
+    const { error } = await supabaseAdmin.from("memberships").insert({
+      user_id: data.userId,
+      bodega_id: data.bodegaId,
+      role_id: roleId,
+      estado: "activo",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const updateMembership = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({
