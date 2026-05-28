@@ -5,12 +5,13 @@ interface Props {
   deposito: Deposito;
   selected?: boolean;
   editMode?: boolean;
+  filling?: boolean;
   onClick?: () => void;
   onMoveEnd?: (x: number, y: number) => void;
   scale: number;
 }
 
-export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd, scale }: Props) {
+export function DepositoNode({ deposito, selected, editMode, filling, onClick, onMoveEnd, scale }: Props) {
   const meta = ESTADO_META[deposito.estado];
   const color = getDepositoColor(deposito);
   const llenado = deposito.capacidad > 0 ? deposito.litros / deposito.capacidad : 0;
@@ -63,7 +64,7 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
         }}
       >
         {/* Liquid fill with looping wave surface */}
-        {pct > 0 && (
+        {(pct > 0 || filling) && (
           <svg
             className="absolute inset-0 w-full h-full"
             viewBox="0 0 100 100"
@@ -76,7 +77,10 @@ export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd,
                 <stop offset="100%" stopColor={color} stopOpacity="0.85" />
               </linearGradient>
             </defs>
-            <g transform={`translate(0 ${100 - Math.max(4, pct)})`}>
+            <g
+              className={filling ? "liquid-filling" : undefined}
+              transform={filling ? undefined : `translate(0 ${100 - Math.max(4, pct)})`}
+            >
               {/* Two waves drifting in opposite directions, looping seamlessly */}
               <path
                 className="liquid-wave"

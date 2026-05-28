@@ -238,6 +238,7 @@ export function BodegaCanvas() {
                   key={d.id}
                   deposito={d}
                   selected={selectedDepId === d.id}
+                  filling={llenados.some((l) => l.d.id === d.id)}
                   editMode={false /* posicionamiento automático: no arrastrable */}
                   scale={zoom}
                   onClick={() => {
