@@ -136,6 +136,7 @@ function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName 
         </Section>
 
         <Section icon={Activity} title="Acciones rápidas">
+          <div className="grid grid-cols-2 gap-2">
             {([
               { label: "Iniciar trasiego", icon: ArrowRightLeft, action: "trasiego" as const },
               { label: "Iniciar limpieza", icon: Sparkles, action: "limpieza" as const },
@@ -151,10 +152,9 @@ function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName 
                 {a.label}
               </button>
             ))}
-
-            ))}
           </div>
         </Section>
+
 
         <Section icon={ListTodo} title="Procesos abiertos">
           <div className="text-sm text-muted-foreground">Sin procesos activos en este depósito</div>
