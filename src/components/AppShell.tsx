@@ -1,4 +1,4 @@
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Hammer,
@@ -10,8 +10,10 @@ import {
   Shield,
   Wine,
   Circle,
+  LogOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: LayoutDashboard },
@@ -26,6 +28,12 @@ const NAV = [
 
 export function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login" });
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-foreground">
@@ -66,8 +74,15 @@ export function AppShell() {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-border">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="p-3 border-t border-border space-y-2">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+          >
+            <LogOut className="size-[18px]" />
+            <span>Cerrar sesión</span>
+          </button>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground px-3">
             <Circle className="size-2 fill-state-fermentacion text-state-fermentacion" />
             Sistema en línea
           </div>
@@ -82,9 +97,18 @@ export function AppShell() {
           </div>
           <span className="font-display font-semibold tracking-tight">Vinea</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Circle className="size-1.5 fill-state-fermentacion text-state-fermentacion" />
-          EN LÍNEA
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Circle className="size-1.5 fill-state-fermentacion text-state-fermentacion" />
+            EN LÍNEA
+          </div>
+          <button
+            onClick={handleLogout}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut className="size-[18px]" />
+          </button>
         </div>
       </header>
 
