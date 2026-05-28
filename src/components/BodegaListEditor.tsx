@@ -12,8 +12,10 @@ import { EditZonaDialog } from "./EditZonaDialog";
 import { EditDepositoDialog } from "./EditDepositoDialog";
 
 const fmt = (n: number) => Number(n || 0).toLocaleString("es-ES");
-
 export function BodegaListEditor() {
+  const map = useBodegaMap();
+  const colors = useColorSettings();
+
   const map = useBodegaMap();
   const [query, setQuery] = useState("");
   const [zonaDialog, setZonaDialog] = useState<{ open: boolean; zona: Zona | null }>({ open: false, zona: null });
