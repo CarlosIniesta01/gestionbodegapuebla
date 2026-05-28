@@ -340,3 +340,21 @@ export function BodegaCanvas() {
     </>
   );
 }
+
+function LegendItems() {
+  const colors = useColorSettings();
+  return (
+    <>
+      {(Object.keys(ESTADO_META) as DepositoEstado[]).map((k) => {
+        const meta = colors.getEstadoMeta(k);
+        return (
+          <div key={k} className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
+            {meta.label}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
