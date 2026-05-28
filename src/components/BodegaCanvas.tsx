@@ -220,13 +220,12 @@ export function BodegaCanvas() {
                 {llenados.map((l) => (
                   <g key={l.id}>
                     <circle
-                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio + 6}
-                      fill="none" stroke="var(--state-trasiego)" strokeWidth={2}
-                      className="pulse-ring"
+                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio + 10}
+                      fill="var(--state-trasiego)" opacity={0.12}
                     />
                     <circle
-                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio - 2}
-                      fill="var(--state-trasiego)" opacity={0.18} className="fill-rise"
+                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio + 6}
+                      fill="none" stroke="var(--state-trasiego)" strokeWidth={2} opacity={0.85}
                     />
                   </g>
                 ))}
