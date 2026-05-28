@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PendienteRouteImport } from './routes/pendiente'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
@@ -20,6 +21,11 @@ import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActividadRouteImport } from './routes/_authenticated/actividad'
 
+const PendienteRoute = PendienteRouteImport.update({
+  id: '/pendiente',
+  path: '/pendiente',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -73,6 +79,7 @@ const AuthenticatedActividadRoute = AuthenticatedActividadRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/pendiente': typeof PendienteRoute
   '/actividad': typeof AuthenticatedActividadRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/bodega': typeof AuthenticatedBodegaRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/pendiente': typeof PendienteRoute
   '/actividad': typeof AuthenticatedActividadRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/bodega': typeof AuthenticatedBodegaRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/pendiente': typeof PendienteRoute
   '/_authenticated/actividad': typeof AuthenticatedActividadRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/pendiente'
     | '/actividad'
     | '/admin'
     | '/bodega'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/pendiente'
     | '/actividad'
     | '/admin'
     | '/bodega'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/login'
+    | '/pendiente'
     | '/_authenticated/actividad'
     | '/_authenticated/admin'
     | '/_authenticated/bodega'
@@ -145,10 +157,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PendienteRoute: typeof PendienteRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pendiente': {
+      id: '/pendiente'
+      path: '/pendiente'
+      fullPath: '/pendiente'
+      preLoaderRoute: typeof PendienteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -251,17 +271,8 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  PendienteRoute: PendienteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
