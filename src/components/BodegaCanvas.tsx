@@ -2,20 +2,28 @@ import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { MapToolbar } from "./MapToolbar";
 import { DepositoNode } from "./DepositoNode";
 import { ZonaContainer } from "./ZonaContainer";
 import { DepositoPanel } from "./DepositoPanel";
 import { EditZonaDialog } from "./EditZonaDialog";
 import { EditDepositoDialog } from "./EditDepositoDialog";
+import { TrabajoFormDialog } from "./TrabajoFormDialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
+import type { TrabajoTipo } from "@/lib/trabajo-meta";
 import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
 
 export function BodegaCanvas() {
   const map = useBodegaMap();
   const { bodegaId } = useActiveBodega();
+  const navigate = useNavigate();
+  const [quickTrabajo, setQuickTrabajo] = useState<{ open: boolean; tipo: TrabajoTipo; origen?: string; destino?: string }>({ open: false, tipo: "trasiego" });
+
+
+
   const listFn = useServerFn(listTrabajos);
   const trabajosQ = useQuery({
     queryKey: ["trabajos", bodegaId, "en_curso-map"],
@@ -274,7 +282,33 @@ export function BodegaCanvas() {
         zonaName={zonaSelected?.nombre}
         onClose={() => setSelectedDepId(null)}
         onEdit={selected ? () => setDepDialog({ open: true, deposito: selected }) : undefined}
+        onQuickAction={(action) => {
+          if (!selected) return;
+          if (action === "historial") {
+            navigate({ to: "/trabajos" });
+            return;
+          }
+          if (action === "trasiego") {
+            setQuickTrabajo({ open: true, tipo: "trasiego", origen: selected.codigo });
+          } else if (action === "limpieza") {
+            setQuickTrabajo({ open: true, tipo: "limpieza", destino: selected.codigo });
+          } else if (action === "producto") {
+            setQuickTrabajo({ open: true, tipo: "producto", destino: selected.codigo });
+          }
+        }}
       />
+
+      {bodegaId && (
+        <TrabajoFormDialog
+          open={quickTrabajo.open}
+          onOpenChange={(v) => setQuickTrabajo((s) => ({ ...s, open: v }))}
+          bodegaId={bodegaId}
+          defaultTipo={quickTrabajo.tipo}
+          defaultOrigen={quickTrabajo.origen}
+          defaultDestino={quickTrabajo.destino}
+        />
+      )}
+
 
       <EditZonaDialog
         open={zonaDialog.open}

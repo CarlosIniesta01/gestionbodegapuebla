@@ -3,15 +3,19 @@ import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker
 import { ESTADO_META, type Deposito } from "@/lib/bodega-data";
 import { useEffect, useState } from "react";
 
+export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
+
 interface Props {
   deposito: Deposito | null;
   onClose: () => void;
   onEdit?: () => void;
+  onQuickAction?: (action: QuickAction) => void;
   zonaName?: string;
 }
 
-export function DepositoPanel({ deposito, onClose, onEdit, zonaName }: Props) {
+export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaName }: Props) {
   const [isMobile, setIsMobile] = useState(false);
+
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
@@ -43,7 +47,8 @@ export function DepositoPanel({ deposito, onClose, onEdit, zonaName }: Props) {
                 : "fixed top-0 right-0 bottom-0 z-50 w-[420px] bg-surface border-l border-border flex flex-col"
             }
           >
-            <Content deposito={deposito} onClose={onClose} onEdit={onEdit} isMobile={isMobile} zonaName={zonaName} />
+            <Content deposito={deposito} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} />
+
           </motion.aside>
         </>
       )}
@@ -51,7 +56,8 @@ export function DepositoPanel({ deposito, onClose, onEdit, zonaName }: Props) {
   );
 }
 
-function Content({ deposito, onClose, onEdit, isMobile, zonaName }: { deposito: Deposito; onClose: () => void; onEdit?: () => void; isMobile: boolean; zonaName?: string }) {
+function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName }: { deposito: Deposito; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string }) {
+
   const meta = ESTADO_META[deposito.estado];
   const pct = Math.round((deposito.litros / Math.max(1, deposito.capacidad)) * 100);
 
@@ -131,14 +137,15 @@ function Content({ deposito, onClose, onEdit, isMobile, zonaName }: { deposito: 
 
         <Section icon={Activity} title="Acciones rápidas">
           <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Iniciar trasiego", icon: ArrowRightLeft },
-              { label: "Iniciar limpieza", icon: Sparkles },
-              { label: "Añadir producto", icon: Beaker },
-              { label: "Ver historial", icon: History },
-            ].map((a) => (
+            {([
+              { label: "Iniciar trasiego", icon: ArrowRightLeft, action: "trasiego" as const },
+              { label: "Iniciar limpieza", icon: Sparkles, action: "limpieza" as const },
+              { label: "Añadir producto", icon: Beaker, action: "producto" as const },
+              { label: "Ver historial", icon: History, action: "historial" as const },
+            ]).map((a) => (
               <button
                 key={a.label}
+                onClick={() => onQuickAction?.(a.action)}
                 className="px-3 py-2.5 rounded-lg bg-secondary hover:bg-secondary/70 text-sm text-left transition-colors border border-border flex items-center gap-2"
               >
                 <a.icon className="size-3.5 text-muted-foreground" />
@@ -147,6 +154,7 @@ function Content({ deposito, onClose, onEdit, isMobile, zonaName }: { deposito: 
             ))}
           </div>
         </Section>
+
 
         <Section icon={ListTodo} title="Procesos abiertos">
           <div className="text-sm text-muted-foreground">Sin procesos activos en este depósito</div>
