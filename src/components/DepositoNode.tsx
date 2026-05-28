@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { ESTADO_META, getDepositoColor, type Deposito } from "@/lib/bodega-data";
+import { type Deposito } from "@/lib/bodega-data";
+import { useColorSettings } from "@/lib/use-color-settings";
 
 interface Props {
   deposito: Deposito;
@@ -12,9 +13,10 @@ interface Props {
 }
 
 export function DepositoNode({ deposito, selected, editMode, filling, onClick, onMoveEnd, scale }: Props) {
-  const meta = ESTADO_META[deposito.estado];
-  const color = getDepositoColor(deposito);
-  const llenado = deposito.capacidad > 0 ? deposito.litros / deposito.capacidad : 0;
+  const colors = useColorSettings();
+  const meta = colors.getEstadoMeta(deposito.estado);
+  const color = colors.getDepositoColor(deposito);
+
   const pct = Math.round(llenado * 100);
   const active = deposito.estado === "trasiego" || deposito.estado === "fermentacion";
   const size = deposito.radio * 2;
