@@ -20,9 +20,11 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   bodegaId: string;
   defaultTipo?: TrabajoTipo;
+  defaultOrigen?: string;
+  defaultDestino?: string;
 }
 
-export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }: Props) {
+export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, defaultOrigen, defaultDestino }: Props) {
   const [tipo, setTipo] = React.useState<TrabajoTipo>(defaultTipo ?? "trasiego");
   React.useEffect(() => { if (defaultTipo) setTipo(defaultTipo); }, [defaultTipo, open]);
 
@@ -38,11 +40,15 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
   const [datos, setDatos] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
-    if (!open) {
+    if (open) {
+      setOrigen(defaultOrigen ?? "");
+      setDestino(defaultDestino ?? "");
+    } else {
       setTitulo(""); setDescripcion(""); setPrioridad("normal");
       setScheduledAt(""); setOrigen(""); setDestino(""); setDatos({});
     }
-  }, [open]);
+  }, [open, defaultOrigen, defaultDestino]);
+
 
   const fn = useServerFn(createTrabajo);
   const qc = useQueryClient();
