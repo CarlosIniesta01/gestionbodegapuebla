@@ -22,7 +22,8 @@ export function BodegaCanvas() {
   const navigate = useNavigate();
   const [quickTrabajo, setQuickTrabajo] = useState<{ open: boolean; tipo: TrabajoTipo; origen?: string; destino?: string }>({ open: false, tipo: "trasiego" });
 
-  const { bodegaId } = useActiveBodega();
+
+
   const listFn = useServerFn(listTrabajos);
   const trabajosQ = useQuery({
     queryKey: ["trabajos", bodegaId, "en_curso-map"],
