@@ -84,8 +84,9 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
     }});
   }
 
-  const SpecificFields = () => {
-    const setD = (k: string, v: string) => setDatos((d) => ({ ...d, [k]: v }));
+  const setD = (k: string, v: string) => setDatos((d) => ({ ...d, [k]: v }));
+  // IMPORTANT: render inline (no nested component) to avoid input remount/focus loss on each keystroke.
+  function renderSpecificFields() {
     switch (tipo) {
       case "trasiego":
         return (
@@ -100,10 +101,10 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
         return (
           <>
             <DepSelect label="Depósito" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
+            <NumField label="Litros" value={datos.litros ?? ""} onChange={(v) => setD("litros", v)} />
             <TxtField label="Variedad" value={datos.variedad ?? ""} onChange={(v) => setD("variedad", v)} />
           </>
         );
-
       case "producto":
         return (
           <>
@@ -141,7 +142,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
       case "observacion":
         return <DepSelect label="Depósito (opcional)" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />;
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
