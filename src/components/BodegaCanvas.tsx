@@ -2,16 +2,20 @@ import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { MapToolbar } from "./MapToolbar";
 import { DepositoNode } from "./DepositoNode";
 import { ZonaContainer } from "./ZonaContainer";
 import { DepositoPanel } from "./DepositoPanel";
 import { EditZonaDialog } from "./EditZonaDialog";
 import { EditDepositoDialog } from "./EditDepositoDialog";
+import { TrabajoFormDialog } from "./TrabajoFormDialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
+import type { TrabajoTipo } from "@/lib/trabajo-meta";
 import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
+
 
 export function BodegaCanvas() {
   const map = useBodegaMap();
