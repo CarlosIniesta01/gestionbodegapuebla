@@ -98,11 +98,11 @@ export function BodegaListEditor() {
 
             {deps.length === 0 ? (
               <div className="px-4 py-6 text-center text-xs text-muted-foreground">Sin depósitos en esta zona.</div>
-                  const meta = colors.getEstadoMeta(d.estado);
-
+            ) : (
               <ul className="divide-y divide-border">
                 {deps.map((d) => {
-                  const meta = ESTADO_META[d.estado];
+                  const meta = colors.getEstadoMeta(d.estado);
+
                   const pct = d.capacidad > 0 ? Math.min(100, (d.litros / d.capacidad) * 100) : 0;
                   return (
                     <li key={d.id} className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[120px_1fr_auto_auto] items-center gap-3 px-4 py-2.5 hover:bg-secondary/40">
