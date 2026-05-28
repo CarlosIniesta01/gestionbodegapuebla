@@ -195,12 +195,12 @@ export const rejectPendingUser = createServerFn({ method: "POST" })
     if (rErr) throw new Error(rErr.message);
     if (!role) throw new Error("No existe el rol 'operario' en esta bodega.");
 
-    const { error } = await supabaseAdmin.from("memberships").insert({
+    const { error } = await supabaseAdmin.from("memberships").upsert({
       user_id: data.userId,
       bodega_id: data.bodegaId,
       role_id: role.id,
       estado: "rechazado",
-    });
+    }, { onConflict: "user_id,bodega_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
