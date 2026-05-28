@@ -97,9 +97,18 @@ export function AppShell() {
           </div>
           <span className="font-display font-semibold tracking-tight">Vinea</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Circle className="size-1.5 fill-state-fermentacion text-state-fermentacion" />
-          EN LÍNEA
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Circle className="size-1.5 fill-state-fermentacion text-state-fermentacion" />
+            EN LÍNEA
+          </div>
+          <button
+            onClick={handleLogout}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut className="size-[18px]" />
+          </button>
         </div>
       </header>
 
