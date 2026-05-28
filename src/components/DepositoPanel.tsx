@@ -14,6 +14,7 @@ interface Props {
 }
 
 export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaName }: Props) {
+  const [isMobile, setIsMobile] = useState(false);
 
 
   useEffect(() => {
