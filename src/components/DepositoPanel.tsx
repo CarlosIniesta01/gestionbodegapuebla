@@ -56,7 +56,8 @@ export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaNa
   );
 }
 
-function Content({ deposito, onClose, onEdit, isMobile, zonaName }: { deposito: Deposito; onClose: () => void; onEdit?: () => void; isMobile: boolean; zonaName?: string }) {
+function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName }: { deposito: Deposito; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string }) {
+
   const meta = ESTADO_META[deposito.estado];
   const pct = Math.round((deposito.litros / Math.max(1, deposito.capacidad)) * 100);
 
