@@ -98,17 +98,33 @@ export function BodegaCanvas() {
   }, [map.depositos, map.zonas]);
 
 
-  // Líneas de trasiego activas — usan posiciones auto-ordenadas
+  // Trasiegos activos: combina demo + trabajos reales en curso
   const trasiegos = useMemo(() => {
-    return PROCESOS_ACTIVOS
+    const fromReal = enCurso
+      .filter((t) => t.tipo === "trasiego" && t.deposito_origen && t.deposito_destino)
+      .map((t) => ({ id: t.id, origen_codigo: t.deposito_origen, destino_codigo: t.deposito_destino, titulo: t.titulo }));
+    const fromDemo = PROCESOS_ACTIVOS
       .filter((p) => p.tipo === "trasiego" && p.origen_codigo && p.destino_codigo)
+      .map((p) => ({ id: p.id, origen_codigo: p.origen_codigo!, destino_codigo: p.destino_codigo!, titulo: "" }));
+    return [...fromReal, ...fromDemo]
       .map((p) => {
         const o = depositosLayout.find((d) => d.codigo === p.origen_codigo);
-        const d = depositosLayout.find((d) => d.codigo === p.destino_codigo);
-        return o && d ? { id: p.id, o, d } : null;
+        const dest = depositosLayout.find((d) => d.codigo === p.destino_codigo);
+        return o && dest ? { id: p.id, o, d: dest, titulo: p.titulo } : null;
       })
-      .filter(Boolean) as { id: string; o: Deposito; d: Deposito }[];
-  }, [depositosLayout]);
+      .filter(Boolean) as { id: string; o: Deposito; d: Deposito; titulo: string }[];
+  }, [depositosLayout, enCurso]);
+
+  // Llenados activos (vendimia / producto sobre destino)
+  const llenados = useMemo(() => {
+    return enCurso
+      .filter((t) => (t.tipo === "vendimia" || t.tipo === "producto") && t.deposito_destino)
+      .map((t) => {
+        const d = depositosLayout.find((x) => x.codigo === t.deposito_destino);
+        return d ? { id: t.id, d, tipo: t.tipo as string } : null;
+      })
+      .filter(Boolean) as { id: string; d: Deposito; tipo: string }[];
+  }, [depositosLayout, enCurso]);
 
 
 
