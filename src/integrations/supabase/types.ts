@@ -170,6 +170,30 @@ export type Database = {
           },
         ]
       }
+      familias_recetas: {
+        Row: {
+          bodega_id: string
+          color: string
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          bodega_id: string
+          color?: string
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          bodega_id?: string
+          color?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       membership_zonas: {
         Row: {
           membership_id: string
@@ -389,6 +413,196 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      receta_depositos: {
+        Row: {
+          deposito_codigo: string
+          id: string
+          litros: number | null
+          observaciones: string | null
+          orden: number
+          receta_id: string
+          variedad: string | null
+          zona_id: string | null
+        }
+        Insert: {
+          deposito_codigo: string
+          id?: string
+          litros?: number | null
+          observaciones?: string | null
+          orden?: number
+          receta_id: string
+          variedad?: string | null
+          zona_id?: string | null
+        }
+        Update: {
+          deposito_codigo?: string
+          id?: string
+          litros?: number | null
+          observaciones?: string | null
+          orden?: number
+          receta_id?: string
+          variedad?: string | null
+          zona_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receta_depositos_receta_id_fkey"
+            columns: ["receta_id"]
+            isOneToOne: false
+            referencedRelation: "recetas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receta_pasos: {
+        Row: {
+          id: string
+          orden: number
+          receta_id: string
+          texto: string
+        }
+        Insert: {
+          id?: string
+          orden?: number
+          receta_id: string
+          texto: string
+        }
+        Update: {
+          id?: string
+          orden?: number
+          receta_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receta_pasos_receta_id_fkey"
+            columns: ["receta_id"]
+            isOneToOne: false
+            referencedRelation: "recetas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receta_productos: {
+        Row: {
+          dosis: number | null
+          id: string
+          lote: string
+          observaciones: string | null
+          orden: number
+          producto_id: string
+          receta_id: string
+          unidad: string
+        }
+        Insert: {
+          dosis?: number | null
+          id?: string
+          lote: string
+          observaciones?: string | null
+          orden?: number
+          producto_id: string
+          receta_id: string
+          unidad?: string
+        }
+        Update: {
+          dosis?: number | null
+          id?: string
+          lote?: string
+          observaciones?: string | null
+          orden?: number
+          producto_id?: string
+          receta_id?: string
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receta_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receta_productos_receta_id_fkey"
+            columns: ["receta_id"]
+            isOneToOne: false
+            referencedRelation: "recetas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recetas: {
+        Row: {
+          activa: boolean
+          bodega_id: string
+          created_at: string
+          created_by: string
+          descripcion: string | null
+          familia_id: string | null
+          favorita: boolean
+          id: string
+          nombre: string
+          observaciones: string | null
+          parent_id: string | null
+          tipo: string | null
+          ultimo_uso_at: string | null
+          updated_at: string
+          uso_count: number
+          version: number
+        }
+        Insert: {
+          activa?: boolean
+          bodega_id: string
+          created_at?: string
+          created_by: string
+          descripcion?: string | null
+          familia_id?: string | null
+          favorita?: boolean
+          id?: string
+          nombre: string
+          observaciones?: string | null
+          parent_id?: string | null
+          tipo?: string | null
+          ultimo_uso_at?: string | null
+          updated_at?: string
+          uso_count?: number
+          version?: number
+        }
+        Update: {
+          activa?: boolean
+          bodega_id?: string
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          familia_id?: string | null
+          favorita?: boolean
+          id?: string
+          nombre?: string
+          observaciones?: string | null
+          parent_id?: string | null
+          tipo?: string | null
+          ultimo_uso_at?: string | null
+          updated_at?: string
+          uso_count?: number
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recetas_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias_recetas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recetas_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "recetas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
