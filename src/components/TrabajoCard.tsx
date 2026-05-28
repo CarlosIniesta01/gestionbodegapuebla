@@ -44,7 +44,7 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="scada-panel p-4 group hover:border-accent/40 transition-colors"
+      className={`scada-panel p-4 group transition-colors ${t.estado === "en_curso" ? "border-emerald-500/60 shadow-[0_0_0_1px_oklch(0.72_0.18_145_/_0.4)]" : "hover:border-accent/40"}`}
     >
       <div className="flex items-start gap-3">
         <div className="size-11 shrink-0 rounded-xl flex items-center justify-center"
