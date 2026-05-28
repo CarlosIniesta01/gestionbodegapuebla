@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BodegaCanvas } from "@/components/BodegaCanvas";
 import { BodegaListEditor } from "@/components/BodegaListEditor";
+import { BodegaHistorial } from "@/components/BodegaHistorial";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/bodega")({
@@ -20,6 +21,7 @@ function Bodega() {
         <TabsList>
           <TabsTrigger value="mapa">Mapa</TabsTrigger>
           <TabsTrigger value="lista">Lista / Edición</TabsTrigger>
+          <TabsTrigger value="historial">Historial</TabsTrigger>
         </TabsList>
         <TabsContent value="mapa">
           <BodegaCanvas />
@@ -27,7 +29,11 @@ function Bodega() {
         <TabsContent value="lista">
           <BodegaListEditor />
         </TabsContent>
+        <TabsContent value="historial">
+          <BodegaHistorial />
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
+

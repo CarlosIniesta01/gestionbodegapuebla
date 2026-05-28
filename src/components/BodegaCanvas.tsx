@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { MapToolbar } from "./MapToolbar";
 import { DepositoNode } from "./DepositoNode";
 import { ZonaContainer } from "./ZonaContainer";
@@ -7,10 +9,21 @@ import { DepositoPanel } from "./DepositoPanel";
 import { EditZonaDialog } from "./EditZonaDialog";
 import { EditDepositoDialog } from "./EditDepositoDialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
+import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
 
 export function BodegaCanvas() {
   const map = useBodegaMap();
+  const { bodegaId } = useActiveBodega();
+  const listFn = useServerFn(listTrabajos);
+  const trabajosQ = useQuery({
+    queryKey: ["trabajos", bodegaId, "en_curso-map"],
+    queryFn: () => listFn({ data: { bodegaId: bodegaId!, estado: ["en_curso"] } }),
+    enabled: !!bodegaId,
+    refetchInterval: 8000,
+  });
+  const enCurso: any[] = trabajosQ.data ?? [];
   const [editMode, setEditMode] = useState(false);
   const [zoom, setZoom] = useState(0.85);
   const [selectedDepId, setSelectedDepId] = useState<string | null>(null);
@@ -85,17 +98,33 @@ export function BodegaCanvas() {
   }, [map.depositos, map.zonas]);
 
 
-  // Líneas de trasiego activas — usan posiciones auto-ordenadas
+  // Trasiegos activos: combina demo + trabajos reales en curso
   const trasiegos = useMemo(() => {
-    return PROCESOS_ACTIVOS
+    const fromReal = enCurso
+      .filter((t) => t.tipo === "trasiego" && t.deposito_origen && t.deposito_destino)
+      .map((t) => ({ id: t.id, origen_codigo: t.deposito_origen, destino_codigo: t.deposito_destino, titulo: t.titulo }));
+    const fromDemo = PROCESOS_ACTIVOS
       .filter((p) => p.tipo === "trasiego" && p.origen_codigo && p.destino_codigo)
+      .map((p) => ({ id: p.id, origen_codigo: p.origen_codigo!, destino_codigo: p.destino_codigo!, titulo: "" }));
+    return [...fromReal, ...fromDemo]
       .map((p) => {
         const o = depositosLayout.find((d) => d.codigo === p.origen_codigo);
-        const d = depositosLayout.find((d) => d.codigo === p.destino_codigo);
-        return o && d ? { id: p.id, o, d } : null;
+        const dest = depositosLayout.find((d) => d.codigo === p.destino_codigo);
+        return o && dest ? { id: p.id, o, d: dest, titulo: p.titulo } : null;
       })
-      .filter(Boolean) as { id: string; o: Deposito; d: Deposito }[];
-  }, [depositosLayout]);
+      .filter(Boolean) as { id: string; o: Deposito; d: Deposito; titulo: string }[];
+  }, [depositosLayout, enCurso]);
+
+  // Llenados activos (vendimia / producto sobre destino)
+  const llenados = useMemo(() => {
+    return enCurso
+      .filter((t) => (t.tipo === "vendimia" || t.tipo === "producto") && t.deposito_destino)
+      .map((t) => {
+        const d = depositosLayout.find((x) => x.codigo === t.deposito_destino);
+        return d ? { id: t.id, d, tipo: t.tipo as string } : null;
+      })
+      .filter(Boolean) as { id: string; d: Deposito; tipo: string }[];
+  }, [depositosLayout, enCurso]);
 
 
 
@@ -154,25 +183,51 @@ export function BodegaCanvas() {
                 </div>
               ))}
 
-              {/* Trasiego flow lines */}
+              {/* Trasiego flow lines + llenados activos */}
               <svg
                 className="absolute inset-0 pointer-events-none"
                 width={CANVAS_W}
                 height={CANVAS_H}
                 style={{ overflow: "visible" }}
               >
-                {trasiegos.map((t) => (
-                  <g key={t.id}>
-                    <line
-                      x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
-                      stroke="var(--state-trasiego)" strokeWidth={2.5} opacity={0.3}
+                <defs>
+                  <marker id="arrowTrasiego" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="var(--state-trasiego)" />
+                  </marker>
+                </defs>
+                {trasiegos.map((t) => {
+                  const mx = (t.o.pos_x + t.d.pos_x) / 2;
+                  const my = (t.o.pos_y + t.d.pos_y) / 2;
+                  return (
+                    <g key={t.id}>
+                      <line
+                        x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
+                        stroke="var(--state-trasiego)" strokeWidth={2.5} opacity={0.3}
+                      />
+                      <line
+                        x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
+                        stroke="var(--state-trasiego)" strokeWidth={2.5} className="flow-dash"
+                        markerEnd="url(#arrowTrasiego)"
+                      />
+                      <circle cx={t.o.pos_x} cy={t.o.pos_y} r={5} fill="var(--state-trasiego)" />
+                      <circle cx={t.d.pos_x} cy={t.d.pos_y} r={4} fill="var(--state-trasiego)" />
+                      <text x={mx} y={my - 8} textAnchor="middle" fontSize="10" fill="var(--state-trasiego)" style={{ paintOrder: "stroke", stroke: "var(--background)", strokeWidth: 3 }}>
+                        {t.o.codigo} → {t.d.codigo}
+                      </text>
+                    </g>
+                  );
+                })}
+                {llenados.map((l) => (
+                  <g key={l.id}>
+                    <circle
+                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio + 6}
+                      fill="none" stroke="var(--state-trasiego)" strokeWidth={2}
+                      className="pulse-ring"
                     />
-                    <line
-                      x1={t.o.pos_x} y1={t.o.pos_y} x2={t.d.pos_x} y2={t.d.pos_y}
-                      stroke="var(--state-trasiego)" strokeWidth={2.5} className="flow-dash"
+                    <circle
+                      cx={l.d.pos_x} cy={l.d.pos_y} r={l.d.radio - 2}
+                      fill="var(--state-trasiego)" opacity={0.18} className="fill-rise"
                     />
-                    <circle cx={t.o.pos_x} cy={t.o.pos_y} r={4} fill="var(--state-trasiego)" />
-                    <circle cx={t.d.pos_x} cy={t.d.pos_y} r={4} fill="var(--state-trasiego)" />
                   </g>
                 ))}
               </svg>
