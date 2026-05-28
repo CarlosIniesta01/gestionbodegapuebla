@@ -16,8 +16,9 @@ export function DepositoNode({ deposito, selected, editMode, filling, onClick, o
   const colors = useColorSettings();
   const meta = colors.getEstadoMeta(deposito.estado);
   const color = colors.getDepositoColor(deposito);
-
+  const llenado = deposito.capacidad > 0 ? deposito.litros / deposito.capacidad : 0;
   const pct = Math.round(llenado * 100);
+
   const active = deposito.estado === "trasiego" || deposito.estado === "fermentacion";
   const size = deposito.radio * 2;
 
