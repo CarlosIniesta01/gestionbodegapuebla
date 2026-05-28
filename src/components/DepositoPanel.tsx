@@ -46,9 +46,9 @@ export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaNa
                 ? "fixed left-0 right-0 bottom-0 z-50 max-h-[88vh] bg-surface border-t border-border rounded-t-2xl flex flex-col"
                 : "fixed top-0 right-0 bottom-0 z-50 w-[420px] bg-surface border-l border-border flex flex-col"
             }
+          >
             <Content deposito={deposito} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} />
 
-            <Content deposito={deposito} onClose={onClose} onEdit={onEdit} isMobile={isMobile} zonaName={zonaName} />
           </motion.aside>
         </>
       )}
