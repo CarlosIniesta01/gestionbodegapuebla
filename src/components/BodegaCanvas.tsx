@@ -241,8 +241,11 @@ export function BodegaCanvas() {
           if (depDialog.deposito) {
             map.updateDeposito(depDialog.deposito.id, data);
           } else {
-            map.addDeposito(data.zona_id, data.codigo, data.capacidad);
-            // After add, also set extra fields via updateDeposito? we set via setEstado etc; simpler: addDeposito already creates, then update by codigo
+            const id = map.addDeposito(data.zona_id, data.codigo, data.capacidad);
+            map.updateDeposito(id, {
+              litros: data.litros, estado: data.estado,
+              contenido: data.contenido, radio: data.radio,
+            });
           }
         }}
         onDelete={depDialog.deposito ? () => { map.deleteDeposito(depDialog.deposito!.id); setSelectedDepId(null); } : undefined}
