@@ -115,6 +115,9 @@
     overscroll-behavior-y: contain;
   }
 
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
