@@ -184,4 +184,17 @@
     0%, 100% { transform: scaleY(0.92); opacity: 0.85; }
     50% { transform: scaleY(1); opacity: 1; }
   }
+
+  .liquid-wave {
+    animation: liquidDrift 4s linear infinite;
+    will-change: transform;
+  }
+  .liquid-wave-2 {
+    animation: liquidDrift 6s linear infinite reverse;
+    will-change: transform;
+  }
+  @keyframes liquidDrift {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100px); }
+  }
 }
