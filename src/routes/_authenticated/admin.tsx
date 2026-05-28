@@ -84,13 +84,17 @@ function AdminPage() {
       </div>
 
       {activeBodegaId && (
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid grid-cols-4 w-full md:w-auto">
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="grid grid-cols-5 w-full md:w-auto">
+            <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
             <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos</TabsTrigger>
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
           </TabsList>
+          <TabsContent value="pending" className="mt-6">
+            <PendingTab bodegaId={activeBodegaId} />
+          </TabsContent>
           <TabsContent value="users" className="mt-6">
             <UsersTab bodegaId={activeBodegaId} />
           </TabsContent>
