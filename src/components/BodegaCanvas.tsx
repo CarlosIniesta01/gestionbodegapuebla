@@ -282,7 +282,33 @@ export function BodegaCanvas() {
         zonaName={zonaSelected?.nombre}
         onClose={() => setSelectedDepId(null)}
         onEdit={selected ? () => setDepDialog({ open: true, deposito: selected }) : undefined}
+        onQuickAction={(action) => {
+          if (!selected) return;
+          if (action === "historial") {
+            navigate({ to: "/trabajos" });
+            return;
+          }
+          if (action === "trasiego") {
+            setQuickTrabajo({ open: true, tipo: "trasiego", origen: selected.codigo });
+          } else if (action === "limpieza") {
+            setQuickTrabajo({ open: true, tipo: "limpieza", destino: selected.codigo });
+          } else if (action === "producto") {
+            setQuickTrabajo({ open: true, tipo: "producto", destino: selected.codigo });
+          }
+        }}
       />
+
+      {bodegaId && (
+        <TrabajoFormDialog
+          open={quickTrabajo.open}
+          onOpenChange={(v) => setQuickTrabajo((s) => ({ ...s, open: v }))}
+          bodegaId={bodegaId}
+          defaultTipo={quickTrabajo.tipo}
+          defaultOrigen={quickTrabajo.origen}
+          defaultDestino={quickTrabajo.destino}
+        />
+      )}
+
 
       <EditZonaDialog
         open={zonaDialog.open}
