@@ -1,94 +1,98 @@
-# Rediseño Embotellado y catálogo de Productos
+# Recetas — Sistema completo
 
-Es un cambio amplio que toca BD, server functions, formularios y administración. Lo divido en fases claras.
+Voy a construir un módulo de Recetas como biblioteca de plantillas reutilizables, conectado al catálogo de Productos (Admin) y al mapa de bodega. Trabajo en fases para no romper nada.
 
-## 1. Base de datos (migración)
+## Fase 1 — Base de datos
 
-Nuevas tablas y enums:
+Nuevas tablas (con GRANT + RLS scopeadas por `current_user_bodegas()`):
 
-- `productos` (catálogo por bodega)
-  - `nombre`, `tipo` enum (`enologico`, `limpieza`, `otro`)
-  - `lote` text **NOT NULL** + check `length(trim(lote)) > 0`
-  - `proveedor`, `fecha_caducidad`, `activo` bool, `observaciones`
-  - RLS: lectura miembros activos, escritura admin de bodega
-- `elaboraciones` (cabecera de "elaboración propia")
-  - `nombre`, `fecha`, `lote_embotellado`, `observaciones`, `bodega_id`, `trabajo_id` (FK lógica)
-- `elaboracion_depositos` (depósitos origen + litros usados)
-- `elaboracion_productos` (productos + lote + cantidad + unidad)
-- `trabajo_asignados` (varios empleados por trabajo) — extiende lo que hoy es `trabajos.asignado_a`
+- **`familias_recetas`** — `id, bodega_id, nombre, color, created_at`. Permite crear familias on-the-fly (Flotación, Clarificación, Tinto, Blanco, etc.). Se siembran las por defecto al crear bodega.
+- **`recetas`** — `id, bodega_id, nombre, familia_id, tipo, descripcion, observaciones, activa, favorita, version, parent_id (para versionado), uso_count, ultimo_uso_at, created_by, created_at, updated_at`.
+- **`receta_depositos`** — `id, receta_id, zona_id, deposito_codigo, litros, variedad, observaciones, orden`.
+- **`receta_productos`** — `id, receta_id, producto_id (FK a productos), dosis, unidad, lote, observaciones, orden`. **`lote` NOT NULL** (CHECK length > 0).
+- **`receta_pasos`** *(opcional ligero)* — `id, receta_id, orden, texto`. Para instrucciones.
 
-Validaciones (triggers):
-- producto sin lote → rechazado
-- elaboración: si tiene productos, todos deben tener `lote` no vacío
+Permisos nuevos (insert en `permissions`): `recetas.read`, `recetas.write`, `recetas.delete`, `recetas.use`, `productos.write`.
 
-Realtime habilitado para `productos`, `elaboraciones`.
+Trigger: al insertar en `receta_productos`, validar `producto.lote IS NOT NULL` y `receta_productos.lote` no vacío → error `"Debes indicar el lote del producto para continuar."`.
 
-## 2. Server functions
+## Fase 2 — Server functions
 
-- `productos.functions.ts`: list (filtrado activos), create, update, deactivate
-- `embotellado.functions.ts`:
-  - `crearEmbotelladoDirecto({ bodegaId, deposito, litros, formato, botellas, lote, observaciones, scheduledAt, asignados[] })`
-  - `crearElaboracionPropia({ bodegaId, nombre, fecha, lote, observaciones, scheduledAt, asignados[], depositos[{id,litros}], productos[{id,lote,cantidad,unidad,obs}] })`
-  - Ambas validan lote obligatorio en productos, crean `trabajo` tipo `embotellado`, restan litros del/los depósitos, registran `trabajo_eventos`, recalculan llenado
-- `bodega.functions.ts` extendido: `ajustarLitrosDeposito(depId, deltaLitros, motivo)`
+`src/lib/api/recetas.functions.ts`:
+- `listFamilias`, `upsertFamilia`, `deleteFamilia`
+- `listRecetas({ bodegaId, filtros })` — con joins agregados (familia, nº productos, nº depósitos, favorita, etc.)
+- `getReceta(id)` — detalle completo con depósitos, productos, pasos, versiones
+- `upsertReceta` — crea o edita (transacción: receta + depósitos + productos + pasos). Valida lotes.
+- `duplicarReceta(id, { comoNuevaVersion })` — clona; si `comoNuevaVersion` enlaza `parent_id` e incrementa `version`.
+- `toggleFavorita`, `toggleActiva`, `deleteReceta`
+- `marcarUso(recetaId)` — incrementa `uso_count` y `ultimo_uso_at`. Se llama al usar en trabajo/elaboración.
 
-## 3. UI — Flujo Trabajos
+Validación zod estricta. Mensaje de lote obligatorio explícito.
 
-Cambio clave en `TrabajoFormDialog`:
-- Quitar campos "tipo" y "título" cuando se entra desde la pantalla visual (ya viene `defaultTipo`)
-- El título se genera automáticamente (ej. "Embotellado D-12 · Lote LB-2025-001")
-- Cada tipo abre **su propio componente** de formulario en vez de un genérico
+## Fase 3 — UI Recetas (`/recetas`)
 
-Para Embotellado (`EmbotelladoDialog`):
-1. Pantalla inicial: dos tarjetas grandes
-   - "Embotellar desde depósito"
-   - "Elaboración propia"
-2. Form A (directo): zona → depósito → litros → formato (select 0,75/1,5/3/otro) → botellas → lote → notas
-3. Form B (elaboración): nombre, fecha, lote, lista dinámica de depósitos (+ litros por cada uno), lista dinámica de productos (selector del catálogo, lote prellenado del producto pero editable, cantidad, unidad)
-4. Bloque común al final: **Programar** (Popover + `<Calendar>` shadcn + hora opcional) y **Asignar empleado** (multi-select de miembros activos de la bodega con avatar+rol)
+Reemplazo el placeholder de `src/routes/_authenticated/recetas.tsx` con un módulo completo, mobile-first:
 
-Otros tipos (trasiego, vendimia, etc.) también se simplifican: sin "tipo"/"título" repetidos. Se hace en este mismo cambio para mantener consistencia.
+**Listado (vista por defecto):**
+- Header con buscador grande, botón "Nueva receta", chips de filtros (familia, tipo, favoritas, activas).
+- Filtros laterales/collapsibles: producto utilizado, lote, depósito.
+- Grid responsivo de tarjetas (`RecetaCard`):
+  - Nombre, badge familia con color, tipo, ⭐ favorita
+  - Chips de hasta 3 productos principales + "+N"
+  - Chips de depósitos asociados
+  - Footer: "Usada N veces · hace X días · por Autor"
+  - Acciones rápidas: Usar, Editar, Duplicar, ⋯ (menú)
 
-## 4. UI — Administración
+**Detalle (Dialog grande o ruta `/recetas/$id`):**
+- Tabs: General, Depósitos, Productos, Pasos, Versiones
+- Bloque cabecera con datos generales + botones: Usar receta, Editar, Duplicar, Nueva versión, Desactivar
+- Historial de versiones colapsable.
 
-Nueva pestaña **Productos** en `/admin`:
-- Tabla con buscador y filtro por tipo/activo
-- Botón "Nuevo producto" → dialog con validación (lote obligatorio, mensaje claro)
-- Acciones: editar, activar/desactivar
+**Editor (Dialog full-screen en móvil):**
+- Sección 1: datos generales (nombre, familia con combobox creable, tipo, descripción, observaciones, activa, favorita)
+- Sección 2: Depósitos — lista editable. Cada fila: select zona → select depósito (filtrado), input litros con formato es-ES (puntos miles), variedad, observaciones. Botón "+ Añadir depósito".
+- Sección 3: Productos — selector desde catálogo (combobox con búsqueda). Por fila: producto, dosis, unidad (g/kg/ml/L/sobres/otro), lote (precargado del producto, editable, **obligatorio**), observaciones. Si el producto del catálogo no tiene lote → bloquea con el mensaje exigido.
+- Sección 4: Pasos/instrucciones (opcional, lista ordenable).
+- Footer: Guardar / Guardar como nueva versión / Cancelar.
 
-## 5. Integración con mapa / depósitos / actividad
+## Fase 4 — Admin · Productos
 
-Al guardar embotellado (cualquier modo):
-- Resta litros vía `ajustarLitrosDeposito` (recalcula % llenado en el modelo de bodega)
-- Inserta evento en `trabajo_eventos` con detalle completo (depósitos + productos + lotes)
-- Aparece automáticamente en `/actividad` (ya escucha esa tabla)
-- El depósito en el mapa refleja el nuevo nivel (ya reactivo)
+Añado tab **"Productos"** dentro de `src/routes/_authenticated/admin.tsx` (ya existen `listProductos` / `upsertProducto` / `toggleProductoActivo` / `deleteProducto` — los reutilizo):
+- Tabla con nombre, tipo (chip), lote, proveedor, caducidad, estado.
+- Dialog crear/editar con validación de lote obligatorio.
+- Filtro por tipo y por activos.
 
-## 6. Permisos
+## Fase 5 — Reutilización en trabajos
 
-Reutilizo `has_permission` existente:
-- `productos.manage` → crear/editar productos
-- `embotellado.create` → registrar embotellado
-- Admin de bodega tiene todo (via `is_bodega_admin`)
-Se siembran en `role_permissions` del rol admin durante la migración.
+En `TrabajoFormDialog` añado un selector "Usar receta…" (solo si el tipo encaja: trasiego, vendimia, producto, limpieza, embotellado). Al elegir:
+- Precarga depósito origen/destino del primer depósito de la receta.
+- Precarga campos `datos` (producto, dosis, lote, litros, variedad) desde la receta.
+- Llama `marcarUso(recetaId)` al crear el trabajo.
+- Usuario puede modificar todo antes de guardar. Al guardar ofrece (toast con acción): "¿Guardar cambios como nueva versión de la receta?".
 
-## Detalles técnicos
+En `EmbotelladoDialog` y flujo de Elaboraciones: mismo selector "Usar receta".
 
-- Calendario: `<Popover>` + `<Calendar mode="single" className="p-3 pointer-events-auto" />` + input hora separado
-- Multi-select empleados: `<Command>` con checkboxes; lee de `memberships` + `profiles` filtrado por `bodega_id`
-- Estructura archivos nuevos:
-  - `src/components/embotellado/EmbotelladoDialog.tsx`
-  - `src/components/embotellado/EmbotelladoDirecto.tsx`
-  - `src/components/embotellado/ElaboracionPropia.tsx`
-  - `src/components/embotellado/ProgramarYAsignar.tsx` (compartido)
-  - `src/components/admin/ProductosTab.tsx`
-  - `src/lib/api/productos.functions.ts`
-  - `src/lib/api/embotellado.functions.ts`
+## Fase 6 — Permisos (RLS)
 
-## Fuera de alcance (lo aviso)
+- `recetas read`: miembros de la bodega.
+- `recetas write`: `has_permission(bodega, 'recetas.write')` o admin.
+- `recetas delete`: admin o autor.
+- `productos write`: `has_permission(bodega, 'productos.write')` o admin (ya cubierto por políticas existentes; añado permiso granular).
 
-- No toco recetas (módulo aparte ya pendiente)
-- "Botellas" se calcula automáticamente desde litros+formato cuando ambos están, pero sigue editable
-- Compatibilidad: los trabajos de embotellado existentes siguen funcionando (los nuevos campos viven en tablas separadas)
+## Notas técnicas
 
-¿Confirmas para implementar?
+- Reutilizo `productos` existente (no duplico).
+- Reutilizo `useBodegaMap` para zonas/depósitos en el editor.
+- Toda escritura en transacción mediante una sola server fn que hace insert/update + delete+reinsert de hijos (patrón simple, suficiente).
+- Versionado: `parent_id` apunta a la receta raíz; `version` autoincremental dentro del árbol.
+- UI con tarjetas, chips de colores por familia, iconos Lucide. Sin ERP-feel.
+
+## Orden de ejecución
+
+1. Migración SQL (Fase 1) → pido aprobación.
+2. Server functions (Fase 2).
+3. Pantalla Recetas + editor (Fase 3).
+4. Tab Productos en Admin (Fase 4).
+5. Integración en TrabajoFormDialog/Embotellado (Fase 5).
+
+¿Apruebas el plan? Cuando confirmes empiezo por la migración.
