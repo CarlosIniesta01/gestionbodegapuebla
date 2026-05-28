@@ -136,20 +136,22 @@ function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName 
         </Section>
 
         <Section icon={Activity} title="Acciones rápidas">
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Iniciar trasiego", icon: ArrowRightLeft },
-              { label: "Iniciar limpieza", icon: Sparkles },
-              { label: "Añadir producto", icon: Beaker },
-              { label: "Ver historial", icon: History },
-            ].map((a) => (
+            {([
+              { label: "Iniciar trasiego", icon: ArrowRightLeft, action: "trasiego" as const },
+              { label: "Iniciar limpieza", icon: Sparkles, action: "limpieza" as const },
+              { label: "Añadir producto", icon: Beaker, action: "producto" as const },
+              { label: "Ver historial", icon: History, action: "historial" as const },
+            ]).map((a) => (
               <button
                 key={a.label}
+                onClick={() => onQuickAction?.(a.action)}
                 className="px-3 py-2.5 rounded-lg bg-secondary hover:bg-secondary/70 text-sm text-left transition-colors border border-border flex items-center gap-2"
               >
                 <a.icon className="size-3.5 text-muted-foreground" />
                 {a.label}
               </button>
+            ))}
+
             ))}
           </div>
         </Section>
