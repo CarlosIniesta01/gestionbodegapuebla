@@ -5,12 +5,13 @@ interface Props {
   deposito: Deposito;
   selected?: boolean;
   editMode?: boolean;
+  filling?: boolean;
   onClick?: () => void;
   onMoveEnd?: (x: number, y: number) => void;
   scale: number;
 }
 
-export function DepositoNode({ deposito, selected, editMode, onClick, onMoveEnd, scale }: Props) {
+export function DepositoNode({ deposito, selected, editMode, filling, onClick, onMoveEnd, scale }: Props) {
   const meta = ESTADO_META[deposito.estado];
   const color = getDepositoColor(deposito);
   const llenado = deposito.capacidad > 0 ? deposito.litros / deposito.capacidad : 0;
