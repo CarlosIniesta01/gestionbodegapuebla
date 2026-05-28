@@ -1,0 +1,1 @@
+ALTER TYPE public.membership_estado ADD VALUE 'rechazado';
