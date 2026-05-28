@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { MapToolbar } from "./MapToolbar";
 import { DepositoNode } from "./DepositoNode";
 import { ZonaContainer } from "./ZonaContainer";
@@ -7,10 +9,21 @@ import { DepositoPanel } from "./DepositoPanel";
 import { EditZonaDialog } from "./EditZonaDialog";
 import { EditDepositoDialog } from "./EditDepositoDialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
+import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
 
 export function BodegaCanvas() {
   const map = useBodegaMap();
+  const { bodegaId } = useActiveBodega();
+  const listFn = useServerFn(listTrabajos);
+  const trabajosQ = useQuery({
+    queryKey: ["trabajos", bodegaId, "en_curso-map"],
+    queryFn: () => listFn({ data: { bodegaId: bodegaId!, estado: ["en_curso"] } }),
+    enabled: !!bodegaId,
+    refetchInterval: 8000,
+  });
+  const enCurso: any[] = trabajosQ.data ?? [];
   const [editMode, setEditMode] = useState(false);
   const [zoom, setZoom] = useState(0.85);
   const [selectedDepId, setSelectedDepId] = useState<string | null>(null);
