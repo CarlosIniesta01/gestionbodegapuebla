@@ -46,11 +46,21 @@ export const listMembers = createServerFn({ method: "POST" })
     await assertAdmin(supabase, userId, data.bodegaId);
     const { data: rows, error } = await supabase
       .from("memberships")
-      .select("id, user_id, estado, created_at, role_id, roles(id, key, nombre, color, icono), profiles!inner(user_id, nombre, email, avatar_url)")
+      .select("id, user_id, estado, created_at, role_id, roles(id, key, nombre, color, icono)")
       .eq("bodega_id", data.bodegaId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    const userIds = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
+    let profilesById: Record<string, any> = {};
+    if (userIds.length) {
+      const { data: profs, error: pErr } = await supabase
+        .from("profiles")
+        .select("user_id, nombre, email, avatar_url")
+        .in("user_id", userIds);
+      if (pErr) throw new Error(pErr.message);
+      profilesById = Object.fromEntries((profs ?? []).map((p: any) => [p.user_id, p]));
+    }
+    return (rows ?? []).map((r: any) => ({ ...r, profiles: profilesById[r.user_id] ?? null }));
   });
 
 export const addMemberByEmail = createServerFn({ method: "POST" })
