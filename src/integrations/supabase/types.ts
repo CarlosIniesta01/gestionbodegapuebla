@@ -827,7 +827,7 @@ export type Database = {
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
-      membership_estado: "activo" | "inactivo" | "suspendido"
+      membership_estado: "activo" | "inactivo" | "suspendido" | "rechazado"
       mensaje_canal: "general" | "deposito" | "trabajo"
       producto_tipo: "enologico" | "limpieza" | "otro"
       trabajo_estado: "pendiente" | "en_curso" | "completado" | "cancelado"
@@ -967,7 +967,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      membership_estado: ["activo", "inactivo", "suspendido"],
+      membership_estado: ["activo", "inactivo", "suspendido", "rechazado"],
       mensaje_canal: ["general", "deposito", "trabajo"],
       producto_tipo: ["enologico", "limpieza", "otro"],
       trabajo_estado: ["pendiente", "en_curso", "completado", "cancelado"],

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX } from "lucide-react";
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { toast } from "sonner";
 
@@ -19,6 +19,7 @@ import {
   updateBodega,
   listPendingUsers,
   approvePendingUser,
+  rejectPendingUser,
 } from "@/lib/api/admin.functions";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -118,6 +119,7 @@ function PendingTab({ bodegaId }: { bodegaId: string }) {
   const qc = useQueryClient();
   const fnList = useServerFn(listPendingUsers);
   const fnApprove = useServerFn(approvePendingUser);
+  const fnReject = useServerFn(rejectPendingUser);
   const fnRoles = useServerFn(listRolesAndPerms);
 
   const pendingQ = useQuery({
@@ -140,6 +142,17 @@ function PendingTab({ bodegaId }: { bodegaId: string }) {
     onError: (e: any) => toast.error(e.message ?? "Error"),
   });
 
+  const rejectMut = useMutation({
+    mutationFn: (vars: { userId: string }) =>
+      fnReject({ data: { bodegaId, ...vars } }),
+    onSuccess: () => {
+      toast.success("Solicitud denegada");
+      qc.invalidateQueries({ queryKey: ["admin", "pending", bodegaId] });
+      qc.invalidateQueries({ queryKey: ["admin", "members", bodegaId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
   const operarioRole = (rolesQ.data?.roles ?? []).find((r: any) => r.key === "operario");
 
   return (
@@ -148,7 +161,7 @@ function PendingTab({ bodegaId }: { bodegaId: string }) {
         <div className="text-sm font-medium mb-1">Solicitudes de acceso</div>
         <p className="text-xs text-muted-foreground">
           Usuarios registrados que aún no pertenecen a esta bodega. Al aprobar, se les asigna por defecto el rol
-          <span className="text-foreground font-medium"> operario</span>.
+          <span className="text-foreground font-medium"> operario</span>. Al denegar, se marca como rechazado.
         </p>
       </div>
 
@@ -191,6 +204,15 @@ function PendingTab({ bodegaId }: { bodegaId: string }) {
                   disabled={approveMut.isPending || !operarioRole}
                 >
                   <UserCheck className="size-4 mr-1" /> Aprobar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => rejectMut.mutate({ userId: u.user_id })}
+                  disabled={rejectMut.isPending}
+                >
+                  <UserX className="size-4 mr-1" /> Denegar
                 </Button>
               </div>
             </div>

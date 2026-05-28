@@ -175,6 +175,36 @@ export const approvePendingUser = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const rejectPendingUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    bodegaId: z.string().uuid(),
+    userId: z.string().uuid(),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId, data.bodegaId);
+
+    // Find the operario role just to satisfy the NOT NULL role_id
+    const { data: role, error: rErr } = await supabaseAdmin
+      .from("roles")
+      .select("id")
+      .eq("bodega_id", data.bodegaId)
+      .eq("key", "operario")
+      .maybeSingle();
+    if (rErr) throw new Error(rErr.message);
+    if (!role) throw new Error("No existe el rol 'operario' en esta bodega.");
+
+    const { error } = await supabaseAdmin.from("memberships").insert({
+      user_id: data.userId,
+      bodega_id: data.bodegaId,
+      role_id: role.id,
+      estado: "rechazado",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const updateMembership = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({
