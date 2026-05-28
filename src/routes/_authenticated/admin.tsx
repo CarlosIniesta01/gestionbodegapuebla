@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX } from "lucide-react";
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   listMyBodegas,
@@ -39,7 +40,15 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 function AdminPage() {
   const fnListBodegas = useServerFn(listMyBodegas);
-  const bodegasQ = useQuery({ queryKey: ["admin", "bodegas"], queryFn: () => fnListBodegas() });
+  const bodegasQ = useQuery({
+    queryKey: ["admin", "bodegas"],
+    queryFn: async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) throw error ?? new Error("Sesión no válida");
+      return fnListBodegas();
+    },
+    retry: false,
+  });
 
   const adminBodegas = useMemo(
     () => (bodegasQ.data ?? []).filter((b) => b.role_key === "admin"),
