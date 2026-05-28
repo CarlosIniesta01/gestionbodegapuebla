@@ -74,8 +74,15 @@ export function AppShell() {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-border">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="p-3 border-t border-border space-y-2">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+          >
+            <LogOut className="size-[18px]" />
+            <span>Cerrar sesión</span>
+          </button>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground px-3">
             <Circle className="size-2 fill-state-fermentacion text-state-fermentacion" />
             Sistema en línea
           </div>
