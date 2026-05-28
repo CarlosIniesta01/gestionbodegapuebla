@@ -74,15 +74,26 @@ export const addMemberByEmail = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
 
-    // Find user by email via admin (paginated — listUsers caps at ~1000/page)
+    // Find user by email — first via profiles (fast), fallback to paginated auth admin
     const emailLower = data.email.toLowerCase();
     let target: { id: string; email?: string | null; user_metadata?: any } | undefined;
-    for (let page = 1; page <= 20; page++) {
-      const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
-      if (listErr) throw new Error(listErr.message);
-      target = list.users.find((u) => (u.email ?? "").toLowerCase() === emailLower);
-      if (target) break;
-      if (list.users.length < 1000) break;
+
+    const { data: prof } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id, email, nombre")
+      .ilike("email", emailLower)
+      .maybeSingle();
+
+    if (prof) {
+      target = { id: prof.user_id, email: prof.email, user_metadata: { nombre: prof.nombre } };
+    } else {
+      for (let page = 1; page <= 50; page++) {
+        const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (listErr) throw new Error(listErr.message);
+        target = list.users.find((u) => (u.email ?? "").toLowerCase() === emailLower);
+        if (target) break;
+        if (list.users.length < 1000) break;
+      }
     }
     if (!target) throw new Error("Usuario no encontrado. Pídele que cree una cuenta primero.");
 
