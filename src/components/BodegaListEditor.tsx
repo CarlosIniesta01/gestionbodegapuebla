@@ -16,7 +16,8 @@ export function BodegaListEditor() {
   const map = useBodegaMap();
   const colors = useColorSettings();
 
-  const map = useBodegaMap();
+
+
   const [query, setQuery] = useState("");
   const [zonaDialog, setZonaDialog] = useState<{ open: boolean; zona: Zona | null }>({ open: false, zona: null });
   const [depDialog, setDepDialog] = useState<{ open: boolean; deposito: Deposito | null; defaultZonaId?: string }>({ open: false, deposito: null });
