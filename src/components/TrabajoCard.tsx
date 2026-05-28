@@ -86,15 +86,34 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
               {t.scheduled_at ? new Date(t.scheduled_at).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" }) : new Date(t.created_at).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" })}
               {t.prioridad !== "normal" && <span className={prio.tone}>· {prio.label}</span>}
             </div>
-            <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
               {t.estado === "pendiente" && (
-                <Button size="sm" variant="ghost" onClick={() => upd.mutate({ data: { id: t.id, estado: "en_curso" }})}>
+                <Button
+                  size="sm"
+                  onClick={() => upd.mutate({ data: { id: t.id, estado: "en_curso" }})}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white"
+                >
                   <Play className="size-3.5 mr-1" />Iniciar
                 </Button>
               )}
-              {(t.estado === "pendiente" || t.estado === "en_curso") && (
+              {t.estado === "en_curso" && (
+                <>
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium text-white bg-emerald-600 heartbeat">
+                    <span className="size-1.5 rounded-full bg-white" />
+                    En curso
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => upd.mutate({ data: { id: t.id, estado: "completado" }})}
+                  >
+                    <Check className="size-3.5 mr-1" />Finalizar
+                  </Button>
+                </>
+              )}
+              {t.estado !== "cancelado" && t.estado !== "completado" && t.estado !== "en_curso" && t.estado !== "pendiente" && (
                 <Button size="sm" variant="ghost" onClick={() => upd.mutate({ data: { id: t.id, estado: "completado" }})}>
-                  <Check className="size-3.5 mr-1" />Completar
+                  <Check className="size-3.5 mr-1" />Finalizar
                 </Button>
               )}
               {t.estado !== "cancelado" && t.estado !== "completado" && (
