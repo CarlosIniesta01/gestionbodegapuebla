@@ -98,7 +98,8 @@ export function BodegaListEditor() {
 
             {deps.length === 0 ? (
               <div className="px-4 py-6 text-center text-xs text-muted-foreground">Sin depósitos en esta zona.</div>
-            ) : (
+                  const meta = colors.getEstadoMeta(d.estado);
+
               <ul className="divide-y divide-border">
                 {deps.map((d) => {
                   const meta = ESTADO_META[d.estado];
