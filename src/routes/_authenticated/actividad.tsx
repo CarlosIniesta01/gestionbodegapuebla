@@ -1,14 +1,27 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity as ActivityIcon, ArrowRight } from "lucide-react";
+import { Activity as ActivityIcon, ArrowRight, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
-import { listActividad } from "@/lib/api/trabajos.functions";
+import { deleteEvento, listActividad } from "@/lib/api/trabajos.functions";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { TIPO_META, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/actividad")({
   head: () => ({ meta: [{ title: "Actividad · Vinea Control" }] }),
@@ -25,10 +38,21 @@ function Actividad() {
   const { bodegaId, isLoading } = useActiveBodega();
   const qc = useQueryClient();
   const fn = useServerFn(listActividad);
+  const delFn = useServerFn(deleteEvento);
+
   const q = useQuery({
     queryKey: ["actividad", bodegaId],
     queryFn: () => fn({ data: { bodegaId: bodegaId! } }),
     enabled: !!bodegaId,
+  });
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => delFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Registro eliminado");
+      qc.invalidateQueries({ queryKey: ["actividad"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo eliminar"),
   });
 
   React.useEffect(() => {
@@ -89,6 +113,36 @@ function Actividad() {
                         <span className="ml-auto">{new Date(e.created_at).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" })}</span>
                       </div>
                     </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 text-muted-foreground hover:text-destructive shrink-0"
+                          aria-label="Eliminar registro"
+                          disabled={delMut.isPending}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar este registro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Solo el autor del registro o un administrador pueden eliminarlo.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => delMut.mutate(e.id)}
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </motion.div>
