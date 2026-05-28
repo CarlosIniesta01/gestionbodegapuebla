@@ -16,9 +16,12 @@ import { listTrabajos } from "@/lib/api/trabajos.functions";
 import type { TrabajoTipo } from "@/lib/trabajo-meta";
 import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
 
-
 export function BodegaCanvas() {
   const map = useBodegaMap();
+  const { bodegaId } = useActiveBodega();
+  const navigate = useNavigate();
+  const [quickTrabajo, setQuickTrabajo] = useState<{ open: boolean; tipo: TrabajoTipo; origen?: string; destino?: string }>({ open: false, tipo: "trasiego" });
+
   const { bodegaId } = useActiveBodega();
   const listFn = useServerFn(listTrabajos);
   const trabajosQ = useQuery({
