@@ -6,11 +6,11 @@ import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { TrabajoCard } from "@/components/TrabajoCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-const GROUPS = [
-  { id: "en_curso", label: "En curso", estados: ["en_curso"] as const },
-  { id: "pendiente", label: "Pendientes", estados: ["pendiente"] as const },
-  { id: "completado", label: "Finalizados", estados: ["completado", "cancelado"] as const },
-] as const;
+const GROUPS: { id: string; label: string; estados: string[] }[] = [
+  { id: "en_curso", label: "En curso", estados: ["en_curso"] },
+  { id: "pendiente", label: "Pendientes", estados: ["pendiente"] },
+  { id: "completado", label: "Finalizados", estados: ["completado", "cancelado"] },
+];
 
 export function BodegaHistorial() {
   const { bodegaId } = useActiveBodega();
