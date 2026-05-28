@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import {
   DEPOSITOS_INICIALES,
   ZONAS_INICIALES,
@@ -15,8 +15,28 @@ interface MapState {
 }
 
 // ---------- Shared module-level store ----------
-let state: MapState = { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
-let hydrated = false;
+// Hydrate SYNCHRONOUSLY at module load so any setState that may run before a
+// useEffect would have fired never overwrites saved data with defaults.
+function loadInitial(): MapState {
+  if (typeof window === "undefined") {
+    return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as MapState;
+      if (Array.isArray(parsed?.zonas) && Array.isArray(parsed?.depositos)) {
+        return parsed;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+}
+
+let state: MapState = loadInitial();
+let hydrated = typeof window !== "undefined";
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -24,7 +44,8 @@ function emit() {
 }
 
 function persist() {
-  if (typeof window === "undefined") return;
+  // Guard: never write to storage until we've loaded from it.
+  if (typeof window === "undefined" || !hydrated) return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
@@ -38,26 +59,13 @@ function setState(updater: (s: MapState) => MapState) {
   emit();
 }
 
-function hydrateOnce() {
-  if (hydrated || typeof window === "undefined") return;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as MapState;
-      if (parsed?.zonas?.length && parsed?.depositos) {
-        state = parsed;
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  hydrated = true;
-  // Cross-tab sync
+// Cross-tab sync (only in browser)
+if (typeof window !== "undefined") {
   window.addEventListener("storage", (e) => {
     if (e.key !== STORAGE_KEY || !e.newValue) return;
     try {
       const parsed = JSON.parse(e.newValue) as MapState;
-      if (parsed?.zonas?.length && parsed?.depositos) {
+      if (Array.isArray(parsed?.zonas) && Array.isArray(parsed?.depositos)) {
         state = parsed;
         emit();
       }
@@ -76,8 +84,9 @@ function getSnapshot() {
   return state;
 }
 
+const SSR_SNAPSHOT: MapState = { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
 function getServerSnapshot(): MapState {
-  return { zonas: ZONAS_INICIALES, depositos: DEPOSITOS_INICIALES };
+  return SSR_SNAPSHOT;
 }
 
 function uid(prefix: string) {
@@ -87,13 +96,6 @@ function uid(prefix: string) {
 // ---------- Hook ----------
 export function useBodegaMap() {
   const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    hydrateOnce();
-    setIsHydrated(true);
-    emit();
-  }, []);
 
   const moveDeposito = useCallback((id: string, x: number, y: number) => {
     setState((s) => ({
@@ -184,7 +186,7 @@ export function useBodegaMap() {
   return {
     zonas: snap.zonas,
     depositos: snap.depositos,
-    hydrated: isHydrated,
+    hydrated: true,
     moveDeposito,
     updateDeposito,
     deleteDeposito,
