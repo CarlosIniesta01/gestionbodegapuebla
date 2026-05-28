@@ -268,13 +268,9 @@ export function BodegaCanvas() {
           )}
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 py-2.5 border-t border-border text-[11px]">
-          {Object.entries(ESTADO_META).map(([k, meta]) => (
-            <div key={k} className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
-              {meta.label}
-            </div>
+          <LegendItems />
+        </div>
+
           ))}
         </div>
       </div>
