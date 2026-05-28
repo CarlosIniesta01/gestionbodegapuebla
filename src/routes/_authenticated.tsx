@@ -5,8 +5,9 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
     if (typeof window === "undefined") return;
 
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      await supabase.auth.signOut();
       throw redirect({ to: "/login", search: { redirect: location.href } });
     }
 
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/_authenticated")({
     const { data: memberships } = await supabase
       .from("memberships")
       .select("id, estado")
-      .eq("user_id", data.session.user.id)
+      .eq("user_id", data.user.id)
       .eq("estado", "activo")
       .limit(1);
 
