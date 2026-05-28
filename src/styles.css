@@ -159,4 +159,21 @@
   @keyframes flow {
     to { stroke-dashoffset: -28; }
   }
+
+  .heartbeat {
+    animation: heartbeat 1.4s ease-in-out infinite;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 oklch(0.72 0.18 145 / 0.55); }
+    50% { transform: scale(1.04); box-shadow: 0 0 0 8px oklch(0.72 0.18 145 / 0); }
+  }
+
+  .fill-rise {
+    animation: fillRise 2.2s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+  @keyframes fillRise {
+    0%, 100% { transform: scaleY(0.92); opacity: 0.85; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
 }
