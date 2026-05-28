@@ -184,7 +184,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo }:
           </div>
 
           <div className="border-t border-border pt-3 space-y-3">
-            <SpecificFields />
+            {renderSpecificFields()}
           </div>
 
           <div>
