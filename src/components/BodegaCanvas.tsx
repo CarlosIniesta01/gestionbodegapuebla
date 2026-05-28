@@ -268,12 +268,12 @@ export function BodegaCanvas() {
           )}
         </div>
 
+        {/* Legend */}
+        <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 py-2.5 border-t border-border text-[11px]">
           <LegendItems />
         </div>
-
-          ))}
-        </div>
       </div>
+
 
       <DepositoPanel
         deposito={selected}
