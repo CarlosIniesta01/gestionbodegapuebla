@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker, Sparkles, ArrowRightLeft } from "lucide-react";
-import { ESTADO_META, type Deposito } from "@/lib/bodega-data";
+import { type Deposito } from "@/lib/bodega-data";
+import { useColorSettings } from "@/lib/use-color-settings";
 import { useEffect, useState } from "react";
+
 
 export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
 
