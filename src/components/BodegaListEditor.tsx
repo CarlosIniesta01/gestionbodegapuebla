@@ -6,13 +6,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { ESTADO_META, type Deposito, type Zona } from "@/lib/bodega-data";
+import { useColorSettings } from "@/lib/use-color-settings";
+
 import { EditZonaDialog } from "./EditZonaDialog";
 import { EditDepositoDialog } from "./EditDepositoDialog";
 
 const fmt = (n: number) => Number(n || 0).toLocaleString("es-ES");
-
 export function BodegaListEditor() {
   const map = useBodegaMap();
+  const colors = useColorSettings();
+
+
+
   const [query, setQuery] = useState("");
   const [zonaDialog, setZonaDialog] = useState<{ open: boolean; zona: Zona | null }>({ open: false, zona: null });
   const [depDialog, setDepDialog] = useState<{ open: boolean; deposito: Deposito | null; defaultZonaId?: string }>({ open: false, deposito: null });
@@ -96,7 +101,8 @@ export function BodegaListEditor() {
             ) : (
               <ul className="divide-y divide-border">
                 {deps.map((d) => {
-                  const meta = ESTADO_META[d.estado];
+                  const meta = colors.getEstadoMeta(d.estado);
+
                   const pct = d.capacidad > 0 ? Math.min(100, (d.litros / d.capacidad) * 100) : 0;
                   return (
                     <li key={d.id} className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[120px_1fr_auto_auto] items-center gap-3 px-4 py-2.5 hover:bg-secondary/40">

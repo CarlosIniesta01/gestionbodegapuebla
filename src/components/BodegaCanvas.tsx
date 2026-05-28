@@ -14,7 +14,9 @@ import { useBodegaMap } from "@/lib/use-bodega-map";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
 import type { TrabajoTipo } from "@/lib/trabajo-meta";
-import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
+import { CANVAS_H, CANVAS_W, ESTADO_META, PROCESOS_ACTIVOS, type Deposito, type Zona, type DepositoEstado } from "@/lib/bodega-data";
+import { useColorSettings } from "@/lib/use-color-settings";
+
 
 export function BodegaCanvas() {
   const map = useBodegaMap();
@@ -268,14 +270,10 @@ export function BodegaCanvas() {
 
         {/* Legend */}
         <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 py-2.5 border-t border-border text-[11px]">
-          {Object.entries(ESTADO_META).map(([k, meta]) => (
-            <div key={k} className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
-              {meta.label}
-            </div>
-          ))}
+          <LegendItems />
         </div>
       </div>
+
 
       <DepositoPanel
         deposito={selected}
@@ -342,3 +340,21 @@ export function BodegaCanvas() {
     </>
   );
 }
+
+function LegendItems() {
+  const colors = useColorSettings();
+  return (
+    <>
+      {(Object.keys(ESTADO_META) as DepositoEstado[]).map((k) => {
+        const meta = colors.getEstadoMeta(k);
+        return (
+          <div key={k} className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
+            {meta.label}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+

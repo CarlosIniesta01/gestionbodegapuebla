@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker, Sparkles, ArrowRightLeft } from "lucide-react";
-import { ESTADO_META, type Deposito } from "@/lib/bodega-data";
+import { type Deposito } from "@/lib/bodega-data";
+import { useColorSettings } from "@/lib/use-color-settings";
 import { useEffect, useState } from "react";
+
 
 export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
 
@@ -58,7 +60,9 @@ export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaNa
 
 function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName }: { deposito: Deposito; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string }) {
 
-  const meta = ESTADO_META[deposito.estado];
+  const colors = useColorSettings();
+  const meta = colors.getEstadoMeta(deposito.estado);
+
   const pct = Math.round((deposito.litros / Math.max(1, deposito.capacidad)) * 100);
 
   return (
