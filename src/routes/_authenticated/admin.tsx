@@ -637,6 +637,11 @@ function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
   const [ubicacion, setUbicacion] = useState(initial?.ubicacion ?? "");
   const [confirmText, setConfirmText] = useState("");
 
+  useEffect(() => {
+    setNombre(initial?.nombre ?? "");
+    setUbicacion(initial?.ubicacion ?? "");
+  }, [initial?.nombre, initial?.ubicacion]);
+
   const mut = useMutation({
     mutationFn: () => fn({ data: { bodegaId, nombre, ubicacion } }),
     onSuccess: () => {
