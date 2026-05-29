@@ -239,6 +239,8 @@ export const removeMembership = createServerFn({ method: "POST" })
       .eq("id", data.membershipId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
 
 // ============ Acceso multi-bodega ============
 // Devuelve, para un usuario dado, las bodegas administradas por el admin
