@@ -43,7 +43,7 @@ export interface ProcesoActivo {
 }
 
 export const ESTADO_META: Record<
-  DepositoEstado,
+  string,
   { label: string; color: string }
 > = {
   vacio: { label: "Vacío", color: "oklch(0.55 0.015 250)" },
@@ -55,21 +55,23 @@ export const ESTADO_META: Record<
   incidencia: { label: "Incidencia", color: "oklch(0.64 0.24 25)" },
 };
 
+const FALLBACK_COLOR = "oklch(0.55 0.015 250)";
+
 // Paleta por variedad / contenido del depósito.
 // Cubre keywords típicos (tinto, blanco, rosado, variedades concretas)
 // y cae en un color hash determinista si no encaja con ninguno.
 const VARIEDAD_PALETTE: Array<{ match: RegExp; color: string }> = [
-  { match: /tempranillo|cencibel/i,        color: "oklch(0.45 0.19 18)"  }, // tinto profundo
-  { match: /garnacha|grenache/i,           color: "oklch(0.52 0.21 28)"  }, // tinto granate
+  { match: /tempranillo|cencibel/i,        color: "oklch(0.45 0.19 18)"  },
+  { match: /garnacha|grenache/i,           color: "oklch(0.52 0.21 28)"  },
   { match: /cabernet|merlot|syrah|monastrell|bobal/i, color: "oklch(0.40 0.17 12)" },
-  { match: /airén|airen/i,                 color: "oklch(0.86 0.13 95)"  }, // blanco dorado
-  { match: /verdejo|sauvignon|albariño|albarino/i,    color: "oklch(0.82 0.14 115)" }, // blanco verde
-  { match: /macabeo|viura|chardonnay/i,    color: "oklch(0.85 0.11 88)"  }, // blanco pajizo
+  { match: /airén|airen/i,                 color: "oklch(0.86 0.13 95)"  },
+  { match: /verdejo|sauvignon|albariño|albarino/i,    color: "oklch(0.82 0.14 115)" },
+  { match: /macabeo|viura|chardonnay/i,    color: "oklch(0.85 0.11 88)"  },
   { match: /moscatel|gewurztraminer/i,     color: "oklch(0.83 0.16 80)"  },
-  { match: /rosado|ros[eé]/i,              color: "oklch(0.72 0.16 10)"  }, // rosado
+  { match: /rosado|ros[eé]/i,              color: "oklch(0.72 0.16 10)"  },
   { match: /espumoso|cava|brut/i,          color: "oklch(0.78 0.08 200)" },
-  { match: /tinto/i,                       color: "oklch(0.45 0.19 18)"  }, // genérico
-  { match: /blanco/i,                      color: "oklch(0.84 0.13 95)"  }, // genérico
+  { match: /tinto/i,                       color: "oklch(0.45 0.19 18)"  },
+  { match: /blanco/i,                      color: "oklch(0.84 0.13 95)"  },
 ];
 
 function hashColor(s: string): string {
@@ -80,15 +82,17 @@ function hashColor(s: string): string {
 }
 
 export function getDepositoColor(deposito: { estado: DepositoEstado; contenido?: string | null }): string {
-  // Estados sin contenido: usar color del estado (vacío/limpieza/incidencia/trasiego)
+  const estadoColor = ESTADO_META[deposito.estado]?.color ?? FALLBACK_COLOR;
+  // Estados sin contenido o "neutros": usar color del estado
   if (!deposito.contenido || deposito.estado === "vacio" || deposito.estado === "limpieza" || deposito.estado === "incidencia") {
-    return ESTADO_META[deposito.estado].color;
+    return estadoColor;
   }
   for (const { match, color } of VARIEDAD_PALETTE) {
     if (match.test(deposito.contenido)) return color;
   }
   return hashColor(deposito.contenido);
 }
+
 
 export const CANVAS_W = 1400;
 export const CANVAS_H = 900;
