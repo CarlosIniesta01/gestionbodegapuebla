@@ -356,8 +356,6 @@ export const updateBodega = createServerFn({ method: "POST" })
     }).eq("id", data.bodegaId);
     if (error) throw new Error(error.message);
     return { ok: true };
-    if (error) throw new Error(error.message);
-    return { ok: true };
   });
 
 export const createBodega = createServerFn({ method: "POST" })
