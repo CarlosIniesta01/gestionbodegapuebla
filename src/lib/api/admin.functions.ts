@@ -241,6 +241,109 @@ export const removeMembership = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+
+// ============ Acceso multi-bodega ============
+// Devuelve, para un usuario dado, las bodegas administradas por el admin
+// actual junto con el estado de su membership en cada una (si existe).
+export const listUserBodegaAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ targetUserId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    // Bodegas donde el admin actual es admin
+    const { data: myAdmin, error: aErr } = await supabaseAdmin
+      .from("memberships")
+      .select("bodega_id, roles!inner(key), bodegas!inner(id, nombre)")
+      .eq("user_id", userId)
+      .eq("estado", "activo");
+    if (aErr) throw new Error(aErr.message);
+    const adminBodegas = (myAdmin ?? []).filter((m: any) => m.roles?.key === "admin");
+    const bodegaIds = adminBodegas.map((m: any) => m.bodega_id);
+    if (!bodegaIds.length) return [];
+
+    const { data: targetMs, error: tErr } = await supabaseAdmin
+      .from("memberships")
+      .select("id, bodega_id, estado, role_id, roles(id, key, nombre, color)")
+      .eq("user_id", data.targetUserId)
+      .in("bodega_id", bodegaIds);
+    if (tErr) throw new Error(tErr.message);
+
+    const byBodega = new Map<string, any>();
+    for (const m of targetMs ?? []) byBodega.set(m.bodega_id, m);
+
+    return adminBodegas.map((b: any) => {
+      const m = byBodega.get(b.bodega_id);
+      return {
+        bodega_id: b.bodega_id,
+        bodega: b.bodegas,
+        enabled: !!m && m.estado === "activo",
+        membership_id: m?.id ?? null,
+        role: m?.roles ?? null,
+        estado: m?.estado ?? null,
+      };
+    });
+  });
+
+// Concede o revoca el acceso de un usuario a una bodega concreta.
+// El admin actual debe ser admin de esa bodega.
+export const setUserBodegaAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    targetUserId: z.string().uuid(),
+    bodegaId: z.string().uuid(),
+    enabled: z.boolean(),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId, data.bodegaId);
+
+    if (data.enabled) {
+      // Asignar rol "operario" por defecto si no existe el membership o si está revocado
+      const { data: role, error: rErr } = await supabaseAdmin
+        .from("roles")
+        .select("id")
+        .eq("bodega_id", data.bodegaId)
+        .eq("key", "operario")
+        .maybeSingle();
+      if (rErr) throw new Error(rErr.message);
+      if (!role) throw new Error("No existe el rol 'operario' en esta bodega.");
+
+      const { data: existing } = await supabaseAdmin
+        .from("memberships")
+        .select("id, role_id")
+        .eq("user_id", data.targetUserId)
+        .eq("bodega_id", data.bodegaId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabaseAdmin
+          .from("memberships")
+          .update({ estado: "activo" })
+          .eq("id", existing.id);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await supabaseAdmin.from("memberships").insert({
+          user_id: data.targetUserId,
+          bodega_id: data.bodegaId,
+          role_id: role.id,
+          estado: "activo",
+        });
+        if (error) throw new Error(error.message);
+      }
+    } else {
+      // Revocar: soft delete (rechazado) para que no se cuele como pendiente
+      const { error } = await supabaseAdmin
+        .from("memberships")
+        .update({ estado: "rechazado" })
+        .eq("user_id", data.targetUserId)
+        .eq("bodega_id", data.bodegaId);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+
+
 // ============ Roles & Permissions ============
 export const listRolesAndPerms = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

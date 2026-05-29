@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network } from "lucide-react";
+
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,10 @@ import {
   rejectPendingUser,
   createBodega,
   deleteBodega,
+  listUserBodegaAccess,
+  setUserBodegaAccess,
 } from "@/lib/api/admin.functions";
+
 
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +36,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -351,6 +357,8 @@ function UsersTab({ bodegaId }: { bodegaId: string }) {
                     <SelectItem value="inactivo">Inactivo</SelectItem>
                   </SelectContent>
                 </Select>
+                <BodegaAccessButton targetUserId={m.user_id} />
+
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="ghost" className="text-destructive">
@@ -753,3 +761,69 @@ function CreateBodegaButton({ onCreated }: { onCreated: (id: string) => void }) 
     </Dialog>
   );
 }
+
+
+// =================== BODEGA ACCESS (multi-bodega) ===================
+function BodegaAccessButton({ targetUserId }: { targetUserId: string }) {
+  const qc = useQueryClient();
+  const fnList = useServerFn(listUserBodegaAccess);
+  const fnSet = useServerFn(setUserBodegaAccess);
+  const [open, setOpen] = useState(false);
+
+  const q = useQuery({
+    queryKey: ["admin", "userBodegaAccess", targetUserId],
+    queryFn: () => fnList({ data: { targetUserId } }),
+    enabled: open,
+  });
+
+  const mut = useMutation({
+    mutationFn: (vars: { bodegaId: string; enabled: boolean }) =>
+      fnSet({ data: { targetUserId, ...vars } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "userBodegaAccess", targetUserId] });
+      qc.invalidateQueries({ queryKey: ["admin", "members"] });
+      qc.invalidateQueries({ queryKey: ["my-bodegas"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button size="icon" variant="ghost" title="Acceso a bodegas">
+          <Network className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-3" align="end">
+        <div className="text-sm font-medium mb-2">Acceso a bodegas</div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Marca las bodegas que este usuario podrá ver y operar.
+        </p>
+        {q.isLoading && <div className="text-xs text-muted-foreground">Cargando…</div>}
+        {q.data?.length === 0 && (
+          <div className="text-xs text-muted-foreground">No administras otras bodegas.</div>
+        )}
+        <div className="space-y-2 max-h-64 overflow-auto">
+          {(q.data ?? []).map((row: any) => (
+            <label key={row.bodega_id} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={row.enabled}
+                disabled={mut.isPending}
+                onCheckedChange={(v) =>
+                  mut.mutate({ bodegaId: row.bodega_id, enabled: !!v })
+                }
+              />
+              <span className="flex-1 truncate">{row.bodega?.nombre}</span>
+              {row.role?.nombre && (
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {row.role.nombre}
+                </span>
+              )}
+            </label>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
