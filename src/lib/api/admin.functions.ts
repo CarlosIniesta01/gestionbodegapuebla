@@ -230,7 +230,12 @@ export const removeMembership = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
-    const { error } = await supabase.from("memberships").delete().eq("id", data.membershipId);
+    // Soft delete: marcamos como rechazado para que NO reaparezca como
+    // solicitud pendiente y la decisión sea permanente.
+    const { error } = await supabaseAdmin
+      .from("memberships")
+      .update({ estado: "rechazado" })
+      .eq("id", data.membershipId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -351,4 +356,114 @@ export const updateBodega = createServerFn({ method: "POST" })
     }).eq("id", data.bodegaId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export const createBodega = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    nombre: z.string().min(1).max(120),
+    ubicacion: z.string().max(200).optional(),
+    organizationNombre: z.string().max(120).optional(),
+  }))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    // 1) Reutilizar la primera organización del usuario si ya pertenece a alguna;
+    //    si no, crear una nueva.
+    const { data: existingMs, error: msErr } = await supabaseAdmin
+      .from("memberships")
+      .select("bodega_id, bodegas!inner(organization_id)")
+      .eq("user_id", userId)
+      .limit(1);
+    if (msErr) throw new Error(msErr.message);
+
+    let organizationId: string | undefined = (existingMs?.[0] as any)?.bodegas?.organization_id;
+    if (!organizationId) {
+      const { data: org, error: oErr } = await supabaseAdmin
+        .from("organizations")
+        .insert({ nombre: data.organizationNombre ?? "Mi Organización" })
+        .select("id")
+        .single();
+      if (oErr) throw new Error(oErr.message);
+      organizationId = org.id;
+    }
+
+    // 2) Crear la bodega
+    const { data: bodega, error: bErr } = await supabaseAdmin
+      .from("bodegas")
+      .insert({
+        organization_id: organizationId,
+        nombre: data.nombre,
+        ubicacion: data.ubicacion ?? null,
+      })
+      .select("id")
+      .single();
+    if (bErr) throw new Error(bErr.message);
+    const bodegaId = bodega.id;
+
+    // 3) Copiar roles del sistema (bodega_id IS NULL) a la nueva bodega
+    const { data: sysRoles, error: srErr } = await supabaseAdmin
+      .from("roles")
+      .select("id, key, nombre, color, icono, descripcion, activo")
+      .is("bodega_id", null);
+    if (srErr) throw new Error(srErr.message);
+
+    if (sysRoles && sysRoles.length) {
+      const { error: insRolesErr } = await supabaseAdmin.from("roles").insert(
+        sysRoles.map((r: any) => ({
+          bodega_id: bodegaId,
+          key: r.key,
+          nombre: r.nombre,
+          color: r.color,
+          icono: r.icono,
+          descripcion: r.descripcion,
+          activo: r.activo,
+          is_system: true,
+        })),
+      );
+      if (insRolesErr) throw new Error(insRolesErr.message);
+
+      // 4) Copiar role_permissions de los roles plantilla
+      const sysRoleIds = sysRoles.map((r: any) => r.id);
+      const { data: sysPerms, error: spErr } = await supabaseAdmin
+        .from("role_permissions")
+        .select("role_id, permission_key")
+        .in("role_id", sysRoleIds);
+      if (spErr) throw new Error(spErr.message);
+
+      const { data: newRoles, error: nrErr } = await supabaseAdmin
+        .from("roles")
+        .select("id, key")
+        .eq("bodega_id", bodegaId);
+      if (nrErr) throw new Error(nrErr.message);
+      const newRoleByKey: Record<string, string> = Object.fromEntries(
+        (newRoles ?? []).map((r: any) => [r.key, r.id]),
+      );
+      const sysKeyById: Record<string, string> = Object.fromEntries(
+        sysRoles.map((r: any) => [r.id, r.key]),
+      );
+      const rpRows = (sysPerms ?? [])
+        .map((p: any) => ({
+          role_id: newRoleByKey[sysKeyById[p.role_id]],
+          permission_key: p.permission_key,
+        }))
+        .filter((r) => !!r.role_id);
+      if (rpRows.length) {
+        const { error: rpErr } = await supabaseAdmin.from("role_permissions").insert(rpRows);
+        if (rpErr) throw new Error(rpErr.message);
+      }
+
+      // 5) Asignar admin al creador
+      const adminRoleId = newRoleByKey["admin"];
+      if (!adminRoleId) throw new Error("Plantilla de roles sin 'admin'");
+      const { error: memErr } = await supabaseAdmin.from("memberships").insert({
+        user_id: userId,
+        bodega_id: bodegaId,
+        role_id: adminRoleId,
+        estado: "activo",
+      });
+      if (memErr) throw new Error(memErr.message);
+    }
+
+    return { id: bodegaId };
   });

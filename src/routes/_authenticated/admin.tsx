@@ -21,6 +21,7 @@ import {
   listPendingUsers,
   approvePendingUser,
   rejectPendingUser,
+  createBodega,
 } from "@/lib/api/admin.functions";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,11 +64,12 @@ function AdminPage() {
   }
   if (adminBodegas.length === 0) {
     return (
-      <div className="p-6 md:p-10 max-w-2xl mx-auto">
+      <div className="p-6 md:p-10 max-w-2xl mx-auto space-y-4">
         <div className="scada-panel p-10 text-center">
           <Shield className="size-10 mx-auto mb-3 opacity-50" />
           <h1 className="text-xl font-semibold mb-1">Sin acceso de administración</h1>
-          <p className="text-muted-foreground text-sm">No eres administrador de ninguna bodega.</p>
+          <p className="text-muted-foreground text-sm mb-4">No eres administrador de ninguna bodega.</p>
+          <CreateBodegaButton onCreated={(id) => { setBodegaId(id); bodegasQ.refetch(); }} />
         </div>
       </div>
     );
@@ -81,16 +83,19 @@ function AdminPage() {
           <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">Centro de control</h1>
           <p className="text-muted-foreground text-sm">Usuarios, roles, permisos y configuración.</p>
         </div>
-        {adminBodegas.length > 1 && (
-          <Select value={activeBodegaId ?? undefined} onValueChange={setBodegaId}>
-            <SelectTrigger className="w-full md:w-[260px]"><SelectValue placeholder="Bodega" /></SelectTrigger>
-            <SelectContent>
-              {adminBodegas.map((b) => (
-                <SelectItem key={b.bodega_id} value={b.bodega_id}>{b.bodega.nombre}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <div className="flex items-center gap-2">
+          {adminBodegas.length > 1 && (
+            <Select value={activeBodegaId ?? undefined} onValueChange={setBodegaId}>
+              <SelectTrigger className="w-full md:w-[220px]"><SelectValue placeholder="Bodega" /></SelectTrigger>
+              <SelectContent>
+                {adminBodegas.map((b) => (
+                  <SelectItem key={b.bodega_id} value={b.bodega_id}>{b.bodega.nombre}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <CreateBodegaButton onCreated={(id) => { setBodegaId(id); bodegasQ.refetch(); }} />
+        </div>
       </div>
 
       {activeBodegaId && (
@@ -642,5 +647,51 @@ function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
         <Save className="size-4 mr-1" /> Guardar
       </Button>
     </div>
+  );
+}
+
+// =================== CREATE BODEGA ===================
+function CreateBodegaButton({ onCreated }: { onCreated: (id: string) => void }) {
+  const fn = useServerFn(createBodega);
+  const [open, setOpen] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [ubicacion, setUbicacion] = useState("");
+  const mut = useMutation({
+    mutationFn: () => fn({ data: { nombre, ubicacion: ubicacion || undefined } }),
+    onSuccess: (res: any) => {
+      toast.success("Bodega creada");
+      setOpen(false);
+      setNombre("");
+      setUbicacion("");
+      onCreated(res.id);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline"><Plus className="size-4 mr-1" /> Crear bodega</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Crear nueva bodega</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Nombre</Label>
+            <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Bodega Principal" />
+          </div>
+          <div>
+            <Label>Ubicación (opcional)</Label>
+            <Input value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} placeholder="Ciudad / dirección" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={!nombre || mut.isPending}>
+            <Plus className="size-4 mr-1" /> Crear
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
