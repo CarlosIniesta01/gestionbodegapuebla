@@ -341,21 +341,20 @@ export function BodegaCanvas() {
     </>
   );
 }
-
 function LegendItems() {
   const colors = useColorSettings();
+  const estados = colors.getAllEstados();
   return (
     <>
-      {(Object.keys(ESTADO_META) as DepositoEstado[]).map((k) => {
-        const meta = colors.getEstadoMeta(k);
-        return (
-          <div key={k} className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
-            {meta.label}
-          </div>
-        );
-      })}
+      {estados.map((e) => (
+        <div key={e.key} className="flex items-center gap-1.5 text-muted-foreground">
+          <span className="size-2.5 rounded-full" style={{ background: e.color }} />
+          {e.label}
+        </div>
+      ))}
     </>
   );
+}
+
 }
 
