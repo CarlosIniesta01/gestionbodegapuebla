@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { ESTADO_META, type Deposito, type DepositoEstado, type Zona } from "@/lib/bodega-data";
+import { type Deposito, type DepositoEstado, type Zona } from "@/lib/bodega-data";
+import { useColorSettings } from "@/lib/use-color-settings";
 
 interface Props {
   open: boolean;
@@ -21,7 +22,6 @@ interface Props {
   onDelete?: () => void;
 }
 
-const ESTADOS: DepositoEstado[] = ["vacio", "mosto", "fermentacion", "vino", "limpieza", "trasiego", "incidencia"];
 
 export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave, onDelete }: Props) {
   const [codigo, setCodigo] = useState("");
