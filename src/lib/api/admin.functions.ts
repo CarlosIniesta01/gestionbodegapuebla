@@ -230,7 +230,12 @@ export const removeMembership = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
-    const { error } = await supabase.from("memberships").delete().eq("id", data.membershipId);
+    // Soft delete: marcamos como rechazado para que NO reaparezca como
+    // solicitud pendiente y la decisión sea permanente.
+    const { error } = await supabaseAdmin
+      .from("memberships")
+      .update({ estado: "rechazado" })
+      .eq("id", data.membershipId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
