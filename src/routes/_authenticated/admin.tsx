@@ -649,3 +649,49 @@ function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
     </div>
   );
 }
+
+// =================== CREATE BODEGA ===================
+function CreateBodegaButton({ onCreated }: { onCreated: (id: string) => void }) {
+  const fn = useServerFn(createBodega);
+  const [open, setOpen] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [ubicacion, setUbicacion] = useState("");
+  const mut = useMutation({
+    mutationFn: () => fn({ data: { nombre, ubicacion: ubicacion || undefined } }),
+    onSuccess: (res: any) => {
+      toast.success("Bodega creada");
+      setOpen(false);
+      setNombre("");
+      setUbicacion("");
+      onCreated(res.id);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline"><Plus className="size-4 mr-1" /> Crear bodega</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Crear nueva bodega</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Nombre</Label>
+            <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Bodega Principal" />
+          </div>
+          <div>
+            <Label>Ubicación (opcional)</Label>
+            <Input value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} placeholder="Ciudad / dirección" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={!nombre || mut.isPending}>
+            <Plus className="size-4 mr-1" /> Crear
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
