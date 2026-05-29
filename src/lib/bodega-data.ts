@@ -1,11 +1,11 @@
-export type DepositoEstado =
-  | "vacio"
-  | "mosto"
-  | "fermentacion"
-  | "vino"
-  | "limpieza"
-  | "trasiego"
-  | "incidencia";
+// Los estados son extensibles desde la pestaña "Colores".
+// Los 7 primeros son los estados base de fábrica.
+export type DepositoEstado = string;
+
+export const BUILTIN_ESTADOS = [
+  "vacio", "mosto", "fermentacion", "vino", "limpieza", "trasiego", "incidencia",
+] as const;
+
 
 export interface Zona {
   id: string;
