@@ -570,7 +570,6 @@ export const createBodega = createServerFn({ method: "POST" })
     }
 
     return { id: bodegaId };
-    return { id: bodegaId };
   });
 
 export const deleteBodega = createServerFn({ method: "POST" })
