@@ -354,6 +354,8 @@ function UsersTab({ bodegaId }: { bodegaId: string }) {
                     <SelectItem value="inactivo">Inactivo</SelectItem>
                   </SelectContent>
                 </Select>
+                <BodegaAccessButton targetUserId={m.user_id} />
+
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="ghost" className="text-destructive">
