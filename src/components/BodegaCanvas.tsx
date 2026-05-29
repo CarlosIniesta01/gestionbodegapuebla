@@ -19,9 +19,10 @@ import { CANVAS_H, CANVAS_W, PROCESOS_ACTIVOS, type Deposito, type Zona } from "
 import { useColorSettings } from "@/lib/use-color-settings";
 
 
-export function BodegaCanvas() {
-  const map = useBodegaMap();
-  const { bodegaId } = useActiveBodega();
+export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } = {}) {
+  const active = useActiveBodega();
+  const bodegaId = bodegaIdProp ?? active.bodegaId;
+  const map = useBodegaMap(bodegaId);
   const navigate = useNavigate();
   const [quickTrabajo, setQuickTrabajo] = useState<{ open: boolean; tipo: TrabajoTipo; origen?: string; destino?: string }>({ open: false, tipo: "trasiego" });
 
