@@ -5,7 +5,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
-import { ESTADO_META, type Deposito, type Zona } from "@/lib/bodega-data";
+import { type Deposito, type Zona } from "@/lib/bodega-data";
+
 import { useColorSettings } from "@/lib/use-color-settings";
 
 import { EditZonaDialog } from "./EditZonaDialog";
