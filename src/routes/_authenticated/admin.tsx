@@ -760,6 +760,8 @@ function CreateBodegaButton({ onCreated }: { onCreated: (id: string) => void }) 
       </DialogContent>
     </Dialog>
   );
+}
+
 
 // =================== BODEGA ACCESS (multi-bodega) ===================
 function BodegaAccessButton({ targetUserId }: { targetUserId: string }) {
