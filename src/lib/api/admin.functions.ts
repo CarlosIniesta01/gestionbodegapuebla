@@ -467,4 +467,70 @@ export const createBodega = createServerFn({ method: "POST" })
     }
 
     return { id: bodegaId };
+    return { id: bodegaId };
   });
+
+export const deleteBodega = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bodegaId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId, data.bodegaId);
+    const bId = data.bodegaId;
+
+    // Borrado en cascada manual (no hay FKs declaradas).
+    // 1) Datos dependientes de trabajos
+    const { data: trabajos } = await supabaseAdmin.from("trabajos").select("id").eq("bodega_id", bId);
+    const trabajoIds = (trabajos ?? []).map((t: any) => t.id);
+    if (trabajoIds.length) {
+      await supabaseAdmin.from("trabajo_eventos").delete().in("trabajo_id", trabajoIds);
+      await supabaseAdmin.from("trabajo_asignados").delete().in("trabajo_id", trabajoIds);
+    }
+    await supabaseAdmin.from("trabajos").delete().eq("bodega_id", bId);
+
+    // 2) Elaboraciones
+    const { data: elabs } = await supabaseAdmin.from("elaboraciones").select("id").eq("bodega_id", bId);
+    const elabIds = (elabs ?? []).map((e: any) => e.id);
+    if (elabIds.length) {
+      await supabaseAdmin.from("elaboracion_productos").delete().in("elaboracion_id", elabIds);
+      await supabaseAdmin.from("elaboracion_depositos").delete().in("elaboracion_id", elabIds);
+    }
+    await supabaseAdmin.from("elaboraciones").delete().eq("bodega_id", bId);
+
+    // 3) Recetas
+    const { data: recetas } = await supabaseAdmin.from("recetas").select("id").eq("bodega_id", bId);
+    const recetaIds = (recetas ?? []).map((r: any) => r.id);
+    if (recetaIds.length) {
+      await supabaseAdmin.from("receta_productos").delete().in("receta_id", recetaIds);
+      await supabaseAdmin.from("receta_pasos").delete().in("receta_id", recetaIds);
+      await supabaseAdmin.from("receta_depositos").delete().in("receta_id", recetaIds);
+    }
+    await supabaseAdmin.from("recetas").delete().eq("bodega_id", bId);
+    await supabaseAdmin.from("familias_recetas").delete().eq("bodega_id", bId);
+
+    // 4) Productos y mensajes
+    await supabaseAdmin.from("productos").delete().eq("bodega_id", bId);
+    await supabaseAdmin.from("mensajes").delete().eq("bodega_id", bId);
+
+    // 5) Memberships y zonas
+    const { data: ms } = await supabaseAdmin.from("memberships").select("id").eq("bodega_id", bId);
+    const msIds = (ms ?? []).map((m: any) => m.id);
+    if (msIds.length) {
+      await supabaseAdmin.from("membership_zonas").delete().in("membership_id", msIds);
+    }
+    await supabaseAdmin.from("memberships").delete().eq("bodega_id", bId);
+
+    // 6) Roles y permisos
+    const { data: roles } = await supabaseAdmin.from("roles").select("id").eq("bodega_id", bId);
+    const roleIds = (roles ?? []).map((r: any) => r.id);
+    if (roleIds.length) {
+      await supabaseAdmin.from("role_permissions").delete().in("role_id", roleIds);
+    }
+    await supabaseAdmin.from("roles").delete().eq("bodega_id", bId);
+
+    // 7) La bodega
+    const { error } = await supabaseAdmin.from("bodegas").delete().eq("id", bId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
