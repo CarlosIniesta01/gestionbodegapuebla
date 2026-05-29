@@ -64,11 +64,12 @@ function AdminPage() {
   }
   if (adminBodegas.length === 0) {
     return (
-      <div className="p-6 md:p-10 max-w-2xl mx-auto">
+      <div className="p-6 md:p-10 max-w-2xl mx-auto space-y-4">
         <div className="scada-panel p-10 text-center">
           <Shield className="size-10 mx-auto mb-3 opacity-50" />
           <h1 className="text-xl font-semibold mb-1">Sin acceso de administración</h1>
-          <p className="text-muted-foreground text-sm">No eres administrador de ninguna bodega.</p>
+          <p className="text-muted-foreground text-sm mb-4">No eres administrador de ninguna bodega.</p>
+          <CreateBodegaButton onCreated={(id) => { setBodegaId(id); bodegasQ.refetch(); }} />
         </div>
       </div>
     );
@@ -82,16 +83,19 @@ function AdminPage() {
           <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">Centro de control</h1>
           <p className="text-muted-foreground text-sm">Usuarios, roles, permisos y configuración.</p>
         </div>
-        {adminBodegas.length > 1 && (
-          <Select value={activeBodegaId ?? undefined} onValueChange={setBodegaId}>
-            <SelectTrigger className="w-full md:w-[260px]"><SelectValue placeholder="Bodega" /></SelectTrigger>
-            <SelectContent>
-              {adminBodegas.map((b) => (
-                <SelectItem key={b.bodega_id} value={b.bodega_id}>{b.bodega.nombre}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <div className="flex items-center gap-2">
+          {adminBodegas.length > 1 && (
+            <Select value={activeBodegaId ?? undefined} onValueChange={setBodegaId}>
+              <SelectTrigger className="w-full md:w-[220px]"><SelectValue placeholder="Bodega" /></SelectTrigger>
+              <SelectContent>
+                {adminBodegas.map((b) => (
+                  <SelectItem key={b.bodega_id} value={b.bodega_id}>{b.bodega.nombre}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <CreateBodegaButton onCreated={(id) => { setBodegaId(id); bodegasQ.refetch(); }} />
+        </div>
       </div>
 
       {activeBodegaId && (
