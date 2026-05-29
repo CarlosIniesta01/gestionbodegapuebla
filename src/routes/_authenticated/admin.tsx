@@ -617,14 +617,14 @@ function RoleDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
 // =================== BODEGA ===================
 function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
   const fn = useServerFn(updateBodega);
+  const fnDelete = useServerFn(deleteBodega);
   const qc = useQueryClient();
   const [nombre, setNombre] = useState(initial?.nombre ?? "");
   const [ubicacion, setUbicacion] = useState(initial?.ubicacion ?? "");
+  const [confirmText, setConfirmText] = useState("");
 
   const mut = useMutation({
     mutationFn: () => fn({ data: { bodegaId, nombre, ubicacion } }),
@@ -635,20 +635,74 @@ function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
     onError: (e: any) => toast.error(e.message ?? "Error"),
   });
 
+  const delMut = useMutation({
+    mutationFn: () => fnDelete({ data: { bodegaId } }),
+    onSuccess: () => {
+      toast.success("Bodega eliminada");
+      try { localStorage.removeItem(`vinea:map:v1:${bodegaId}`); } catch {}
+      qc.invalidateQueries({ queryKey: ["admin", "bodegas"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
   return (
-    <div className="scada-panel p-5 max-w-xl space-y-4">
-      <div className="space-y-1.5">
-        <Label>Nombre</Label>
-        <Input value={nombre} onChange={(e) => setNombre(e.target.value)} />
+    <div className="space-y-4 max-w-xl">
+      <div className="scada-panel p-5 space-y-4">
+        <div className="space-y-1.5">
+          <Label>Nombre</Label>
+          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Ubicación</Label>
+          <Input value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} />
+        </div>
+        <Button onClick={() => mut.mutate()} disabled={mut.isPending || !nombre}>
+          <Save className="size-4 mr-1" /> Guardar
+        </Button>
       </div>
-      <div className="space-y-1.5">
-        <Label>Ubicación</Label>
-        <Input value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} />
+
+      <div className="scada-panel p-5 border-destructive/40 space-y-3">
+        <div>
+          <div className="text-sm font-medium text-destructive">Zona peligrosa</div>
+          <p className="text-xs text-muted-foreground">
+            Eliminar la bodega borra de forma permanente miembros, roles, productos,
+            recetas, elaboraciones, trabajos y mensajes asociados.
+          </p>
+        </div>
+        <AlertDialog onOpenChange={() => setConfirmText("")}>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="size-4 mr-1" /> Eliminar bodega
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar "{initial?.nombre}"?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción es permanente. Para confirmar, escribe el nombre exacto de la bodega.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={initial?.nombre}
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={confirmText !== (initial?.nombre ?? "") || delMut.isPending}
+                onClick={() => delMut.mutate()}
+              >
+                Eliminar definitivamente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-      <Button onClick={() => mut.mutate()} disabled={mut.isPending || !nombre}>
-        <Save className="size-4 mr-1" /> Guardar
-      </Button>
     </div>
+  );
+}
+
   );
 }
 
