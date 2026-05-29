@@ -116,22 +116,23 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
 
           <Field label="Estado">
             <div className="grid grid-cols-4 gap-1.5">
-              {ESTADOS.map((s) => {
-                const meta = ESTADO_META[s];
-                const active = estado === s;
+              {estados.map((s) => {
+                const active = estado === s.key;
                 return (
                   <button
-                    key={s}
-                    onClick={() => setEstado(s)}
+                    key={s.key}
+                    type="button"
+                    onClick={() => setEstado(s.key)}
                     className={`p-2 rounded-lg border text-[10px] font-medium flex flex-col items-center gap-1 transition-all ${
                       active ? "border-foreground" : "border-border hover:border-muted-foreground"
                     }`}
                   >
-                    <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
-                    {meta.label}
+                    <span className="size-2.5 rounded-full" style={{ background: s.color }} />
+                    {s.label}
                   </button>
                 );
               })}
+
             </div>
           </Field>
 
