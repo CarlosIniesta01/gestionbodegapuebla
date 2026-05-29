@@ -617,7 +617,10 @@ function RoleDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
 // =================== BODEGA ===================
+
 function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
   const fn = useServerFn(updateBodega);
   const fnDelete = useServerFn(deleteBodega);
