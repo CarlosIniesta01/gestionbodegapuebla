@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network } from "lucide-react";
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
@@ -636,6 +636,11 @@ function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
   const [nombre, setNombre] = useState(initial?.nombre ?? "");
   const [ubicacion, setUbicacion] = useState(initial?.ubicacion ?? "");
   const [confirmText, setConfirmText] = useState("");
+
+  useEffect(() => {
+    setNombre(initial?.nombre ?? "");
+    setUbicacion(initial?.ubicacion ?? "");
+  }, [initial?.nombre, initial?.ubicacion]);
 
   const mut = useMutation({
     mutationFn: () => fn({ data: { bodegaId, nombre, ubicacion } }),
