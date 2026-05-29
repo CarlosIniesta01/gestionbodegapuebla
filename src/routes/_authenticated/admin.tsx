@@ -703,8 +703,7 @@ function BodegaTab({ bodegaId, initial }: { bodegaId: string; initial: any }) {
   );
 }
 
-  );
-}
+
 
 // =================== CREATE BODEGA ===================
 function CreateBodegaButton({ onCreated }: { onCreated: (id: string) => void }) {
