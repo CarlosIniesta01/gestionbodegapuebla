@@ -24,6 +24,9 @@ interface Props {
 
 
 export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave, onDelete }: Props) {
+  const { getAllEstados } = useColorSettings();
+  const estados = getAllEstados();
+
   const [codigo, setCodigo] = useState("");
   const [zonaId, setZonaId] = useState("");
   const [capacidad, setCapacidad] = useState(20000);
