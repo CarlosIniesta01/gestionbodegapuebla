@@ -356,5 +356,4 @@ function LegendItems() {
   );
 }
 
-}
 
