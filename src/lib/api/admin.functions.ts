@@ -48,6 +48,7 @@ export const listMembers = createServerFn({ method: "POST" })
       .from("memberships")
       .select("id, user_id, estado, created_at, role_id, roles(id, key, nombre, color, icono)")
       .eq("bodega_id", data.bodegaId)
+      .neq("estado", "rechazado")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     const userIds = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
