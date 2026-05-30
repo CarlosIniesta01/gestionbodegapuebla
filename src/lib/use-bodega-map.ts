@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getBodegaMap, saveBodegaMap } from "@/lib/api/bodega-map.functions";
@@ -125,6 +125,7 @@ function uid(prefix: string) {
 // ---------- Hook ----------
 export function useBodegaMap(bodegaId?: string) {
   const store = getStore(bodegaId);
+  const [, forceRemoteTick] = useState(0);
   const getRemoteMap = useServerFn(getBodegaMap);
   const saveRemoteMap = useServerFn(saveBodegaMap);
 
@@ -144,13 +145,38 @@ export function useBodegaMap(bodegaId?: string) {
       .then((remote) => {
         if (cancelled) return;
         if (remote) replaceState(store, remote as MapState);
-        else store.remoteLoaded = true;
+        else {
+          store.remoteLoaded = true;
+          forceRemoteTick((n) => n + 1);
+        }
       })
       .catch(() => {
-        if (!cancelled) store.remoteLoaded = true;
+        if (!cancelled) {
+          store.remoteLoaded = true;
+          forceRemoteTick((n) => n + 1);
+        }
       });
     return () => { cancelled = true; };
   }, [bodegaId, getRemoteMap, store]);
+
+  useEffect(() => {
+    if (!bodegaId) return;
+    const channel = supabase
+      .channel(`bodega-map:${bodegaId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bodega_maps", filter: `bodega_id=eq.${bodegaId}` },
+        (payload) => {
+          const next = (payload.new as any)?.data;
+          if (!next) return;
+          const parsed = next as MapState;
+          const json = JSON.stringify(parsed);
+          if (json !== JSON.stringify(store.state)) replaceState(store, parsed);
+        },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [bodegaId, store]);
 
   useEffect(() => {
     if (!bodegaId || !store.remoteLoaded) return;
