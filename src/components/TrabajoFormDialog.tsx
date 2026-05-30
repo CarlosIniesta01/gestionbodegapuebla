@@ -77,6 +77,20 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       const n = Number(v);
       datosNum[k] = Number.isFinite(n) && /^[\d.,-]+$/.test(v) ? n : v;
     }
+    if (tipo === "producto") {
+      const limpios = productos
+        .filter((p) => p.producto.trim() || p.dosis.trim() || p.lote.trim())
+        .map((p) => ({
+          producto: p.producto.trim(),
+          dosis: p.dosis === "" ? null : (Number.isFinite(Number(p.dosis)) ? Number(p.dosis) : p.dosis),
+          lote: p.lote.trim(),
+        }));
+      if (limpios.length) datosNum.productos = limpios;
+      // limpiamos campos legacy si quedaron
+      delete (datosNum as any).producto;
+      delete (datosNum as any).dosis;
+      delete (datosNum as any).lote;
+    }
     // Autotítulo si no se ha escrito
     const autoBits = [meta.label, origen, destino].filter(Boolean).join(" · ");
     const finalTitulo = titulo.trim() || autoBits || meta.label;
