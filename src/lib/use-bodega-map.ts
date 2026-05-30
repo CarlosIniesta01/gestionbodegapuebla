@@ -184,7 +184,8 @@ export function useBodegaMap(bodegaId?: string) {
     const json = JSON.stringify(snap);
     if (json === store.lastSavedJson) return;
     const timer = window.setTimeout(() => {
-      saveRemoteMap({ data: { bodegaId, map: snap } })
+      const clean = JSON.parse(json) as MapState;
+      saveRemoteMap({ data: { bodegaId, map: clean } })
         .then(() => { store.lastSavedJson = JSON.stringify(store.state); })
         .catch(() => { /* conservar copia local y reintentar en el próximo cambio */ });
     }, 500);
