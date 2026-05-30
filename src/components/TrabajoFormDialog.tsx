@@ -38,14 +38,18 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const [origen, setOrigen] = React.useState<string>("");
   const [destino, setDestino] = React.useState<string>("");
   const [datos, setDatos] = React.useState<Record<string, string>>({});
+  type ProdRow = { producto: string; dosis: string; lote: string };
+  const [productos, setProductos] = React.useState<ProdRow[]>([{ producto: "", dosis: "", lote: "" }]);
 
   React.useEffect(() => {
     if (open) {
       setOrigen(defaultOrigen ?? "");
       setDestino(defaultDestino ?? "");
+      setProductos([{ producto: "", dosis: "", lote: "" }]);
     } else {
       setTitulo(""); setDescripcion(""); setPrioridad("normal");
       setScheduledAt(""); setOrigen(""); setDestino(""); setDatos({});
+      setProductos([{ producto: "", dosis: "", lote: "" }]);
     }
   }, [open, defaultOrigen, defaultDestino]);
 
