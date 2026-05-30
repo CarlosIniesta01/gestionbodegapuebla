@@ -90,6 +90,14 @@ function setState(store: Store, updater: (s: MapState) => MapState) {
   emit(store);
 }
 
+function replaceState(store: Store, state: MapState) {
+  store.state = state;
+  store.remoteLoaded = true;
+  store.lastSavedJson = JSON.stringify(state);
+  persist(store);
+  emit(store);
+}
+
 // Cross-tab sync
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (e) => {
@@ -117,6 +125,8 @@ function uid(prefix: string) {
 // ---------- Hook ----------
 export function useBodegaMap(bodegaId?: string) {
   const store = getStore(bodegaId);
+  const getRemoteMap = useServerFn(getBodegaMap);
+  const saveRemoteMap = useServerFn(saveBodegaMap);
 
   const snap = useSyncExternalStore(
     (cb) => {
@@ -126,6 +136,33 @@ export function useBodegaMap(bodegaId?: string) {
     () => store.state,
     () => SSR_SNAPSHOT,
   );
+
+  useEffect(() => {
+    if (!bodegaId || store.remoteLoaded) return;
+    let cancelled = false;
+    getRemoteMap({ data: { bodegaId } })
+      .then((remote) => {
+        if (cancelled) return;
+        if (remote) replaceState(store, remote as MapState);
+        else store.remoteLoaded = true;
+      })
+      .catch(() => {
+        if (!cancelled) store.remoteLoaded = true;
+      });
+    return () => { cancelled = true; };
+  }, [bodegaId, getRemoteMap, store]);
+
+  useEffect(() => {
+    if (!bodegaId || !store.remoteLoaded) return;
+    const json = JSON.stringify(snap);
+    if (json === store.lastSavedJson) return;
+    const timer = window.setTimeout(() => {
+      saveRemoteMap({ data: { bodegaId, map: snap } })
+        .then(() => { store.lastSavedJson = JSON.stringify(store.state); })
+        .catch(() => { /* conservar copia local y reintentar en el próximo cambio */ });
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [bodegaId, saveRemoteMap, snap, store]);
 
   const moveDeposito = useCallback((id: string, x: number, y: number) => {
     setState(store, (s) => ({
