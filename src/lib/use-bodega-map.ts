@@ -1,4 +1,7 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { getBodegaMap, saveBodegaMap } from "@/lib/api/bodega-map.functions";
 import {
   DEPOSITOS_INICIALES,
   ZONAS_INICIALES,
@@ -25,6 +28,8 @@ interface Store {
   listeners: Set<() => void>;
   hydrated: boolean;
   key: string;
+  remoteLoaded: boolean;
+  lastSavedJson?: string;
 }
 
 const stores = new Map<string, Store>();
@@ -60,6 +65,7 @@ function getStore(bodegaId?: string): Store {
     listeners: new Set(),
     hydrated: typeof window !== "undefined",
     key,
+    remoteLoaded: !bodegaId,
   };
   stores.set(key, store);
   return store;
