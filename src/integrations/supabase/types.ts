@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      bodega_maps: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          data: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          data?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          data?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bodega_maps_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: true
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bodegas: {
         Row: {
           created_at: string
