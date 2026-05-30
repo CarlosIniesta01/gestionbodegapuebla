@@ -28,7 +28,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const [tipo, setTipo] = React.useState<TrabajoTipo>(defaultTipo ?? "trasiego");
   React.useEffect(() => { if (defaultTipo) setTipo(defaultTipo); }, [defaultTipo, open]);
 
-  const { depositos, zonas } = useBodegaMap();
+  const { depositos, zonas } = useBodegaMap(bodegaId);
 
 
   const [titulo, setTitulo] = React.useState("");
@@ -38,14 +38,18 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const [origen, setOrigen] = React.useState<string>("");
   const [destino, setDestino] = React.useState<string>("");
   const [datos, setDatos] = React.useState<Record<string, string>>({});
+  type ProdRow = { producto: string; dosis: string; lote: string };
+  const [productos, setProductos] = React.useState<ProdRow[]>([{ producto: "", dosis: "", lote: "" }]);
 
   React.useEffect(() => {
     if (open) {
       setOrigen(defaultOrigen ?? "");
       setDestino(defaultDestino ?? "");
+      setProductos([{ producto: "", dosis: "", lote: "" }]);
     } else {
       setTitulo(""); setDescripcion(""); setPrioridad("normal");
       setScheduledAt(""); setOrigen(""); setDestino(""); setDatos({});
+      setProductos([{ producto: "", dosis: "", lote: "" }]);
     }
   }, [open, defaultOrigen, defaultDestino]);
 
@@ -72,6 +76,20 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       if (v === "") continue;
       const n = Number(v);
       datosNum[k] = Number.isFinite(n) && /^[\d.,-]+$/.test(v) ? n : v;
+    }
+    if (tipo === "producto") {
+      const limpios = productos
+        .filter((p) => p.producto.trim() || p.dosis.trim() || p.lote.trim())
+        .map((p) => ({
+          producto: p.producto.trim(),
+          dosis: p.dosis === "" ? null : (Number.isFinite(Number(p.dosis)) ? Number(p.dosis) : p.dosis),
+          lote: p.lote.trim(),
+        }));
+      if (limpios.length) datosNum.productos = limpios;
+      // limpiamos campos legacy si quedaron
+      delete (datosNum as any).producto;
+      delete (datosNum as any).dosis;
+      delete (datosNum as any).lote;
     }
     // Autotítulo si no se ha escrito
     const autoBits = [meta.label, origen, destino].filter(Boolean).join(" · ");
@@ -111,15 +129,45 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
             <TxtField label="Variedad" value={datos.variedad ?? ""} onChange={(v) => setD("variedad", v)} />
           </>
         );
-      case "producto":
+      case "producto": {
+        const updateRow = (i: number, patch: Partial<ProdRow>) =>
+          setProductos((arr) => arr.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+        const removeRow = (i: number) =>
+          setProductos((arr) => (arr.length === 1 ? arr : arr.filter((_, idx) => idx !== i)));
+        const addRow = () => setProductos((arr) => [...arr, { producto: "", dosis: "", lote: "" }]);
         return (
           <>
             <DepSelect label="Depósito" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
-            <TxtField label="Producto" value={datos.producto ?? ""} onChange={(v) => setD("producto", v)} />
-            <NumField label="Dosis (g/hl o ml/hl)" value={datos.dosis ?? ""} onChange={(v) => setD("dosis", v)} />
-            <TxtField label="Lote / proveedor" value={datos.lote ?? ""} onChange={(v) => setD("lote", v)} />
+            <div className="space-y-3">
+              <Label>Productos</Label>
+              {productos.map((p, i) => (
+                <div key={i} className="grid grid-cols-[1fr_110px_1fr_auto] gap-2 items-end">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Producto</div>
+                    <Input value={p.producto} onChange={(e) => updateRow(i, { producto: e.target.value })} maxLength={200} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Dosis</div>
+                    <Input type="number" inputMode="decimal" value={p.dosis} onChange={(e) => updateRow(i, { dosis: e.target.value })} placeholder="g/hl" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Lote</div>
+                    <Input value={p.lote} onChange={(e) => updateRow(i, { lote: e.target.value })} maxLength={100} />
+                  </div>
+                  <Button type="button" variant="ghost" size="sm"
+                    onClick={() => removeRow(i)} disabled={productos.length === 1}
+                    className="text-destructive hover:bg-destructive/10">
+                    ✕
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={addRow}>
+                + Añadir producto
+              </Button>
+            </div>
           </>
         );
+      }
       case "limpieza":
         return (
           <>
