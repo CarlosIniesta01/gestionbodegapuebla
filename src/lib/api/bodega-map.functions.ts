@@ -11,7 +11,7 @@ const ZonaSchema = z.object({
   pos_y: z.number().finite(),
   ancho: z.number().finite().positive(),
   alto: z.number().finite().positive(),
-}).passthrough();
+});
 
 const DepositoSchema = z.object({
   id: z.string().min(1).max(80),
@@ -25,7 +25,7 @@ const DepositoSchema = z.object({
   pos_y: z.number().finite(),
   radio: z.number().finite().min(8).max(80),
   ultimoMovimiento: z.string().max(120).nullable().optional(),
-}).passthrough();
+});
 
 const MapDataSchema = z.object({
   zonas: z.array(ZonaSchema).max(500),
