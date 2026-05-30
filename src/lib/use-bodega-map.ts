@@ -1,4 +1,7 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { getBodegaMap, saveBodegaMap } from "@/lib/api/bodega-map.functions";
 import {
   DEPOSITOS_INICIALES,
   ZONAS_INICIALES,
@@ -25,6 +28,8 @@ interface Store {
   listeners: Set<() => void>;
   hydrated: boolean;
   key: string;
+  remoteLoaded: boolean;
+  lastSavedJson?: string;
 }
 
 const stores = new Map<string, Store>();
@@ -60,6 +65,7 @@ function getStore(bodegaId?: string): Store {
     listeners: new Set(),
     hydrated: typeof window !== "undefined",
     key,
+    remoteLoaded: !bodegaId,
   };
   stores.set(key, store);
   return store;
@@ -80,6 +86,14 @@ function emit(store: Store) {
 
 function setState(store: Store, updater: (s: MapState) => MapState) {
   store.state = updater(store.state);
+  persist(store);
+  emit(store);
+}
+
+function replaceState(store: Store, state: MapState) {
+  store.state = state;
+  store.remoteLoaded = true;
+  store.lastSavedJson = JSON.stringify(state);
   persist(store);
   emit(store);
 }
@@ -111,6 +125,10 @@ function uid(prefix: string) {
 // ---------- Hook ----------
 export function useBodegaMap(bodegaId?: string) {
   const store = getStore(bodegaId);
+  const remoteLoaded = store.remoteLoaded;
+  const [, forceRemoteTick] = useState(0);
+  const getRemoteMap = useServerFn(getBodegaMap);
+  const saveRemoteMap = useServerFn(saveBodegaMap);
 
   const snap = useSyncExternalStore(
     (cb) => {
@@ -120,6 +138,59 @@ export function useBodegaMap(bodegaId?: string) {
     () => store.state,
     () => SSR_SNAPSHOT,
   );
+
+  useEffect(() => {
+    if (!bodegaId || store.remoteLoaded) return;
+    let cancelled = false;
+    getRemoteMap({ data: { bodegaId } })
+      .then((remote) => {
+        if (cancelled) return;
+        if (remote) replaceState(store, remote as MapState);
+        else {
+          store.remoteLoaded = true;
+          forceRemoteTick((n) => n + 1);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          store.remoteLoaded = true;
+          forceRemoteTick((n) => n + 1);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [bodegaId, getRemoteMap, store]);
+
+  useEffect(() => {
+    if (!bodegaId) return;
+    const channel = supabase
+      .channel(`bodega-map:${bodegaId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bodega_maps", filter: `bodega_id=eq.${bodegaId}` },
+        (payload) => {
+          const next = (payload.new as any)?.data;
+          if (!next) return;
+          const parsed = next as MapState;
+          const json = JSON.stringify(parsed);
+          if (json !== JSON.stringify(store.state)) replaceState(store, parsed);
+        },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [bodegaId, store]);
+
+  useEffect(() => {
+    if (!bodegaId || !remoteLoaded) return;
+    const json = JSON.stringify(snap);
+    if (json === store.lastSavedJson) return;
+    const timer = window.setTimeout(() => {
+      const clean = JSON.parse(json) as MapState;
+      saveRemoteMap({ data: { bodegaId, map: clean } })
+        .then(() => { store.lastSavedJson = JSON.stringify(store.state); })
+        .catch(() => { /* conservar copia local y reintentar en el próximo cambio */ });
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [bodegaId, remoteLoaded, saveRemoteMap, snap, store]);
 
   const moveDeposito = useCallback((id: string, x: number, y: number) => {
     setState(store, (s) => ({
