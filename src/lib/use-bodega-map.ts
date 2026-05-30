@@ -125,6 +125,7 @@ function uid(prefix: string) {
 // ---------- Hook ----------
 export function useBodegaMap(bodegaId?: string) {
   const store = getStore(bodegaId);
+  const remoteLoaded = store.remoteLoaded;
   const [, forceRemoteTick] = useState(0);
   const getRemoteMap = useServerFn(getBodegaMap);
   const saveRemoteMap = useServerFn(saveBodegaMap);
@@ -179,7 +180,7 @@ export function useBodegaMap(bodegaId?: string) {
   }, [bodegaId, store]);
 
   useEffect(() => {
-    if (!bodegaId || !store.remoteLoaded) return;
+    if (!bodegaId || !remoteLoaded) return;
     const json = JSON.stringify(snap);
     if (json === store.lastSavedJson) return;
     const timer = window.setTimeout(() => {
@@ -188,7 +189,7 @@ export function useBodegaMap(bodegaId?: string) {
         .catch(() => { /* conservar copia local y reintentar en el próximo cambio */ });
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [bodegaId, saveRemoteMap, snap, store]);
+  }, [bodegaId, remoteLoaded, saveRemoteMap, snap, store]);
 
   const moveDeposito = useCallback((id: string, x: number, y: number) => {
     setState(store, (s) => ({
