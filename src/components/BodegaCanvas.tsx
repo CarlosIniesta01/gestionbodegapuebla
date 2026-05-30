@@ -265,7 +265,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
           {editMode && (
             <div className="absolute bottom-3 left-3 right-3 md:right-auto md:max-w-md bg-surface-elevated/95 backdrop-blur border border-accent/40 rounded-lg p-3 text-xs text-foreground shadow-glow">
               <span className="font-semibold text-accent">Modo edición.</span>{" "}
-              Arrastra depósitos y zonas para reorganizarlos. Pulsa un depósito para editarlo. Los cambios se guardan en este dispositivo.
+              Arrastra depósitos y zonas para reorganizarlos. Pulsa un depósito para editarlo. Los cambios se guardan en la bodega.
             </div>
           )}
         </div>
