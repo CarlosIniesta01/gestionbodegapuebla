@@ -162,20 +162,20 @@ export function useBodegaMap(bodegaId?: string) {
 
   useEffect(() => {
     if (!bodegaId) return;
-    const channel = supabase
-      .channel(`bodega-map:${bodegaId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bodega_maps", filter: `bodega_id=eq.${bodegaId}` },
-        (payload) => {
-          const next = (payload.new as any)?.data;
-          if (!next) return;
-          const parsed = next as MapState;
-          const json = JSON.stringify(parsed);
-          if (json !== JSON.stringify(store.state)) replaceState(store, parsed);
-        },
-      )
-      .subscribe();
+    const channelName = `bodega-map:${bodegaId}:${Math.random().toString(36).slice(2, 10)}`;
+    const channel = supabase.channel(channelName);
+    channel.on(
+      "postgres_changes" as any,
+      { event: "*", schema: "public", table: "bodega_maps", filter: `bodega_id=eq.${bodegaId}` },
+      (payload: any) => {
+        const next = payload?.new?.data;
+        if (!next) return;
+        const parsed = next as MapState;
+        const json = JSON.stringify(parsed);
+        if (json !== JSON.stringify(store.state)) replaceState(store, parsed);
+      },
+    );
+    channel.subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [bodegaId, store]);
 
