@@ -368,6 +368,53 @@ export type Database = {
         }
         Relationships: []
       }
+      preparaciones: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          id: string
+          nombre: string
+          notas: string | null
+          productos: Json
+          updated_at: string
+          vinos: Json
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          notas?: string | null
+          productos?: Json
+          updated_at?: string
+          vinos?: Json
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          notas?: string | null
+          productos?: Json
+          updated_at?: string
+          vinos?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preparaciones_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       productos: {
         Row: {
           activo: boolean
