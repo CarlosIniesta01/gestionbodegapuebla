@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, FlaskConical } from "lucide-react";
+import { PreparacionesDialog } from "@/components/PreparacionesDialog";
 
 import { TRABAJO_TIPOS, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
@@ -25,6 +26,7 @@ function Trabajos() {
   const { bodegaId, isLoading } = useActiveBodega();
   const [open, setOpen] = React.useState(false);
   const [embOpen, setEmbOpen] = React.useState(false);
+  const [prepOpen, setPrepOpen] = React.useState(false);
   const [defaultTipo, setDefaultTipo] = React.useState<TrabajoTipo>("trasiego");
   const [filtroTipo, setFiltroTipo] = React.useState<"all" | TrabajoTipo>("all");
 
@@ -86,6 +88,17 @@ function Trabajos() {
             </motion.button>
           );
         })}
+        <motion.button
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: TRABAJO_TIPOS.length * 0.03 }}
+          whileTap={{ scale: 0.97 }} whileHover={{ y: -2 }}
+          onClick={() => setPrepOpen(true)}
+          className="scada-panel p-3 flex flex-col items-center gap-2 transition-colors hover:border-accent/60">
+          <div className="size-10 rounded-xl flex items-center justify-center"
+            style={{ background: "color-mix(in oklab, var(--state-vino) 18%, transparent)", border: "1px solid color-mix(in oklab, var(--state-vino) 40%, transparent)" }}>
+            <FlaskConical className="size-5" style={{ color: "var(--state-vino)" }} />
+          </div>
+          <div className="text-[11px] font-medium text-center leading-tight uppercase tracking-wider">Preparaciones</div>
+        </motion.button>
       </div>
 
       <div className="flex items-center justify-between gap-3 mb-3">
@@ -113,6 +126,7 @@ function Trabajos() {
         <>
           <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
           <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} />
+          <PreparacionesDialog open={prepOpen} onOpenChange={setPrepOpen} bodegaId={bodegaId} />
         </>
       )}
     </div>
