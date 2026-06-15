@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, FlaskConical } from "lucide-react";
+import { PreparacionesDialog } from "@/components/PreparacionesDialog";
 
 import { TRABAJO_TIPOS, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
@@ -25,6 +26,7 @@ function Trabajos() {
   const { bodegaId, isLoading } = useActiveBodega();
   const [open, setOpen] = React.useState(false);
   const [embOpen, setEmbOpen] = React.useState(false);
+  const [prepOpen, setPrepOpen] = React.useState(false);
   const [defaultTipo, setDefaultTipo] = React.useState<TrabajoTipo>("trasiego");
   const [filtroTipo, setFiltroTipo] = React.useState<"all" | TrabajoTipo>("all");
 
