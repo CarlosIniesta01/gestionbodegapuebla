@@ -1,98 +1,84 @@
-# Recetas — Sistema completo
+# Evolución a ERP integral — Vinea Control
 
-Voy a construir un módulo de Recetas como biblioteca de plantillas reutilizables, conectado al catálogo de Productos (Admin) y al mapa de bodega. Trabajo en fases para no romper nada.
+Vamos a transformar Vinea Control en el ERP único de la bodega manteniendo intactos los módulos actuales (Inicio, Trabajos, Pendientes, Actividad, Mensajes, Recetas, Bodega, Admin). Todo lo nuevo se añade encima sin tocar lo que ya funciona.
 
-## Fase 1 — Base de datos
+Por el tamaño (≈12 sub‑proyectos, ~30 tablas nuevas, varios módulos UI), propongo construirlo en **5 fases entregables**, cada una usable por sí sola. Confírmame la fase 1 y arranco; las siguientes las vamos validando una a una.
 
-Nuevas tablas (con GRANT + RLS scopeadas por `current_user_bodegas()`):
+---
 
-- **`familias_recetas`** — `id, bodega_id, nombre, color, created_at`. Permite crear familias on-the-fly (Flotación, Clarificación, Tinto, Blanco, etc.). Se siembran las por defecto al crear bodega.
-- **`recetas`** — `id, bodega_id, nombre, familia_id, tipo, descripcion, observaciones, activa, favorita, version, parent_id (para versionado), uso_count, ultimo_uso_at, created_by, created_at, updated_at`.
-- **`receta_depositos`** — `id, receta_id, zona_id, deposito_codigo, litros, variedad, observaciones, orden`.
-- **`receta_productos`** — `id, receta_id, producto_id (FK a productos), dosis, unidad, lote, observaciones, orden`. **`lote` NOT NULL** (CHECK length > 0).
-- **`receta_pasos`** *(opcional ligero)* — `id, receta_id, orden, texto`. Para instrucciones.
+## Modelo de datos (base común para todo)
 
-Permisos nuevos (insert en `permissions`): `recetas.read`, `recetas.write`, `recetas.delete`, `recetas.use`, `productos.write`.
+Nuevas tablas en la BD (Lovable Cloud) con RLS por `bodega_id` y GRANTs:
 
-Trigger: al insertar en `receta_productos`, validar `producto.lote IS NOT NULL` y `receta_productos.lote` no vacío → error `"Debes indicar el lote del producto para continuar."`.
+- `productos_comerciales` — catálogo (código, nombre, campaña, tipo, color, grado_referencia).
+- `movimientos` — fuente única de verdad. Tipos: `entrada | salida | trasiego | mezcla | embotellado | correccion | ajuste`. Campos: fecha, hora, user_id, deposito_origen_id, deposito_destino_id, producto_id, litros, grado, alcohol_absoluto (calc.), observaciones, contrato_id (opc.), trabajo_id (opc.). **Inmutable**: sin UPDATE/DELETE para usuarios; correcciones → nuevo movimiento `ajuste`.
+- `movimiento_lineas` — para mezclas (varios orígenes/destinos en un movimiento).
+- `existencias_view` — VIEW materializada que recalcula litros/grado por `(deposito, producto)` a partir de `movimientos`.
+- `contratos_compra` y `contratos_venta` — cabecera + estado calculado.
+- `contrato_ejecuciones` — vincula movimientos a contratos (litros aplicados).
+- `snapshot_diario` — fecha, deposito_id, producto_id, litros, grado, alcohol_absoluto. Generado por cron nocturno.
+- `auditoria` — log append‑only (user_id, accion, tabla, registro_id, payload, ts).
 
-## Fase 2 — Server functions
+Los depósitos ya existen en `bodega_maps`; se enriquecen con campos calculados (no se rompe lo actual).
 
-`src/lib/api/recetas.functions.ts`:
-- `listFamilias`, `upsertFamilia`, `deleteFamilia`
-- `listRecetas({ bodegaId, filtros })` — con joins agregados (familia, nº productos, nº depósitos, favorita, etc.)
-- `getReceta(id)` — detalle completo con depósitos, productos, pasos, versiones
-- `upsertReceta` — crea o edita (transacción: receta + depósitos + productos + pasos). Valida lotes.
-- `duplicarReceta(id, { comoNuevaVersion })` — clona; si `comoNuevaVersion` enlaza `parent_id` e incrementa `version`.
-- `toggleFavorita`, `toggleActiva`, `deleteReceta`
-- `marcarUso(recetaId)` — incrementa `uso_count` y `ultimo_uso_at`. Se llama al usar en trabajo/elaboración.
+---
 
-Validación zod estricta. Mensaje de lote obligatorio explícito.
+## Fase 1 — Fundamentos: Productos + Movimientos + Existencias
 
-## Fase 3 — UI Recetas (`/recetas`)
+Sin esto nada más funciona. Entregables:
 
-Reemplazo el placeholder de `src/routes/_authenticated/recetas.tsx` con un módulo completo, mobile-first:
+1. Migración con `productos_comerciales`, `movimientos`, `movimiento_lineas`, `existencias_view`, `auditoria` + RLS + GRANTs + trigger de auditoría.
+2. UI **Productos comerciales** dentro de Administración (alta/edición/baja del catálogo).
+3. Nueva pestaña en **Bodega → Movimientos**: tabla con filtros (fecha, tipo, depósito, producto) + diálogo "Nuevo movimiento" (entrada/salida/trasiego/mezcla/corrección).
+4. Nueva pestaña **Bodega → Existencias**: tabla calculada por producto y por depósito, con alcohol absoluto.
+5. Bloqueo de edición manual de litros en el diálogo de depósito: pasa a ser solo lectura; los cambios solo vía movimiento.
 
-**Listado (vista por defecto):**
-- Header con buscador grande, botón "Nueva receta", chips de filtros (familia, tipo, favoritas, activas).
-- Filtros laterales/collapsibles: producto utilizado, lote, depósito.
-- Grid responsivo de tarjetas (`RecetaCard`):
-  - Nombre, badge familia con color, tipo, ⭐ favorita
-  - Chips de hasta 3 productos principales + "+N"
-  - Chips de depósitos asociados
-  - Footer: "Usada N veces · hace X días · por Autor"
-  - Acciones rápidas: Usar, Editar, Duplicar, ⋯ (menú)
+## Fase 2 — Mapa interactivo enriquecido + Detalle de depósito
 
-**Detalle (Dialog grande o ruta `/recetas/$id`):**
-- Tabs: General, Depósitos, Productos, Pasos, Versiones
-- Bloque cabecera con datos generales + botones: Usar receta, Editar, Duplicar, Nueva versión, Desactivar
-- Historial de versiones colapsable.
+1. Sobre el `BodegaCanvas` actual, añadir overlay con: producto, litros, grado, alcohol absoluto, % ocupación.
+2. Colores por ocupación: verde 0‑75, amarillo 75‑90, rojo 90‑100, azul vacío (configurable en Colores).
+3. Panel lateral al pulsar depósito: histórico de movimientos, contratos relacionados, incidencias.
+4. Revisión responsive (tablet/móvil) sin romper el diseño actual.
 
-**Editor (Dialog full-screen en móvil):**
-- Sección 1: datos generales (nombre, familia con combobox creable, tipo, descripción, observaciones, activa, favorita)
-- Sección 2: Depósitos — lista editable. Cada fila: select zona → select depósito (filtrado), input litros con formato es-ES (puntos miles), variedad, observaciones. Botón "+ Añadir depósito".
-- Sección 3: Productos — selector desde catálogo (combobox con búsqueda). Por fila: producto, dosis, unidad (g/kg/ml/L/sobres/otro), lote (precargado del producto, editable, **obligatorio**), observaciones. Si el producto del catálogo no tiene lote → bloquea con el mensaje exigido.
-- Sección 4: Pasos/instrucciones (opcional, lista ordenable).
-- Footer: Guardar / Guardar como nueva versión / Cancelar.
+## Fase 3 — Contratos de compra y venta
 
-## Fase 4 — Admin · Productos
+1. Migración `contratos_compra`, `contratos_venta`, `contrato_ejecuciones` + RLS.
+2. Dos nuevas secciones bajo **Bodega** (o nuevo módulo "Comercial" si prefieres):
+   - Contratos de compra (listado, alta, detalle con litros retirados/pendientes).
+   - Contratos de venta (idem con litros servidos/pendientes).
+3. Al crear un movimiento de entrada/salida, opción de imputarlo a un contrato → actualiza pendientes automáticamente.
+4. Estados calculados: pendiente / parcial / completado / cancelado.
 
-Añado tab **"Productos"** dentro de `src/routes/_authenticated/admin.tsx` (ya existen `listProductos` / `upsertProducto` / `toggleProductoActivo` / `deleteProducto` — los reutilizo):
-- Tabla con nombre, tipo (chip), lote, proveedor, caducidad, estado.
-- Dialog crear/editar con validación de lote obligatorio.
-- Filtro por tipo y por activos.
+## Fase 4 — Posición comercial + Dashboard gerencia
 
-## Fase 5 — Reutilización en trabajos
+1. Pantalla **Posición Comercial**: Producto | Existencia | Compra pendiente | Venta pendiente | Disponible | Alcohol absoluto.
+2. **Dashboard Gerencia** en Inicio (o nueva ruta `/gerencia`): KPIs en tiempo real con Realtime, alertas (contratos por vencer, depósitos llenos, saldo negativo, diferencias).
 
-En `TrabajoFormDialog` añado un selector "Usar receta…" (solo si el tipo encaja: trasiego, vendimia, producto, limpieza, embotellado). Al elegir:
-- Precarga depósito origen/destino del primer depósito de la receta.
-- Precarga campos `datos` (producto, dosis, lote, litros, variedad) desde la receta.
-- Llama `marcarUso(recetaId)` al crear el trabajo.
-- Usuario puede modificar todo antes de guardar. Al guardar ofrece (toast con acción): "¿Guardar cambios como nueva versión de la receta?".
+## Fase 5 — Snapshot diario + Importación inicial + Pulido móvil
 
-En `EmbotelladoDialog` y flujo de Elaboraciones: mismo selector "Usar receta".
+1. Job nocturno (pg_cron + ruta `/api/public/hooks/snapshot-diario`) que escribe `snapshot_diario`.
+2. Visor histórico "Situación a fecha X".
+3. **Asistente de importación** (Admin): subida de Excel/CSV para depósitos, existencias iniciales (genera movimiento "entrada inicial"), contratos compra y venta. Validación con Zod + preview antes de confirmar.
+4. Repaso móvil: accesos rápidos (registrar movimiento, trasiego, mezcla, consultar) en ≤3 toques.
+5. Preparación IA: vistas `v_*` y endpoints de lectura agregada listos para consumir desde modelos predictivos sin tocar la BD principal.
 
-## Fase 6 — Permisos (RLS)
+---
 
-- `recetas read`: miembros de la bodega.
-- `recetas write`: `has_permission(bodega, 'recetas.write')` o admin.
-- `recetas delete`: admin o autor.
-- `productos write`: `has_permission(bodega, 'productos.write')` o admin (ya cubierto por políticas existentes; añado permiso granular).
+## Detalles técnicos clave
 
-## Notas técnicas
+- **Server functions** (`createServerFn` + `requireSupabaseAuth`) para todas las escrituras; nada de mutar existencias desde el cliente.
+- **Inmutabilidad**: policies que permiten INSERT pero no UPDATE/DELETE en `movimientos` (correcciones → nuevo registro tipo `ajuste`).
+- **Realtime** en `movimientos` y `contratos_*` para que mapa, existencias y dashboard se actualicen solos.
+- **Auditoría**: trigger `AFTER INSERT/UPDATE/DELETE` que escribe en `auditoria` con `auth.uid()`.
+- **Validación** con Zod en cada server fn (litros ≥ 0, grado 0‑20, depósitos pertenecen a la bodega, capacidad suficiente).
+- **Cero cambios** a: Trabajos, Pendientes, Actividad, Mensajes, Recetas, Admin (excepto añadir sub‑pestaña Productos), Inicio (excepto añadir tarjeta opcional al Dashboard en fase 4).
 
-- Reutilizo `productos` existente (no duplico).
-- Reutilizo `useBodegaMap` para zonas/depósitos en el editor.
-- Toda escritura en transacción mediante una sola server fn que hace insert/update + delete+reinsert de hijos (patrón simple, suficiente).
-- Versionado: `parent_id` apunta a la receta raíz; `version` autoincremental dentro del árbol.
-- UI con tarjetas, chips de colores por familia, iconos Lucide. Sin ERP-feel.
+---
 
-## Orden de ejecución
+## Qué necesito de ti para empezar
 
-1. Migración SQL (Fase 1) → pido aprobación.
-2. Server functions (Fase 2).
-3. Pantalla Recetas + editor (Fase 3).
-4. Tab Productos en Admin (Fase 4).
-5. Integración en TrabajoFormDialog/Embotellado (Fase 5).
+1. ¿Arrancamos por la **Fase 1** (Productos + Movimientos + Existencias)? Es el cimiento; sin esto el resto no encaja.
+2. Los **contratos** y la **posición comercial**, ¿los prefieres dentro del módulo **Bodega** como pestañas o creamos un nuevo módulo **"Comercial"** en el menú principal?
+3. ¿Tienes el Excel actual (estructura de columnas) para diseñar el importador de la Fase 5 conforme a tus datos reales? Si me lo subes cuando lleguemos ahí, lo adapto exacto.
 
-¿Apruebas el plan? Cuando confirmes empiezo por la migración.
+Confírmame esto y empiezo por la Fase 1 con la migración + UI mínima usable.
