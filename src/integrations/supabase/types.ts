@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      auditoria: {
+        Row: {
+          accion: string
+          bodega_id: string | null
+          created_at: string
+          id: number
+          payload: Json | null
+          registro_id: string | null
+          tabla: string
+          user_id: string | null
+        }
+        Insert: {
+          accion: string
+          bodega_id?: string | null
+          created_at?: string
+          id?: number
+          payload?: Json | null
+          registro_id?: string | null
+          tabla: string
+          user_id?: string | null
+        }
+        Update: {
+          accion?: string
+          bodega_id?: string | null
+          created_at?: string
+          id?: number
+          payload?: Json | null
+          registro_id?: string | null
+          tabla?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bodega_maps: {
         Row: {
           bodega_id: string
@@ -329,6 +370,82 @@ export type Database = {
           },
         ]
       }
+      movimientos: {
+        Row: {
+          alcohol_absoluto: number | null
+          bodega_id: string
+          created_at: string
+          created_by: string | null
+          deposito_destino_id: string | null
+          deposito_origen_id: string | null
+          fecha: string
+          grado: number | null
+          hora: string
+          id: string
+          litros: number
+          observaciones: string | null
+          producto_id: string | null
+          tipo: Database["public"]["Enums"]["movimiento_tipo"]
+          trabajo_id: string | null
+        }
+        Insert: {
+          alcohol_absoluto?: number | null
+          bodega_id: string
+          created_at?: string
+          created_by?: string | null
+          deposito_destino_id?: string | null
+          deposito_origen_id?: string | null
+          fecha?: string
+          grado?: number | null
+          hora?: string
+          id?: string
+          litros: number
+          observaciones?: string | null
+          producto_id?: string | null
+          tipo: Database["public"]["Enums"]["movimiento_tipo"]
+          trabajo_id?: string | null
+        }
+        Update: {
+          alcohol_absoluto?: number | null
+          bodega_id?: string
+          created_at?: string
+          created_by?: string | null
+          deposito_destino_id?: string | null
+          deposito_origen_id?: string | null
+          fecha?: string
+          grado?: number | null
+          hora?: string
+          id?: string
+          litros?: number
+          observaciones?: string | null
+          producto_id?: string | null
+          tipo?: Database["public"]["Enums"]["movimiento_tipo"]
+          trabajo_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_comerciales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -459,6 +576,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      productos_comerciales: {
+        Row: {
+          activo: boolean
+          bodega_id: string
+          campaña: string | null
+          codigo: string
+          color: string | null
+          created_at: string
+          created_by: string | null
+          grado_referencia: number | null
+          id: string
+          nombre: string
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id: string
+          campaña?: string | null
+          codigo: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          grado_referencia?: number | null
+          id?: string
+          nombre: string
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string
+          campaña?: string | null
+          codigo?: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          grado_referencia?: number | null
+          id?: string
+          nombre?: string
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "productos_comerciales_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -894,7 +1064,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      existencias_actuales: {
+        Row: {
+          alcohol_absoluto: number | null
+          bodega_id: string | null
+          deposito_id: string | null
+          grado_medio: number | null
+          litros: number | null
+          producto_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_user_bodegas: { Args: never; Returns: string[] }
@@ -908,6 +1088,14 @@ export type Database = {
     Enums: {
       membership_estado: "activo" | "inactivo" | "suspendido" | "rechazado"
       mensaje_canal: "general" | "deposito" | "trabajo"
+      movimiento_tipo:
+        | "entrada"
+        | "salida"
+        | "trasiego"
+        | "mezcla"
+        | "embotellado"
+        | "correccion"
+        | "ajuste"
       producto_tipo: "enologico" | "limpieza" | "otro"
       trabajo_estado: "pendiente" | "en_curso" | "completado" | "cancelado"
       trabajo_prioridad: "baja" | "normal" | "alta" | "urgente"
@@ -1048,6 +1236,15 @@ export const Constants = {
     Enums: {
       membership_estado: ["activo", "inactivo", "suspendido", "rechazado"],
       mensaje_canal: ["general", "deposito", "trabajo"],
+      movimiento_tipo: [
+        "entrada",
+        "salida",
+        "trasiego",
+        "mezcla",
+        "embotellado",
+        "correccion",
+        "ajuste",
+      ],
       producto_tipo: ["enologico", "limpieza", "otro"],
       trabajo_estado: ["pendiente", "en_curso", "completado", "cancelado"],
       trabajo_prioridad: ["baja", "normal", "alta", "urgente"],
