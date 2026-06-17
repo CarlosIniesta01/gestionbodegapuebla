@@ -6,7 +6,7 @@ import { BodegaHistorial } from "@/components/BodegaHistorial";
 import { ColorSettings } from "@/components/ColorSettings";
 import { MovimientosTab } from "@/components/MovimientosTab";
 import { ExistenciasTab } from "@/components/ExistenciasTab";
-import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 
