@@ -84,9 +84,6 @@ function Bodega() {
         <TabsContent value="existencias">
           {activeBodegaId && <ExistenciasTab key={activeBodegaId} bodegaId={activeBodegaId} />}
         </TabsContent>
-        <TabsContent value="productos">
-          {activeBodegaId && <ProductosComercialesTab key={activeBodegaId} bodegaId={activeBodegaId} />}
-        </TabsContent>
         <TabsContent value="historial">
           <BodegaHistorial />
         </TabsContent>
