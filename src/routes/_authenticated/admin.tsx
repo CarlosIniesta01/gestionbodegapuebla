@@ -109,7 +109,7 @@ function AdminPage() {
 
       {activeBodegaId && (
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid grid-cols-5 w-full md:w-auto">
+          <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full md:w-auto">
             <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
