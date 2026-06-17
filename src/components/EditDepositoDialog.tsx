@@ -100,18 +100,17 @@ export function EditDepositoDialog({ open, onOpenChange, deposito, zonas, onSave
             <Field label="Litros actuales">
               <input
                 type="text"
-                inputMode="numeric"
-                value={litFocus ? litText : fmt(litText)}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, "");
-                  setLitText(digits);
-                  setLitros(Number(digits) || 0);
-                }}
-                onFocus={() => setLitFocus(true)}
-                onBlur={() => setLitFocus(false)}
-                className={input}
+                value={fmt(String(litros))}
+                readOnly
+                disabled
+                title="Los litros se calculan desde Movimientos. Registra una entrada, salida, trasiego o ajuste."
+                className={input + " opacity-60 cursor-not-allowed"}
               />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Calculado desde Movimientos. Para modificar, registra un movimiento (entrada/salida/trasiego/ajuste).
+              </p>
             </Field>
+
           </div>
 
           <Field label="Estado">
