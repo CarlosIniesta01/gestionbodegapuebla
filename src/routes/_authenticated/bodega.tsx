@@ -68,7 +68,7 @@ function Bodega() {
           <TabsTrigger value="lista">Lista / Edición</TabsTrigger>
           <TabsTrigger value="movimientos">Movimientos</TabsTrigger>
           <TabsTrigger value="existencias">Existencias</TabsTrigger>
-          <TabsTrigger value="productos">Productos</TabsTrigger>
+          
           <TabsTrigger value="historial">Historial</TabsTrigger>
           <TabsTrigger value="colores">Colores</TabsTrigger>
         </TabsList>
