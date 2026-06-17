@@ -370,6 +370,70 @@ export type Database = {
           },
         ]
       }
+      movimiento_lineas: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          created_by: string
+          deposito_id: string
+          grado: number | null
+          id: string
+          litros: number
+          movimiento_id: string
+          observaciones: string | null
+          producto_id: string | null
+          rol: string
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          created_by?: string
+          deposito_id: string
+          grado?: number | null
+          id?: string
+          litros: number
+          movimiento_id: string
+          observaciones?: string | null
+          producto_id?: string | null
+          rol: string
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          created_by?: string
+          deposito_id?: string
+          grado?: number | null
+          id?: string
+          litros?: number
+          movimiento_id?: string
+          observaciones?: string | null
+          producto_id?: string | null
+          rol?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimiento_lineas_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimiento_lineas_movimiento_id_fkey"
+            columns: ["movimiento_id"]
+            isOneToOne: false
+            referencedRelation: "movimientos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimiento_lineas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_comerciales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimientos: {
         Row: {
           alcohol_absoluto: number | null
@@ -463,6 +527,53 @@ export type Database = {
           nombre?: string
         }
         Relationships: []
+      }
+      perfiles_auditoria: {
+        Row: {
+          bodega_id: string
+          campos_visibles: Json
+          created_at: string
+          created_by: string
+          descripcion: string | null
+          es_predeterminado: boolean
+          filtros: Json
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          bodega_id: string
+          campos_visibles?: Json
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          es_predeterminado?: boolean
+          filtros?: Json
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          bodega_id?: string
+          campos_visibles?: Json
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          es_predeterminado?: boolean
+          filtros?: Json
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfiles_auditoria_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
