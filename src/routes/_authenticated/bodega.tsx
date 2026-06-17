@@ -6,7 +6,7 @@ import { BodegaHistorial } from "@/components/BodegaHistorial";
 import { ColorSettings } from "@/components/ColorSettings";
 import { MovimientosTab } from "@/components/MovimientosTab";
 import { ExistenciasTab } from "@/components/ExistenciasTab";
-import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 
@@ -68,7 +68,7 @@ function Bodega() {
           <TabsTrigger value="lista">Lista / Edición</TabsTrigger>
           <TabsTrigger value="movimientos">Movimientos</TabsTrigger>
           <TabsTrigger value="existencias">Existencias</TabsTrigger>
-          <TabsTrigger value="productos">Productos</TabsTrigger>
+          
           <TabsTrigger value="historial">Historial</TabsTrigger>
           <TabsTrigger value="colores">Colores</TabsTrigger>
         </TabsList>
@@ -83,9 +83,6 @@ function Bodega() {
         </TabsContent>
         <TabsContent value="existencias">
           {activeBodegaId && <ExistenciasTab key={activeBodegaId} bodegaId={activeBodegaId} />}
-        </TabsContent>
-        <TabsContent value="productos">
-          {activeBodegaId && <ProductosComercialesTab key={activeBodegaId} bodegaId={activeBodegaId} />}
         </TabsContent>
         <TabsContent value="historial">
           <BodegaHistorial />
