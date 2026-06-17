@@ -6,6 +6,8 @@ import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserChe
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
+import { PerfilesAuditoriaTab } from "@/components/admin/PerfilesAuditoriaTab";
+import { AuditoriaTab } from "@/components/admin/AuditoriaTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
