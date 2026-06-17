@@ -117,24 +117,6 @@ function AdminPage() {
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
           </TabsList>
           <TabsContent value="pending" className="mt-6">
-            <PendingUsersPanel bodegaId={activeBodegaId!} />
-          </TabsContent>
-          <TabsContent value="users" className="mt-6">
-            <UsersPanel bodegaId={activeBodegaId!} />
-          </TabsContent>
-          <TabsContent value="roles" className="mt-6">
-            <RolesPanel bodegaId={activeBodegaId!} />
-          </TabsContent>
-          <TabsContent value="productos" className="mt-6">
-            <ProductosTab bodegaId={activeBodegaId!} />
-          </TabsContent>
-          <TabsContent value="productos-comerciales" className="mt-6">
-            <ProductosComercialesTab bodegaId={activeBodegaId!} />
-          </TabsContent>
-          <TabsContent value="bodega" className="mt-6">
-
-          </TabsList>
-          <TabsContent value="pending" className="mt-6">
             <PendingTab bodegaId={activeBodegaId} />
           </TabsContent>
           <TabsContent value="users" className="mt-6">
@@ -146,9 +128,13 @@ function AdminPage() {
           <TabsContent value="productos" className="mt-6">
             <ProductosTab bodegaId={activeBodegaId} />
           </TabsContent>
+          <TabsContent value="productos-comerciales" className="mt-6">
+            <ProductosComercialesTab bodegaId={activeBodegaId} />
+          </TabsContent>
           <TabsContent value="bodega" className="mt-6">
             <BodegaTab bodegaId={activeBodegaId} initial={activeBodega?.bodega} />
           </TabsContent>
+
         </Tabs>
       )}
     </div>
