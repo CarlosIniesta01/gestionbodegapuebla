@@ -6,6 +6,8 @@ import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserChe
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
+import { PerfilesAuditoriaTab } from "@/components/admin/PerfilesAuditoriaTab";
+import { AuditoriaTab } from "@/components/admin/AuditoriaTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -109,13 +111,15 @@ function AdminPage() {
 
       {activeBodegaId && (
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full md:w-auto">
+          <TabsList className="grid grid-cols-2 md:grid-cols-8 w-full md:w-auto">
             <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
             <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos enológicos</TabsTrigger>
             <TabsTrigger value="productos-comerciales"><Beaker className="size-4 mr-2" />Productos comerciales</TabsTrigger>
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
+            <TabsTrigger value="perfiles-auditoria"><Shield className="size-4 mr-2" />Perfiles auditoría</TabsTrigger>
+            <TabsTrigger value="auditoria"><Shield className="size-4 mr-2" />Auditoría</TabsTrigger>
           </TabsList>
           <TabsContent value="pending" className="mt-6">
             <PendingTab bodegaId={activeBodegaId} />
@@ -135,6 +139,13 @@ function AdminPage() {
           <TabsContent value="bodega" className="mt-6">
             <BodegaTab bodegaId={activeBodegaId} initial={activeBodega?.bodega} />
           </TabsContent>
+          <TabsContent value="perfiles-auditoria" className="mt-6">
+            <PerfilesAuditoriaTab bodegaId={activeBodegaId} />
+          </TabsContent>
+          <TabsContent value="auditoria" className="mt-6">
+            <AuditoriaTab bodegaId={activeBodegaId} />
+          </TabsContent>
+
 
         </Tabs>
       )}
