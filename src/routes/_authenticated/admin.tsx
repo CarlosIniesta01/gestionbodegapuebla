@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network } from "lucide-react";
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
+import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
