@@ -112,8 +112,27 @@ function AdminPage() {
             <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
-            <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos</TabsTrigger>
+            <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos enológicos</TabsTrigger>
+            <TabsTrigger value="productos-comerciales"><Beaker className="size-4 mr-2" />Productos comerciales</TabsTrigger>
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
+          </TabsList>
+          <TabsContent value="pending" className="mt-6">
+            <PendingUsersPanel bodegaId={activeBodegaId!} />
+          </TabsContent>
+          <TabsContent value="users" className="mt-6">
+            <UsersPanel bodegaId={activeBodegaId!} />
+          </TabsContent>
+          <TabsContent value="roles" className="mt-6">
+            <RolesPanel bodegaId={activeBodegaId!} />
+          </TabsContent>
+          <TabsContent value="productos" className="mt-6">
+            <ProductosTab bodegaId={activeBodegaId!} />
+          </TabsContent>
+          <TabsContent value="productos-comerciales" className="mt-6">
+            <ProductosComercialesTab bodegaId={activeBodegaId!} />
+          </TabsContent>
+          <TabsContent value="bodega" className="mt-6">
+
           </TabsList>
           <TabsContent value="pending" className="mt-6">
             <PendingTab bodegaId={activeBodegaId} />
