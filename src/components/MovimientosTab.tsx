@@ -245,15 +245,6 @@ function MovimientoDialog({
   const [motivo, setMotivo] = useState("");
   const [contratoCompraId, setContratoCompraId] = useState("");
   const [contratoVentaId, setContratoVentaId] = useState("");
-  const [fecha, setFecha] = useState(now.toISOString().slice(0,10));
-  const [hora, setHora] = useState(now.toTimeString().slice(0,5));
-  const [origen, setOrigen] = useState("");
-  const [destino, setDestino] = useState("");
-  const [productoId, setProductoId] = useState("");
-  const [litros, setLitros] = useState("");
-  const [grado, setGrado] = useState("");
-  const [obs, setObs] = useState("");
-  const [motivo, setMotivo] = useState("");
 
   useEffect(() => {
     if (!open) return;
