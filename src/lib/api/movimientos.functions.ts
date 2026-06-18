@@ -192,3 +192,17 @@ export const puedeRectificar = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return !!ok;
   });
+
+export const listExistenciasPorProducto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bodegaId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMember(supabase, userId, data.bodegaId);
+    const { data: rows, error } = await supabase
+      .from("existencias_por_producto")
+      .select("*")
+      .eq("bodega_id", data.bodegaId);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
