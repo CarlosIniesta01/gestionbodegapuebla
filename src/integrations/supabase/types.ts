@@ -440,18 +440,23 @@ export type Database = {
           anulado_en: string | null
           anulado_por: string | null
           bodega_id: string
+          contrato_compra_id: string | null
+          contrato_venta_id: string | null
           corregido_en: string | null
           corregido_por: string | null
           created_at: string
           created_by: string | null
           deposito_destino_id: string | null
           deposito_origen_id: string | null
+          elaboracion_id: string | null
           estado_movimiento: Database["public"]["Enums"]["movimiento_estado"]
           fecha: string
           grado: number | null
           hora: string
           id: string
+          incidencia_id: string | null
           litros: number
+          lote_id: string | null
           motivo_anulacion: string | null
           motivo_correccion: string | null
           movimiento_original_id: string | null
@@ -467,18 +472,23 @@ export type Database = {
           anulado_en?: string | null
           anulado_por?: string | null
           bodega_id: string
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
           corregido_en?: string | null
           corregido_por?: string | null
           created_at?: string
           created_by?: string | null
           deposito_destino_id?: string | null
           deposito_origen_id?: string | null
+          elaboracion_id?: string | null
           estado_movimiento?: Database["public"]["Enums"]["movimiento_estado"]
           fecha?: string
           grado?: number | null
           hora?: string
           id?: string
+          incidencia_id?: string | null
           litros: number
+          lote_id?: string | null
           motivo_anulacion?: string | null
           motivo_correccion?: string | null
           movimiento_original_id?: string | null
@@ -494,18 +504,23 @@ export type Database = {
           anulado_en?: string | null
           anulado_por?: string | null
           bodega_id?: string
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
           corregido_en?: string | null
           corregido_por?: string | null
           created_at?: string
           created_by?: string | null
           deposito_destino_id?: string | null
           deposito_origen_id?: string | null
+          elaboracion_id?: string | null
           estado_movimiento?: Database["public"]["Enums"]["movimiento_estado"]
           fecha?: string
           grado?: number | null
           hora?: string
           id?: string
+          incidencia_id?: string | null
           litros?: number
+          lote_id?: string | null
           motivo_anulacion?: string | null
           motivo_correccion?: string | null
           movimiento_original_id?: string | null
@@ -522,6 +537,13 @@ export type Database = {
             columns: ["bodega_id"]
             isOneToOne: false
             referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_elaboracion_id_fkey"
+            columns: ["elaboracion_id"]
+            isOneToOne: false
+            referencedRelation: "elaboraciones"
             referencedColumns: ["id"]
           },
           {
@@ -1296,6 +1318,16 @@ export type Database = {
           alcohol_absoluto: number | null
           bodega_id: string | null
           deposito_id: string | null
+          grado_medio: number | null
+          litros: number | null
+          producto_id: string | null
+        }
+        Relationships: []
+      }
+      existencias_por_producto: {
+        Row: {
+          alcohol_absoluto: number | null
+          bodega_id: string | null
           grado_medio: number | null
           litros: number | null
           producto_id: string | null
