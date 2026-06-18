@@ -109,8 +109,8 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
               ? existenciaSelected.lineas[0].nombre
               : existenciaSelected.lineas.length > 1
                 ? `${existenciaSelected.lineas.length} productos`
-                : selectedBase.contenido ?? null)
-          : selectedBase.contenido ?? null,
+                : selectedBase.contenido ?? undefined)
+          : selectedBase.contenido ?? undefined,
       }
     : null;
   const zonaSelected = selected ? map.zonas.find((z) => z.id === selected.zona_id) : null;
