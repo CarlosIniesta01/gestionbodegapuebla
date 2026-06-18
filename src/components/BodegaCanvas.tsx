@@ -362,6 +362,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
       <DepositoPanel
         deposito={selected}
+        existencia={existenciaSelected}
         zonaName={zonaSelected?.nombre}
         onClose={() => setSelectedDepId(null)}
         onEdit={selected ? () => setDepDialog({ open: true, deposito: selected }) : undefined}
