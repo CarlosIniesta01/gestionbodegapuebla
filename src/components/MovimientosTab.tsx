@@ -39,6 +39,8 @@ export function MovimientosTab({ bodegaId }: Props) {
   const anular = useServerFn(anularMovimiento);
   const canRectFn = useServerFn(puedeRectificar);
   const listProd = useServerFn(listProductosComerciales);
+  const listCC = useServerFn(listContratosCompra);
+  const listCV = useServerFn(listContratosVenta);
   const { depositos } = useBodegaMap(bodegaId);
 
   const movsQ = useQuery({
@@ -53,8 +55,12 @@ export function MovimientosTab({ bodegaId }: Props) {
     queryKey: ["puede-rectificar", bodegaId],
     queryFn: () => canRectFn({ data: { bodegaId } }),
   });
+  const ccQ = useQuery({ queryKey: ["contratos-compra", bodegaId], queryFn: () => listCC({ data: { bodegaId } }) });
+  const cvQ = useQuery({ queryKey: ["contratos-venta", bodegaId], queryFn: () => listCV({ data: { bodegaId } }) });
   const productos = (prodsQ.data ?? []) as any[];
   const movs = (movsQ.data ?? []) as any[];
+  const contratosCompra = (ccQ.data ?? []) as any[];
+  const contratosVenta = (cvQ.data ?? []) as any[];
   const canRect = !!rectQ.data;
 
   const [open, setOpen] = useState(false);
