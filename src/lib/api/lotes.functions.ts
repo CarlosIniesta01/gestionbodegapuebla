@@ -235,15 +235,65 @@ export const anularConsumo = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Comprobación para finalizar trabajo
+// Comprobación para finalizar trabajo: valida que todos los consumos tengan
+// producto, lote, cantidad>0, unidad, fecha, hora y que exista al menos un
+// trabajador participante. Si el tipo del trabajo es "producto" se exige
+// además al menos un consumo registrado.
 export const trabajoConsumosCompletos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ bodegaId: z.string().uuid(), trabajo_id: z.string().uuid() }))
+  .inputValidator(z.object({
+    bodegaId: z.string().uuid(),
+    trabajo_id: z.string().uuid(),
+    intentoFinalizacion: z.boolean().optional(),
+  }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMember(supabase, userId, data.bodegaId);
+
+    const { data: trabajo, error: et } = await supabase.from("trabajos")
+      .select("id, tipo, bodega_id").eq("id", data.trabajo_id).maybeSingle();
+    if (et) throw new Error(et.message);
+    if (!trabajo) throw new Error("Trabajo no encontrado");
+
     const { data: rows, error } = await supabase.from("consumos_producto")
-      .select("id").eq("trabajo_id", data.trabajo_id).eq("anulado", false).limit(1);
+      .select("id, producto_id, lote_id, cantidad, unidad, fecha, hora")
+      .eq("trabajo_id", data.trabajo_id).eq("anulado", false);
     if (error) throw new Error(error.message);
-    return { tiene_consumos: (rows?.length ?? 0) > 0 };
+
+    const { data: trabs } = await supabase.from("trabajo_trabajadores")
+      .select("id").eq("trabajo_id", data.trabajo_id).limit(1);
+    const hayTrabajador = (trabs?.length ?? 0) > 0;
+
+    const total = rows?.length ?? 0;
+    const motivos: string[] = [];
+    let invalidos = 0;
+    for (const c of rows ?? []) {
+      const faltas: string[] = [];
+      if (!c.producto_id) faltas.push("producto");
+      if (!c.lote_id) faltas.push("lote");
+      if (c.cantidad == null || Number(c.cantidad) <= 0) faltas.push("cantidad");
+      if (!c.unidad) faltas.push("unidad");
+      if (!c.fecha) faltas.push("fecha");
+      if (!c.hora) faltas.push("hora");
+      if (faltas.length) { invalidos++; motivos.push(`Consumo ${c.id.slice(0,8)}: falta ${faltas.join(", ")}`); }
+    }
+    if (total > 0 && !hayTrabajador) motivos.push("Sin trabajador asignado al trabajo");
+
+    const requiere = trabajo.tipo === "producto" || total > 0;
+    const completo = !requiere
+      ? true
+      : total > 0 && invalidos === 0 && hayTrabajador;
+
+    if (data.intentoFinalizacion && !completo) {
+      await supabase.from("auditoria").insert({
+        bodega_id: trabajo.bodega_id,
+        user_id: userId,
+        accion: "FINALIZAR_TRABAJO_BLOQUEADO",
+        tabla: "trabajos",
+        registro_id: trabajo.id,
+        payload: { requiere, total, invalidos, hayTrabajador, motivos } as any,
+      });
+    }
+
+    return { requiere, completo, total, invalidos, validos: total - invalidos, hayTrabajador, motivos };
   });
