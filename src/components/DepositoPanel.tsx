@@ -57,7 +57,7 @@ export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAc
                 : "fixed top-0 right-0 bottom-0 z-50 w-[420px] bg-surface border-l border-border flex flex-col"
             }
           >
-            <Content deposito={deposito} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} />
+            <Content deposito={deposito} existencia={existencia ?? null} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} />
 
           </motion.aside>
         </>
