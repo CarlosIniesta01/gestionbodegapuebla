@@ -41,6 +41,8 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   const del = useMutation({ mutationFn: delFn, onSuccess: () => { toast.success("Eliminado"); invalidate(); }, onError: (e: Error) => toast.error(e.message) });
 
   const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
+  const [trabsOpen, setTrabsOpen] = useState(false);
+
 
   return (
     <motion.div
