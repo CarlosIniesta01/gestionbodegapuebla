@@ -130,14 +130,14 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => upd.mutate({ data: { id: t.id, estado: "completado" }})}
+                    onClick={finalizar}
                   >
                     <Check className="size-3.5 mr-1" />Finalizar
                   </Button>
                 </>
               )}
               {t.estado !== "cancelado" && t.estado !== "completado" && t.estado !== "en_curso" && t.estado !== "pendiente" && (
-                <Button size="sm" variant="ghost" onClick={() => upd.mutate({ data: { id: t.id, estado: "completado" }})}>
+                <Button size="sm" variant="ghost" onClick={finalizar}>
                   <Check className="size-3.5 mr-1" />Finalizar
                 </Button>
               )}
