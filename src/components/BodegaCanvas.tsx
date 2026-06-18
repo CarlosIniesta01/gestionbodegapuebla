@@ -326,7 +326,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
               </svg>
 
               {/* Deposits — auto-arranged en línea dentro de cada zona */}
-              {depositosLayout.map((d) => (
+              {depositosConExistencias.map((d) => (
                 <DepositoNode
                   key={d.id}
                   deposito={d}
