@@ -116,6 +116,8 @@ export function ConsumosTab({ bodegaId, trabajoId }: { bodegaId: string; trabajo
         )}
       </div>
 
+      <EstadoConsumos bodegaId={bodegaId} trabajoId={trabajoId} count={consumosQ.data?.length ?? 0} />
+
       <div className="scada-panel overflow-hidden">
         <div className="px-3 py-2 border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
           Consumos del trabajo ({consumosQ.data?.length ?? 0})
