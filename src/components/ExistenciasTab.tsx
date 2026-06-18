@@ -37,29 +37,30 @@ export function ExistenciasTab({ bodegaId }: Props) {
   const depById = useMemo(() => Object.fromEntries(depositos.map((d) => [d.id, d])), [depositos]);
 
   const [filtroProducto, setFiltroProducto] = useState<string>("__todos__");
-  const [filtroCampana, setFiltroCampana] = useState<string>("");
-  const [filtroTipoColor, setFiltroTipoColor] = useState<string>("");
+  const [filtroCampana, setFiltroCampana] = useState<string>("__todos__");
+  const [filtroTipoColor, setFiltroTipoColor] = useState<string>("__todos__");
 
   const filasPorProducto = useMemo(() => {
-    const rows = existenciasPorProducto.map((e) => {
-      const p = e.producto_id ? prodById[e.producto_id] : null;
+    const rows = existenciasPorProducto.map((e: any) => {
+      const p = e?.producto_id ? prodById[e.producto_id] : null;
+      const tipoColor = p ? [p.tipo, p.color].filter(Boolean).join(" / ") : "";
       return {
-        producto_id: e.producto_id,
+        producto_id: e?.producto_id ?? null,
         producto: p?.nombre ?? "(sin producto)",
         codigo: p?.codigo ?? "—",
         campana: p?.campaña ?? "—",
-        tipoColor: p ? [p.tipo, p.color].filter(Boolean).join(" / ") : "—",
-        litros: Number(e.litros),
-        grado_medio: Number(e.grado_medio),
-        alcohol_absoluto: Number(e.alcohol_absoluto),
+        tipoColor: tipoColor || "—",
+        litros: Number(e?.litros ?? 0) || 0,
+        grado_medio: Number(e?.grado_medio ?? 0) || 0,
+        alcohol_absoluto: Number(e?.alcohol_absoluto ?? 0) || 0,
       };
     });
 
     return rows
       .filter((r) => {
-        if (filtroProducto && filtroProducto !== "__todos__" && r.producto_id !== filtroProducto) return false;
-        if (filtroCampana && !(r.campana ?? "").toLowerCase().includes(filtroCampana.toLowerCase())) return false;
-        if (filtroTipoColor && !(r.tipoColor ?? "").toLowerCase().includes(filtroTipoColor.toLowerCase())) return false;
+        if (filtroProducto !== "__todos__" && r.producto_id !== filtroProducto) return false;
+        if (filtroCampana !== "__todos__" && (r.campana ?? "") !== filtroCampana) return false;
+        if (filtroTipoColor !== "__todos__" && (r.tipoColor ?? "") !== filtroTipoColor) return false;
         return true;
       })
       .sort((a, b) => b.litros - a.litros);
