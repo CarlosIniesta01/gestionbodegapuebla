@@ -98,13 +98,22 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const selected = selectedDepId
-    ? (((depositosConExistencias as any[] | undefined) ?? []).find((d: any) => d.id === selectedDepId)
-        ?? map.depositos.find((d) => d.id === selectedDepId))
-    ?? null
+  const selectedBase = map.depositos.find((d) => d.id === selectedDepId) ?? null;
+  const existenciaSelected = selectedBase ? existenciaByDeposito[selectedBase.id] ?? null : null;
+  const selected = selectedBase
+    ? {
+        ...selectedBase,
+        litros: existenciaSelected ? existenciaSelected.litros : selectedBase.litros,
+        contenido: existenciaSelected
+          ? (existenciaSelected.lineas.length === 1
+              ? existenciaSelected.lineas[0].nombre
+              : existenciaSelected.lineas.length > 1
+                ? `${existenciaSelected.lineas.length} productos`
+                : selectedBase.contenido ?? null)
+          : selectedBase.contenido ?? null,
+      }
     : null;
   const zonaSelected = selected ? map.zonas.find((z) => z.id === selected.zona_id) : null;
-  const existenciaSelected = selected ? existenciaByDeposito[selected.id] ?? null : null;
 
   // (trasiegos se calcula tras depositosLayout para usar posiciones auto-ordenadas)
 
