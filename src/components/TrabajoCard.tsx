@@ -125,6 +125,9 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
                   <X className="size-3.5" />
                 </Button>
               )}
+              <Button size="sm" variant="ghost" title="Trabajadores" onClick={() => setTrabsOpen(true)}>
+                <Users className="size-3.5" />
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => { if (confirm("¿Eliminar trabajo?")) del.mutate({ data: { id: t.id }}); }}>
                 <Trash2 className="size-3.5" />
               </Button>
@@ -132,6 +135,7 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
           </div>
         </div>
       </div>
+      <TrabajoDetailDialog open={trabsOpen} onOpenChange={setTrabsOpen} trabajoId={t.id} trabajoTitulo={t.titulo} />
     </motion.div>
   );
 }
