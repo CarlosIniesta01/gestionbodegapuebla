@@ -17,6 +17,7 @@ import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticated/recetas'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
+import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
 import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
 import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -61,6 +62,11 @@ const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
   path: '/mensajes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedContratosRoute = AuthenticatedContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedBodegaRoute = AuthenticatedBodegaRouteImport.update({
   id: '/bodega',
   path: '/bodega',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/bodega': typeof AuthenticatedBodegaRoute
+  '/contratos': typeof AuthenticatedContratosRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/recetas': typeof AuthenticatedRecetasRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/bodega': typeof AuthenticatedBodegaRoute
+  '/contratos': typeof AuthenticatedContratosRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/recetas': typeof AuthenticatedRecetasRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
   '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
+  '/_authenticated/contratos': typeof AuthenticatedContratosRoute
   '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
   '/_authenticated/recetas': typeof AuthenticatedRecetasRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/almacen'
     | '/bodega'
+    | '/contratos'
     | '/mensajes'
     | '/pendientes'
     | '/recetas'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/almacen'
     | '/bodega'
+    | '/contratos'
     | '/mensajes'
     | '/pendientes'
     | '/recetas'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/almacen'
     | '/_authenticated/bodega'
+    | '/_authenticated/contratos'
     | '/_authenticated/mensajes'
     | '/_authenticated/pendientes'
     | '/_authenticated/recetas'
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMensajesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/contratos': {
+      id: '/_authenticated/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof AuthenticatedContratosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/bodega': {
       id: '/_authenticated/bodega'
       path: '/bodega'
@@ -266,6 +285,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
   AuthenticatedBodegaRoute: typeof AuthenticatedBodegaRoute
+  AuthenticatedContratosRoute: typeof AuthenticatedContratosRoute
   AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
   AuthenticatedRecetasRoute: typeof AuthenticatedRecetasRoute
@@ -278,6 +298,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
   AuthenticatedBodegaRoute: AuthenticatedBodegaRoute,
+  AuthenticatedContratosRoute: AuthenticatedContratosRoute,
   AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
   AuthenticatedRecetasRoute: AuthenticatedRecetasRoute,
