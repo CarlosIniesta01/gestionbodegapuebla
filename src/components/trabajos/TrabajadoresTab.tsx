@@ -7,7 +7,7 @@ import {
   listMiembrosBodega, listTrabajadoresTrabajo,
   asignarTrabajador, actualizarParticipacion, retirarTrabajador,
 } from "@/lib/api/trabajadores.functions";
-import { supabase } from "@/integrations/supabase/client";
+
 
 const ESTADO_META: Record<string, { label: string; color: string }> = {
   asignado:   { label: "Asignado",   color: "bg-sky-500/15 text-sky-600 border-sky-500/30" },
