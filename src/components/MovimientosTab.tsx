@@ -10,6 +10,7 @@ import {
   listMovimientos, createMovimiento, editMovimiento, anularMovimiento, puedeRectificar,
 } from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
+import { listContratosCompra, listContratosVenta } from "@/lib/api/contratos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 
 interface Props { bodegaId: string }
