@@ -13,6 +13,8 @@ import { TrabajoFormDialog } from "./TrabajoFormDialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
+import { listExistencias } from "@/lib/api/movimientos.functions";
+import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import type { TrabajoTipo } from "@/lib/trabajo-meta";
 import { CANVAS_H, CANVAS_W, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
 
