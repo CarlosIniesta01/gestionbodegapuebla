@@ -219,12 +219,14 @@ export function MovimientosTab({ bodegaId }: Props) {
 }
 
 function MovimientoDialog({
-  open, onOpenChange, productos, depositos, onSave, editing, duplicating,
+  open, onOpenChange, productos, depositos, contratosCompra, contratosVenta, onSave, editing, duplicating,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   productos: any[];
   depositos: any[];
+  contratosCompra: any[];
+  contratosVenta: any[];
   editing: any | null;
   duplicating: any | null;
   onSave: (d: any, motivo?: string) => void;
@@ -232,6 +234,17 @@ function MovimientoDialog({
   const seed = editing ?? duplicating;
   const now = new Date();
   const [tipo, setTipo] = useState<string>("entrada");
+  const [fecha, setFecha] = useState(now.toISOString().slice(0,10));
+  const [hora, setHora] = useState(now.toTimeString().slice(0,5));
+  const [origen, setOrigen] = useState("");
+  const [destino, setDestino] = useState("");
+  const [productoId, setProductoId] = useState("");
+  const [litros, setLitros] = useState("");
+  const [grado, setGrado] = useState("");
+  const [obs, setObs] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const [contratoCompraId, setContratoCompraId] = useState("");
+  const [contratoVentaId, setContratoVentaId] = useState("");
   const [fecha, setFecha] = useState(now.toISOString().slice(0,10));
   const [hora, setHora] = useState(now.toTimeString().slice(0,5));
   const [origen, setOrigen] = useState("");
