@@ -119,6 +119,140 @@ export type Database = {
           },
         ]
       }
+      consumos_producto: {
+        Row: {
+          anulado: boolean
+          autorizado_en: string | null
+          autorizado_por: string | null
+          bodega_id: string
+          cantidad: number
+          contrato_compra_id: string | null
+          contrato_venta_id: string | null
+          created_at: string
+          created_by: string
+          deposito_id: string | null
+          elaboracion_id: string | null
+          fecha: string
+          hora: string
+          id: string
+          incidencia_id: string | null
+          lote_id: string
+          motivo_anulacion: string | null
+          motivo_autorizacion: string | null
+          movimiento_id: string | null
+          observaciones: string | null
+          producto_id: string
+          trabajador_id: string | null
+          trabajo_id: string | null
+          unidad: string
+          uso_caducado_autorizado: boolean
+        }
+        Insert: {
+          anulado?: boolean
+          autorizado_en?: string | null
+          autorizado_por?: string | null
+          bodega_id: string
+          cantidad: number
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
+          created_at?: string
+          created_by: string
+          deposito_id?: string | null
+          elaboracion_id?: string | null
+          fecha?: string
+          hora?: string
+          id?: string
+          incidencia_id?: string | null
+          lote_id: string
+          motivo_anulacion?: string | null
+          motivo_autorizacion?: string | null
+          movimiento_id?: string | null
+          observaciones?: string | null
+          producto_id: string
+          trabajador_id?: string | null
+          trabajo_id?: string | null
+          unidad: string
+          uso_caducado_autorizado?: boolean
+        }
+        Update: {
+          anulado?: boolean
+          autorizado_en?: string | null
+          autorizado_por?: string | null
+          bodega_id?: string
+          cantidad?: number
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
+          created_at?: string
+          created_by?: string
+          deposito_id?: string | null
+          elaboracion_id?: string | null
+          fecha?: string
+          hora?: string
+          id?: string
+          incidencia_id?: string | null
+          lote_id?: string
+          motivo_anulacion?: string | null
+          motivo_autorizacion?: string | null
+          movimiento_id?: string | null
+          observaciones?: string | null
+          producto_id?: string
+          trabajador_id?: string | null
+          trabajo_id?: string | null
+          unidad?: string
+          uso_caducado_autorizado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumos_producto_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumos_producto_elaboracion_id_fkey"
+            columns: ["elaboracion_id"]
+            isOneToOne: false
+            referencedRelation: "elaboraciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumos_producto_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "producto_lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumos_producto_movimiento_id_fkey"
+            columns: ["movimiento_id"]
+            isOneToOne: false
+            referencedRelation: "movimientos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumos_producto_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumos_producto_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
+          },
+          {
+            foreignKeyName: "consumos_producto_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       elaboracion_depositos: {
         Row: {
           deposito_codigo: string
@@ -196,6 +330,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "elaboracion_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
           },
         ]
       }
@@ -702,47 +843,159 @@ export type Database = {
           },
         ]
       }
+      producto_lotes: {
+        Row: {
+          bodega_id: string
+          cantidad_disponible: number
+          cantidad_inicial: number
+          coste_unitario: number | null
+          created_at: string
+          created_by: string | null
+          estado: Database["public"]["Enums"]["lote_estado"]
+          fecha_caducidad: string | null
+          fecha_recepcion: string | null
+          id: string
+          motivo_bloqueo: string | null
+          numero_lote: string
+          observaciones: string | null
+          producto_id: string
+          proveedor: string | null
+          ubicacion: string | null
+          unidad: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bodega_id: string
+          cantidad_disponible: number
+          cantidad_inicial: number
+          coste_unitario?: number | null
+          created_at?: string
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["lote_estado"]
+          fecha_caducidad?: string | null
+          fecha_recepcion?: string | null
+          id?: string
+          motivo_bloqueo?: string | null
+          numero_lote: string
+          observaciones?: string | null
+          producto_id: string
+          proveedor?: string | null
+          ubicacion?: string | null
+          unidad?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bodega_id?: string
+          cantidad_disponible?: number
+          cantidad_inicial?: number
+          coste_unitario?: number | null
+          created_at?: string
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["lote_estado"]
+          fecha_caducidad?: string | null
+          fecha_recepcion?: string | null
+          id?: string
+          motivo_bloqueo?: string | null
+          numero_lote?: string
+          observaciones?: string | null
+          producto_id?: string
+          proveedor?: string | null
+          ubicacion?: string | null
+          unidad?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producto_lotes_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producto_lotes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producto_lotes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
+          },
+        ]
+      }
       productos: {
         Row: {
           activo: boolean
           bodega_id: string
+          categoria: Database["public"]["Enums"]["producto_categoria"] | null
           created_at: string
           created_by: string
+          fabricante: string | null
           fecha_caducidad: string | null
+          ficha_seguridad_url: string | null
+          ficha_tecnica_url: string | null
           id: string
-          lote: string
+          lote: string | null
           nombre: string
           observaciones: string | null
           proveedor: string | null
+          referencia: string | null
+          stock_critico: number | null
+          stock_minimo: number | null
           tipo: Database["public"]["Enums"]["producto_tipo"]
+          unidad: string
           updated_at: string
         }
         Insert: {
           activo?: boolean
           bodega_id: string
+          categoria?: Database["public"]["Enums"]["producto_categoria"] | null
           created_at?: string
           created_by: string
+          fabricante?: string | null
           fecha_caducidad?: string | null
+          ficha_seguridad_url?: string | null
+          ficha_tecnica_url?: string | null
           id?: string
-          lote: string
+          lote?: string | null
           nombre: string
           observaciones?: string | null
           proveedor?: string | null
+          referencia?: string | null
+          stock_critico?: number | null
+          stock_minimo?: number | null
           tipo?: Database["public"]["Enums"]["producto_tipo"]
+          unidad?: string
           updated_at?: string
         }
         Update: {
           activo?: boolean
           bodega_id?: string
+          categoria?: Database["public"]["Enums"]["producto_categoria"] | null
           created_at?: string
           created_by?: string
+          fabricante?: string | null
           fecha_caducidad?: string | null
+          ficha_seguridad_url?: string | null
+          ficha_tecnica_url?: string | null
           id?: string
-          lote?: string
+          lote?: string | null
           nombre?: string
           observaciones?: string | null
           proveedor?: string | null
+          referencia?: string | null
+          stock_critico?: number | null
+          stock_minimo?: number | null
           tipo?: Database["public"]["Enums"]["producto_tipo"]
+          unidad?: string
           updated_at?: string
         }
         Relationships: []
@@ -941,6 +1194,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receta_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
           },
           {
             foreignKeyName: "receta_productos_receta_id_fkey"
@@ -1334,6 +1594,22 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_por_producto: {
+        Row: {
+          bodega_id: string | null
+          categoria: Database["public"]["Enums"]["producto_categoria"] | null
+          lotes_activos: number | null
+          lotes_caducados: number | null
+          nombre: string | null
+          producto_id: string | null
+          proxima_caducidad: string | null
+          stock_critico: number | null
+          stock_disponible: number | null
+          stock_minimo: number | null
+          unidad: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_rectify_movimientos: { Args: { _bodega: string }; Returns: boolean }
@@ -1343,9 +1619,11 @@ export type Database = {
         Returns: boolean
       }
       is_bodega_admin: { Args: { _bodega: string }; Returns: boolean }
+      marcar_lotes_caducados: { Args: never; Returns: number }
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
+      lote_estado: "disponible" | "agotado" | "caducado" | "bloqueado"
       membership_estado: "activo" | "inactivo" | "suspendido" | "rechazado"
       mensaje_canal: "general" | "deposito" | "trabajo"
       movimiento_estado: "activo" | "corregido" | "anulado"
@@ -1363,6 +1641,17 @@ export type Database = {
         | "finalizado"
         | "ausente"
         | "rechazado"
+      producto_categoria:
+        | "levaduras"
+        | "nutrientes"
+        | "clarificantes"
+        | "estabilizantes"
+        | "enzimas"
+        | "limpieza"
+        | "laboratorio"
+        | "aditivos"
+        | "consumibles"
+        | "otro"
       producto_tipo: "enologico" | "limpieza" | "otro"
       trabajo_estado: "pendiente" | "en_curso" | "completado" | "cancelado"
       trabajo_prioridad: "baja" | "normal" | "alta" | "urgente"
@@ -1501,6 +1790,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      lote_estado: ["disponible", "agotado", "caducado", "bloqueado"],
       membership_estado: ["activo", "inactivo", "suspendido", "rechazado"],
       mensaje_canal: ["general", "deposito", "trabajo"],
       movimiento_estado: ["activo", "corregido", "anulado"],
@@ -1519,6 +1809,18 @@ export const Constants = {
         "finalizado",
         "ausente",
         "rechazado",
+      ],
+      producto_categoria: [
+        "levaduras",
+        "nutrientes",
+        "clarificantes",
+        "estabilizantes",
+        "enzimas",
+        "limpieza",
+        "laboratorio",
+        "aditivos",
+        "consumibles",
+        "otro",
       ],
       producto_tipo: ["enologico", "limpieza", "otro"],
       trabajo_estado: ["pendiente", "en_curso", "completado", "cancelado"],
