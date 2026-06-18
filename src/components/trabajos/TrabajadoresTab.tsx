@@ -107,10 +107,29 @@ export function TrabajadoresTab({ bodegaId, trabajoId }: { bodegaId: string; tra
                         <CircleAlert className="size-3" /> Ausente
                       </button>
                     )}
+                    {p.estado_participacion !== "rechazado" && (
+                      <button onClick={() => actualizar.mutate({ id: p.id, estado: "rechazado" })}
+                        className="text-[11px] px-2 py-1 rounded border border-rose-500/40 text-rose-600 hover:bg-rose-500/10 flex items-center gap-1">
+                        <X className="size-3" /> Rechazar
+                      </button>
+                    )}
                     <button onClick={() => { if (confirm("¿Retirar trabajador?")) retirar.mutate(p.id); }}
                       className="text-[11px] px-2 py-1 rounded text-rose-500 hover:bg-rose-500/10 flex items-center gap-1 ml-auto">
                       <UserMinus className="size-3" /> Retirar
                     </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={rol[p.id] ?? p.rol_en_trabajo ?? ""}
+                      onChange={(e) => setRol((s) => ({ ...s, [p.id]: e.target.value }))}
+                      placeholder="Rol en el trabajo (p. ej. operario, responsable…)"
+                      className="flex-1 text-xs bg-background border border-input rounded-lg px-2 py-1"
+                    />
+                    <button
+                      onClick={() => actualizar.mutate({ id: p.id, rol_en_trabajo: (rol[p.id] ?? p.rol_en_trabajo ?? "").trim() || null })}
+                      className="text-[11px] px-2 py-1 rounded border border-border hover:bg-secondary"
+                    >Guardar rol</button>
                   </div>
 
                   <div className="flex items-end gap-2">
