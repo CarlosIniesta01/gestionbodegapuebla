@@ -98,8 +98,13 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const selected = map.depositos.find((d) => d.id === selectedDepId) ?? null;
+  const selected = selectedDepId
+    ? (((depositosConExistencias as any[] | undefined) ?? []).find((d: any) => d.id === selectedDepId)
+        ?? map.depositos.find((d) => d.id === selectedDepId))
+    ?? null
+    : null;
   const zonaSelected = selected ? map.zonas.find((z) => z.id === selected.zona_id) : null;
+  const existenciaSelected = selected ? existenciaByDeposito[selected.id] ?? null : null;
 
   // (trasiegos se calcula tras depositosLayout para usar posiciones auto-ordenadas)
 
