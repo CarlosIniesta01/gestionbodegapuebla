@@ -133,7 +133,7 @@ export function ExistenciasTab({ bodegaId }: Props) {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="__todos__">Todas</SelectItem>
                   {campanasUnicas.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
