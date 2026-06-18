@@ -33,11 +33,62 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
   const listFn = useServerFn(listTrabajos);
   const trabajosQ = useQuery({
     queryKey: ["trabajos", bodegaId, "en_curso-map"],
-    queryFn: () => listFn({ data: { bodegaId: bodegaId!, estado: ["en_curso"] } }),
+    queryFn: () => listFn({ data: { bodegaId: bodegaId! } }),
     enabled: !!bodegaId,
     refetchInterval: 8000,
   });
   const enCurso: any[] = trabajosQ.data ?? [];
+
+  const listExistFn = useServerFn(listExistencias);
+  const listProdFn = useServerFn(listProductosComerciales);
+  const existenciasQ = useQuery({
+    queryKey: ["existencias", bodegaId, "map"],
+    queryFn: () => listExistFn({ data: { bodegaId: bodegaId! } }),
+    enabled: !!bodegaId,
+    refetchInterval: 10000,
+  });
+  const productosQ = useQuery({
+    queryKey: ["productos-comerciales", bodegaId, "map"],
+    queryFn: () => listProdFn({ data: { bodegaId: bodegaId! } }),
+    enabled: !!bodegaId,
+  });
+
+  // Resumen por depósito desde existencias_actuales (join por bodega_id + deposito_id + producto_id)
+  const existenciaByDeposito = useMemo(() => {
+    const productos = (productosQ.data ?? []) as any[];
+    const prodById: Record<string, any> = Object.fromEntries(productos.map((p) => [p.id, p]));
+    const rows = (existenciasQ.data ?? []) as any[];
+    const acc: Record<string, {
+      litros: number;
+      alcohol_absoluto: number;
+      grado_medio: number;
+      lineas: { producto_id: string | null; nombre: string; litros: number; grado: number; aa: number }[];
+    }> = {};
+    rows.forEach((r) => {
+      const did = r?.deposito_id;
+      if (!did) return;
+      const litros = Number(r?.litros ?? 0) || 0;
+      const aa = Number(r?.alcohol_absoluto ?? 0) || 0;
+      const grado = Number(r?.grado_medio ?? 0) || 0;
+      const prod = r?.producto_id ? prodById[r.producto_id] : null;
+      const entry = acc[did] ?? { litros: 0, alcohol_absoluto: 0, grado_medio: 0, lineas: [] };
+      entry.litros += litros;
+      entry.alcohol_absoluto += aa;
+      entry.lineas.push({
+        producto_id: r?.producto_id ?? null,
+        nombre: prod?.nombre ?? "(sin producto)",
+        litros,
+        grado,
+        aa,
+      });
+      acc[did] = entry;
+    });
+    Object.values(acc).forEach((e) => {
+      e.grado_medio = e.litros > 0 ? (e.alcohol_absoluto * 100) / e.litros : 0;
+    });
+    return acc;
+  }, [existenciasQ.data, productosQ.data]);
+
   const [editMode, setEditMode] = useState(false);
   const [zoom, setZoom] = useState(0.85);
   const [selectedDepId, setSelectedDepId] = useState<string | null>(null);
