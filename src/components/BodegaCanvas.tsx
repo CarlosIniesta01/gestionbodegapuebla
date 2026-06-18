@@ -410,6 +410,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
         onOpenChange={(v) => setDepDialog((s) => ({ ...s, open: v }))}
         deposito={depDialog.deposito}
         zonas={map.zonas}
+        bodegaId={bodegaId}
         onSave={(data) => {
           if (depDialog.deposito) {
             map.updateDeposito(depDialog.deposito.id, data);
