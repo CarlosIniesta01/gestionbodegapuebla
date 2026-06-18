@@ -1,12 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, FlaskConical, Wrench } from "lucide-react";
-import { listMovimientos, createMovimiento } from "@/lib/api/movimientos.functions";
+import { Plus, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, FlaskConical, Wrench, Pencil, Ban, Copy } from "lucide-react";
+import {
+  listMovimientos, createMovimiento, editMovimiento, anularMovimiento, puedeRectificar,
+} from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 
@@ -22,10 +24,19 @@ const TIPO_META: Record<string, { label: string; icon: any; color: string }> = {
   ajuste:     { label: "Ajuste",     icon: Wrench,          color: "text-muted-foreground" },
 };
 
+const ESTADO_BADGE: Record<string, string> = {
+  activo:    "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+  corregido: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  anulado:   "bg-rose-500/15 text-rose-600 border-rose-500/30 line-through opacity-70",
+};
+
 export function MovimientosTab({ bodegaId }: Props) {
   const qc = useQueryClient();
   const list = useServerFn(listMovimientos);
   const create = useServerFn(createMovimiento);
+  const edit = useServerFn(editMovimiento);
+  const anular = useServerFn(anularMovimiento);
+  const canRectFn = useServerFn(puedeRectificar);
   const listProd = useServerFn(listProductosComerciales);
   const { depositos } = useBodegaMap(bodegaId);
 
@@ -37,30 +48,54 @@ export function MovimientosTab({ bodegaId }: Props) {
     queryKey: ["productos-comerciales", bodegaId],
     queryFn: () => listProd({ data: { bodegaId } }),
   });
+  const rectQ = useQuery({
+    queryKey: ["puede-rectificar", bodegaId],
+    queryFn: () => canRectFn({ data: { bodegaId } }),
+  });
   const productos = (prodsQ.data ?? []) as any[];
   const movs = (movsQ.data ?? []) as any[];
+  const canRect = !!rectQ.data;
 
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [duplicating, setDuplicating] = useState<any | null>(null);
+  const [anulandoId, setAnulandoId] = useState<string | null>(null);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["movimientos", bodegaId] });
+    qc.invalidateQueries({ queryKey: ["existencias", bodegaId] });
+  };
+
   const createM = useMutation({
     mutationFn: (d: any) => create({ data: { bodegaId, data: d } }),
-    onSuccess: () => {
-      toast.success("Movimiento registrado");
-      qc.invalidateQueries({ queryKey: ["movimientos", bodegaId] });
-      qc.invalidateQueries({ queryKey: ["existencias", bodegaId] });
-      setOpen(false);
-    },
+    onSuccess: () => { toast.success("Movimiento registrado"); invalidate(); setOpen(false); setDuplicating(null); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const editM = useMutation({
+    mutationFn: (p: { id: string; data: any; motivo: string }) =>
+      edit({ data: { bodegaId, id: p.id, data: p.data, motivo: p.motivo } }),
+    onSuccess: () => { toast.success("Movimiento corregido"); invalidate(); setEditing(null); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const anularM = useMutation({
+    mutationFn: (p: { id: string; motivo: string }) => anular({ data: { bodegaId, id: p.id, motivo: p.motivo } }),
+    onSuccess: () => { toast.success("Movimiento anulado"); invalidate(); setAnulandoId(null); },
     onError: (e: any) => toast.error(e.message),
   });
 
   const depositoLabel = (id: string | null) =>
     id ? (depositos.find((d) => d.id === id)?.codigo ?? id) : "—";
 
+  const anulando = movs.find((m) => m.id === anulandoId) ?? null;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-display">Movimientos</h3>
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => { setEditing(null); setDuplicating(null); setOpen(true); }}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="size-3.5" /> Nuevo movimiento
@@ -73,26 +108,33 @@ export function MovimientosTab({ bodegaId }: Props) {
             <tr>
               <th className="text-left p-2">Fecha</th>
               <th className="text-left p-2">Tipo</th>
+              <th className="text-left p-2">Estado</th>
               <th className="text-left p-2">Producto</th>
               <th className="text-left p-2">Origen</th>
               <th className="text-left p-2">Destino</th>
               <th className="text-right p-2">Litros</th>
               <th className="text-right p-2">Grado</th>
-              <th className="text-right p-2">Alc. abs.</th>
+              <th className="text-right p-2">Alc.</th>
               <th className="text-left p-2">Obs.</th>
+              <th className="text-right p-2">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {movs.map((m) => {
               const meta = TIPO_META[m.tipo] ?? TIPO_META.ajuste;
               const Icon = meta.icon;
+              const estado = m.estado_movimiento ?? "activo";
+              const rowCls = estado === "anulado" ? "opacity-60" : estado === "corregido" ? "bg-amber-500/5" : "";
               return (
-                <tr key={m.id} className="border-t border-border">
+                <tr key={m.id} className={`border-t border-border ${rowCls}`}>
                   <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">{m.fecha} {m.hora?.slice(0,5)}</td>
                   <td className="p-2">
                     <span className={`inline-flex items-center gap-1 ${meta.color}`}>
                       <Icon className="size-3.5" /> {meta.label}
                     </span>
+                  </td>
+                  <td className="p-2">
+                    <span className={`inline-block text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${ESTADO_BADGE[estado]}`}>{estado}</span>
                   </td>
                   <td className="p-2">{m.productos_comerciales?.nombre ?? "—"}</td>
                   <td className="p-2 font-mono text-xs">{depositoLabel(m.deposito_origen_id)}</td>
@@ -100,37 +142,83 @@ export function MovimientosTab({ bodegaId }: Props) {
                   <td className="p-2 text-right tabular-nums">{Number(m.litros).toLocaleString("es-ES")}</td>
                   <td className="p-2 text-right tabular-nums">{m.grado ?? "—"}</td>
                   <td className="p-2 text-right tabular-nums">{Number(m.alcohol_absoluto).toLocaleString("es-ES", { maximumFractionDigits: 1 })}</td>
-                  <td className="p-2 text-xs text-muted-foreground truncate max-w-[200px]">{m.observaciones}</td>
+                  <td className="p-2 text-xs text-muted-foreground truncate max-w-[200px]" title={m.motivo_anulacion || m.motivo_correccion || m.observaciones || ""}>
+                    {m.observaciones}
+                    {m.motivo_correccion && <div className="text-[10px] text-amber-600">↻ {m.motivo_correccion}</div>}
+                    {m.motivo_anulacion && <div className="text-[10px] text-rose-600">✕ {m.motivo_anulacion}</div>}
+                  </td>
+                  <td className="p-2 text-right whitespace-nowrap">
+                    <button
+                      title="Duplicar"
+                      onClick={() => { setEditing(null); setDuplicating(m); setOpen(true); }}
+                      className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+                    ><Copy className="size-3.5" /></button>
+                    {canRect && estado === "activo" && (
+                      <>
+                        <button
+                          title="Editar (con motivo)"
+                          onClick={() => { setDuplicating(null); setEditing(m); setOpen(true); }}
+                          className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+                        ><Pencil className="size-3.5" /></button>
+                        <button
+                          title="Anular"
+                          onClick={() => setAnulandoId(m.id)}
+                          className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-rose-500"
+                        ><Ban className="size-3.5" /></button>
+                      </>
+                    )}
+                  </td>
                 </tr>
               );
             })}
             {!movs.length && (
-              <tr><td colSpan={9} className="p-6 text-center text-muted-foreground text-xs">No hay movimientos aún.</td></tr>
+              <tr><td colSpan={11} className="p-6 text-center text-muted-foreground text-xs">No hay movimientos aún.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
+      {!canRect && (
+        <div className="text-[11px] text-muted-foreground">
+          Solo administradores o responsables pueden editar o anular movimientos.
+        </div>
+      )}
+
       <MovimientoDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setDuplicating(null); } }}
         productos={productos}
         depositos={depositos}
-        onSave={(d) => createM.mutate(d)}
+        editing={editing}
+        duplicating={duplicating}
+        onSave={(d, motivo) => {
+          if (editing) editM.mutate({ id: editing.id, data: d, motivo: motivo! });
+          else createM.mutate(d);
+        }}
+      />
+
+      <AnularDialog
+        open={!!anulandoId}
+        movimiento={anulando}
+        onOpenChange={(v) => { if (!v) setAnulandoId(null); }}
+        onConfirm={(motivo) => anularM.mutate({ id: anulandoId!, motivo })}
       />
     </div>
   );
 }
 
 function MovimientoDialog({
-  open, onOpenChange, productos, depositos, onSave,
+  open, onOpenChange, productos, depositos, onSave, editing, duplicating,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   productos: any[];
   depositos: any[];
-  onSave: (d: any) => void;
+  editing: any | null;
+  duplicating: any | null;
+  onSave: (d: any, motivo?: string) => void;
 }) {
+  const seed = editing ?? duplicating;
   const now = new Date();
   const [tipo, setTipo] = useState<string>("entrada");
   const [fecha, setFecha] = useState(now.toISOString().slice(0,10));
@@ -141,31 +229,52 @@ function MovimientoDialog({
   const [litros, setLitros] = useState("");
   const [grado, setGrado] = useState("");
   const [obs, setObs] = useState("");
+  const [motivo, setMotivo] = useState("");
 
-  useMemo(() => {
-    if (open) {
+  useEffect(() => {
+    if (!open) return;
+    if (seed) {
+      setTipo(seed.tipo);
+      setFecha(seed.fecha);
+      setHora(seed.hora?.slice(0,5) ?? now.toTimeString().slice(0,5));
+      setOrigen(seed.deposito_origen_id ?? "");
+      setDestino(seed.deposito_destino_id ?? "");
+      setProductoId(seed.producto_id ?? "");
+      setLitros(String(seed.litros ?? ""));
+      setGrado(seed.grado != null ? String(seed.grado) : "");
+      setObs(seed.observaciones ?? "");
+    } else {
       const n = new Date();
       setTipo("entrada");
       setFecha(n.toISOString().slice(0,10));
       setHora(n.toTimeString().slice(0,5));
       setOrigen(""); setDestino(""); setProductoId(""); setLitros(""); setGrado(""); setObs("");
     }
-  }, [open]);
+    setMotivo("");
+  }, [open, editing?.id, duplicating?.id]);
 
   const needsOrigen = ["salida","trasiego","mezcla","embotellado","correccion","ajuste"].includes(tipo);
   const needsDestino = ["entrada","trasiego","mezcla","correccion","ajuste"].includes(tipo);
 
   const canSave = !!tipo && !!litros && Number(litros) > 0
     && (!needsOrigen || !!origen)
-    && (!needsDestino || !!destino);
+    && (!needsDestino || !!destino)
+    && (!editing || motivo.trim().length >= 3);
+
+  const title = editing ? "Editar movimiento (corrección)" : duplicating ? "Duplicar movimiento" : "Nuevo movimiento";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-border max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display">Nuevo movimiento</DialogTitle>
+          <DialogTitle className="font-display">{title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          {editing && (
+            <div className="text-[11px] text-amber-600 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
+              El movimiento original quedará marcado como <b>corregido</b>. Se creará uno nuevo enlazado y las existencias se recalcularán.
+            </div>
+          )}
           <div>
             <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-1.5">Tipo</div>
             <div className="grid grid-cols-4 gap-1.5">
@@ -173,10 +282,7 @@ function MovimientoDialog({
                 const Icon = meta.icon;
                 const active = tipo === key;
                 return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setTipo(key)}
+                  <button key={key} type="button" onClick={() => setTipo(key)}
                     className={`p-2 rounded-lg border text-[10px] font-medium flex flex-col items-center gap-1 transition-all ${
                       active ? "border-foreground bg-secondary" : "border-border hover:border-muted-foreground"
                     }`}
@@ -230,6 +336,13 @@ function MovimientoDialog({
           <Field label="Observaciones">
             <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} className={cls} />
           </Field>
+
+          {editing && (
+            <Field label="Motivo de la corrección *">
+              <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} className={cls}
+                placeholder="Ej.: error en litros registrados" />
+            </Field>
+          )}
         </div>
         <DialogFooter>
           <button onClick={() => onOpenChange(false)} className="px-4 py-2 text-sm rounded-lg border border-border hover:bg-secondary">Cancelar</button>
@@ -245,9 +358,45 @@ function MovimientoDialog({
               litros: Number(litros),
               grado: grado ? Number(grado) : null,
               observaciones: obs.trim() || null,
-            })}
+            }, editing ? motivo.trim() : undefined)}
             className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >Registrar</button>
+          >{editing ? "Guardar corrección" : "Registrar"}</button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AnularDialog({ open, movimiento, onOpenChange, onConfirm }: {
+  open: boolean; movimiento: any | null; onOpenChange: (v: boolean) => void; onConfirm: (motivo: string) => void;
+}) {
+  const [motivo, setMotivo] = useState("");
+  useEffect(() => { if (open) setMotivo(""); }, [open]);
+  const canSave = motivo.trim().length >= 3;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-surface border-border max-w-md">
+        <DialogHeader><DialogTitle className="font-display">Anular movimiento</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="text-[12px] text-muted-foreground">
+            El registro <b>no se elimina</b> de la base de datos. Quedará marcado como anulado, excluido de las existencias y visible en auditoría.
+          </div>
+          {movimiento && (
+            <div className="text-xs bg-secondary/40 rounded p-2 font-mono">
+              {movimiento.tipo} · {movimiento.litros} L · {movimiento.fecha} {movimiento.hora?.slice(0,5)}
+            </div>
+          )}
+          <Field label="Motivo de la anulación *">
+            <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} className={cls}
+              placeholder="Ej.: registro duplicado" />
+          </Field>
+        </div>
+        <DialogFooter>
+          <button onClick={() => onOpenChange(false)} className="px-4 py-2 text-sm rounded-lg border border-border hover:bg-secondary">Cancelar</button>
+          <button disabled={!canSave} onClick={() => onConfirm(motivo.trim())}
+            className="px-4 py-2 text-sm rounded-lg bg-rose-600 text-white hover:bg-rose-500 disabled:opacity-50">
+            Anular
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
