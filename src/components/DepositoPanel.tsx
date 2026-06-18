@@ -7,15 +7,23 @@ import { useEffect, useState } from "react";
 
 export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
 
+export interface DepositoExistencia {
+  litros: number;
+  alcohol_absoluto: number;
+  grado_medio: number;
+  lineas: { producto_id: string | null; nombre: string; litros: number; grado: number; aa: number }[];
+}
+
 interface Props {
   deposito: Deposito | null;
+  existencia?: DepositoExistencia | null;
   onClose: () => void;
   onEdit?: () => void;
   onQuickAction?: (action: QuickAction) => void;
   zonaName?: string;
 }
 
-export function DepositoPanel({ deposito, onClose, onEdit, onQuickAction, zonaName }: Props) {
+export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAction, zonaName }: Props) {
   const [isMobile, setIsMobile] = useState(false);
 
 
