@@ -7,6 +7,7 @@ import {
   MessageSquare,
   BookOpen,
   Boxes,
+  Beaker,
   Shield,
   Wine,
   Circle,
@@ -23,6 +24,7 @@ const NAV = [
   { to: "/mensajes", label: "Mensajes", icon: MessageSquare },
   { to: "/recetas", label: "Recetas", icon: BookOpen },
   { to: "/bodega", label: "Bodega", icon: Boxes },
+  { to: "/almacen", label: "Almacén enológico", icon: Beaker },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
 
