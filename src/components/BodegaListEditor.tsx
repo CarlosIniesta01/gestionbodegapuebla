@@ -177,6 +177,7 @@ export function BodegaListEditor({ bodegaId }: { bodegaId?: string } = {}) {
             : null)
         }
         zonas={map.zonas}
+        bodegaId={bodegaId}
         onSave={(data) => {
           if (depDialog.deposito) {
             map.updateDeposito(depDialog.deposito.id, data);
