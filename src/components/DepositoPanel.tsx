@@ -66,7 +66,7 @@ export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAc
   );
 }
 
-function Content({ deposito, onClose, onEdit, onQuickAction, isMobile, zonaName }: { deposito: Deposito; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string }) {
+function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobile, zonaName }: { deposito: Deposito; existencia: DepositoExistencia | null; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string }) {
 
   const colors = useColorSettings();
   const meta = colors.getEstadoMeta(deposito.estado);
