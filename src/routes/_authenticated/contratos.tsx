@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, FileText, ShoppingCart, Users, Truck } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { ContratosTab } from "@/components/contratos/ContratosTab";
 import { PartesTab } from "@/components/contratos/PartesTab";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { getAlertasContratos } from "@/lib/api/contratos.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos")({
-  component: () => <AppShell><ContratosPage /></AppShell>,
+  head: () => ({ meta: [{ title: "Contratos · Vinea Control" }] }),
+  component: ContratosPage,
 });
 
 type Tab = "compra" | "venta" | "clientes" | "proveedores";
