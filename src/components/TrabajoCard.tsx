@@ -6,6 +6,8 @@ import { Clock, ArrowRight, Play, Check, X, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { TIPO_META, ESTADO_LABEL, PRIORIDAD_LABEL, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { updateTrabajoEstado, deleteTrabajo } from "@/lib/api/trabajos.functions";
+import { trabajoConsumosCompletos } from "@/lib/api/lotes.functions";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrabajoDetailDialog } from "@/components/trabajos/TrabajoDetailDialog";
