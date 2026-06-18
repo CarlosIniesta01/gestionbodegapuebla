@@ -132,7 +132,7 @@ export const actualizarParticipacion = createServerFn({ method: "POST" })
     }
     const { data: row, error } = await supabase
       .from("trabajo_trabajadores")
-      .update(patch)
+      .update(patch as any)
       .eq("id", data.id)
       .eq("bodega_id", data.bodegaId)
       .select()
