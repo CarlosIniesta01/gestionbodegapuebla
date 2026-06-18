@@ -155,3 +155,34 @@ export function ConsumosTab({ bodegaId, trabajoId }: { bodegaId: string; trabajo
     </div>
   );
 }
+
+function EstadoConsumos({ bodegaId, trabajoId, count }: { bodegaId: string; trabajoId: string; count: number }) {
+  const fn = useServerFn(trabajoConsumosCompletos);
+  const q = useQuery({
+    queryKey: ["consumos-estado", bodegaId, trabajoId, count],
+    queryFn: () => fn({ data: { bodegaId, trabajo_id: trabajoId } }),
+  });
+  if (q.isLoading || !q.data) return null;
+  const r = q.data;
+  let tone = "border-emerald-500/40 text-emerald-600 bg-emerald-500/5";
+  let label = "Consumos completos";
+  if (r.total === 0) {
+    if (r.requiere) { tone = "border-rose-500/40 text-rose-600 bg-rose-500/5"; label = "Sin consumos registrados (requeridos)"; }
+    else { tone = "border-border text-muted-foreground bg-muted/30"; label = "Sin consumos registrados"; }
+  } else if (!r.completo) {
+    tone = "border-amber-500/40 text-amber-600 bg-amber-500/5";
+    label = `Consumos pendientes (${r.invalidos}/${r.total})`;
+  } else {
+    label = `Consumos completos (${r.total})`;
+  }
+  return (
+    <div className={`rounded border px-3 py-2 text-xs ${tone}`}>
+      <div className="font-medium">{label}</div>
+      {r.motivos?.length > 0 && (
+        <ul className="mt-1 list-disc list-inside opacity-80">
+          {r.motivos.slice(0, 4).map((m, i) => <li key={i}>{m}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
