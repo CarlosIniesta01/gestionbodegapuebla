@@ -26,7 +26,15 @@ export const upsertProducto = createServerFn({ method: "POST" })
     bodegaId: z.string().uuid(),
     nombre: z.string().trim().min(1, "Nombre obligatorio").max(120),
     tipo: TipoEnum,
-    lote: z.string().trim().min(1, "Debes indicar el lote del producto para continuar."),
+    categoria: z.enum(["levaduras","nutrientes","clarificantes","estabilizantes","enzimas","limpieza","laboratorio","aditivos","consumibles","otro"]).nullable().optional(),
+    fabricante: z.string().max(120).nullable().optional(),
+    referencia: z.string().max(80).nullable().optional(),
+    unidad: z.string().max(20).optional(),
+    stock_minimo: z.number().min(0).nullable().optional(),
+    stock_critico: z.number().min(0).nullable().optional(),
+    ficha_tecnica_url: z.string().url().nullable().optional().or(z.literal("")),
+    ficha_seguridad_url: z.string().url().nullable().optional().or(z.literal("")),
+    lote: z.string().trim().min(1).optional(),
     proveedor: z.string().max(120).optional(),
     fecha_caducidad: z.string().optional(),
     activo: z.boolean().default(true),
@@ -38,7 +46,15 @@ export const upsertProducto = createServerFn({ method: "POST" })
       bodega_id: data.bodegaId,
       nombre: data.nombre,
       tipo: data.tipo,
-      lote: data.lote,
+      categoria: data.categoria ?? null,
+      fabricante: data.fabricante ?? null,
+      referencia: data.referencia ?? null,
+      unidad: data.unidad ?? "kg",
+      stock_minimo: data.stock_minimo ?? null,
+      stock_critico: data.stock_critico ?? null,
+      ficha_tecnica_url: data.ficha_tecnica_url || null,
+      ficha_seguridad_url: data.ficha_seguridad_url || null,
+      lote: data.lote ?? null,
       proveedor: data.proveedor || null,
       fecha_caducidad: data.fecha_caducidad || null,
       activo: data.activo,
@@ -57,6 +73,7 @@ export const upsertProducto = createServerFn({ method: "POST" })
       return { id: row.id };
     }
   });
+
 
 export const toggleProductoActivo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
