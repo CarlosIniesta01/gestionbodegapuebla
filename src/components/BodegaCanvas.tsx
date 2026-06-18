@@ -177,7 +177,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
   }, [map.depositos, map.zonas]);
 
   // Overlay litros desde existencias_actuales (fuente única de verdad)
-  const depositosConExistencias = useMemo(() => {
+  const depositosConExistencias: Deposito[] = useMemo(() => {
     return depositosLayout.map((d) => {
       const e = existenciaByDeposito[d.id];
       if (!e) return d;
@@ -185,10 +185,11 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
         ? e.lineas[0].nombre
         : e.lineas.length > 1
           ? `${e.lineas.length} productos`
-          : d.contenido ?? null;
-      return { ...d, litros: e.litros, contenido: contenidoOverlay };
+          : d.contenido ?? undefined;
+      return { ...d, litros: e.litros, contenido: contenidoOverlay ?? undefined };
     });
   }, [depositosLayout, existenciaByDeposito]);
+
 
 
 
