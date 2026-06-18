@@ -74,17 +74,30 @@ export function ExistenciasTab({ bodegaId }: Props) {
   }, [filasPorProducto]);
 
   const campanasUnicas = useMemo(
-    () => Array.from(new Set(productos.map((p) => p.campaña).filter(Boolean))).sort(),
+    () => Array.from(new Set(productos.map((p: any) => p?.campaña).filter(Boolean))).sort() as string[],
     [productos]
   );
   const tipoColorUnicos = useMemo(() => {
     const vals = new Set<string>();
-    productos.forEach((p) => {
-      const t = [p.tipo, p.color].filter(Boolean).join(" / ");
+    productos.forEach((p: any) => {
+      const t = [p?.tipo, p?.color].filter(Boolean).join(" / ");
       if (t) vals.add(t);
     });
     return Array.from(vals).sort();
   }, [productos]);
+
+  const isLoading = eQ.isLoading || epQ.isLoading || pQ.isLoading;
+  const error = eQ.error || epQ.error || pQ.error;
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+        No se pudieron cargar las existencias: {(error as Error).message ?? "error desconocido"}
+      </div>
+    );
+  }
+  if (isLoading) {
+    return <div className="p-6 text-sm text-muted-foreground">Cargando existencias…</div>;
+  }
 
   return (
     <div className="space-y-4">
