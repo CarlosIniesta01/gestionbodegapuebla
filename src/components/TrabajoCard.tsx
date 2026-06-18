@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Clock, ArrowRight, Play, Check, X, Trash2 } from "lucide-react";
+import { Clock, ArrowRight, Play, Check, X, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { TIPO_META, ESTADO_LABEL, PRIORIDAD_LABEL, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { updateTrabajoEstado, deleteTrabajo } from "@/lib/api/trabajos.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TrabajoDetailDialog } from "@/components/trabajos/TrabajoDetailDialog";
 
 interface Trabajo {
   id: string;
@@ -39,6 +41,8 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   const del = useMutation({ mutationFn: delFn, onSuccess: () => { toast.success("Eliminado"); invalidate(); }, onError: (e: Error) => toast.error(e.message) });
 
   const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
+  const [trabsOpen, setTrabsOpen] = useState(false);
+
 
   return (
     <motion.div
@@ -121,6 +125,9 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
                   <X className="size-3.5" />
                 </Button>
               )}
+              <Button size="sm" variant="ghost" title="Trabajadores" onClick={() => setTrabsOpen(true)}>
+                <Users className="size-3.5" />
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => { if (confirm("¿Eliminar trabajo?")) del.mutate({ data: { id: t.id }}); }}>
                 <Trash2 className="size-3.5" />
               </Button>
@@ -128,6 +135,7 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
           </div>
         </div>
       </div>
+      <TrabajoDetailDialog open={trabsOpen} onOpenChange={setTrabsOpen} trabajoId={t.id} trabajoTitulo={t.titulo} />
     </motion.div>
   );
 }

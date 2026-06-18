@@ -14,6 +14,12 @@ async function assertMember(supabase: any, userId: string, bodegaId: string) {
   if (!data) throw new Error("Sin acceso a la bodega");
 }
 
+async function assertCanRectify(supabase: any, bodegaId: string) {
+  const { data, error } = await supabase.rpc("can_rectify_movimientos", { _bodega: bodegaId });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Solo administradores o responsables pueden modificar movimientos.");
+}
+
 const TIPOS = ["entrada","salida","trasiego","mezcla","embotellado","correccion","ajuste"] as const;
 
 const MovimientoSchema = z.object({
@@ -29,6 +35,15 @@ const MovimientoSchema = z.object({
   trabajo_id: z.string().uuid().nullable().optional(),
 });
 
+function validatePorTipo(d: z.infer<typeof MovimientoSchema>) {
+  if (d.tipo === "entrada" && !d.deposito_destino_id) throw new Error("La entrada requiere depósito destino.");
+  if (d.tipo === "salida" && !d.deposito_origen_id) throw new Error("La salida requiere depósito origen.");
+  if ((d.tipo === "trasiego" || d.tipo === "mezcla") &&
+      (!d.deposito_origen_id || !d.deposito_destino_id)) {
+    throw new Error("Trasiego/mezcla requieren origen y destino.");
+  }
+}
+
 export const listMovimientos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({
@@ -39,6 +54,7 @@ export const listMovimientos = createServerFn({ method: "POST" })
     tipo: z.enum(TIPOS).optional(),
     deposito_id: z.string().optional(),
     producto_id: z.string().uuid().optional(),
+    incluir_anulados: z.boolean().optional(),
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -68,23 +84,85 @@ export const createMovimiento = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMember(supabase, userId, data.bodegaId);
-
-    const d = data.data;
-    // Validaciones por tipo
-    if (d.tipo === "entrada" && !d.deposito_destino_id) {
-      throw new Error("La entrada requiere depósito destino.");
-    }
-    if (d.tipo === "salida" && !d.deposito_origen_id) {
-      throw new Error("La salida requiere depósito origen.");
-    }
-    if ((d.tipo === "trasiego" || d.tipo === "mezcla") &&
-        (!d.deposito_origen_id || !d.deposito_destino_id)) {
-      throw new Error("Trasiego/mezcla requieren origen y destino.");
-    }
-
+    validatePorTipo(data.data);
     const { data: row, error } = await supabase
       .from("movimientos")
-      .insert({ ...d, bodega_id: data.bodegaId, created_by: userId })
+      .insert({ ...data.data, bodega_id: data.bodegaId, created_by: userId })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+// Editar = marca el original como 'corregido' y crea uno nuevo enlazado por movimiento_original_id.
+export const editMovimiento = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    bodegaId: z.string().uuid(),
+    id: z.string().uuid(),
+    data: MovimientoSchema,
+    motivo: z.string().trim().min(3, "Motivo obligatorio (mínimo 3 caracteres)").max(500),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMember(supabase, userId, data.bodegaId);
+    await assertCanRectify(supabase, data.bodegaId);
+    validatePorTipo(data.data);
+
+    // Marcar original como corregido
+    const { error: e1 } = await supabase
+      .from("movimientos")
+      .update({
+        estado_movimiento: "corregido",
+        motivo_correccion: data.motivo,
+        corregido_por: userId,
+        corregido_en: new Date().toISOString(),
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .eq("bodega_id", data.bodegaId);
+    if (e1) throw new Error(e1.message);
+
+    // Insertar nuevo movimiento referenciando al original
+    const { data: row, error: e2 } = await supabase
+      .from("movimientos")
+      .insert({
+        ...data.data,
+        bodega_id: data.bodegaId,
+        created_by: userId,
+        movimiento_original_id: data.id,
+        motivo_correccion: data.motivo,
+      })
+      .select()
+      .single();
+    if (e2) throw new Error(e2.message);
+    return row;
+  });
+
+export const anularMovimiento = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    bodegaId: z.string().uuid(),
+    id: z.string().uuid(),
+    motivo: z.string().trim().min(3, "Motivo obligatorio (mínimo 3 caracteres)").max(500),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMember(supabase, userId, data.bodegaId);
+    await assertCanRectify(supabase, data.bodegaId);
+    const { data: row, error } = await supabase
+      .from("movimientos")
+      .update({
+        estado_movimiento: "anulado",
+        motivo_anulacion: data.motivo,
+        anulado_por: userId,
+        anulado_en: new Date().toISOString(),
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .eq("bodega_id", data.bodegaId)
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -103,4 +181,14 @@ export const listExistencias = createServerFn({ method: "POST" })
       .eq("bodega_id", data.bodegaId);
     if (error) throw new Error(error.message);
     return rows ?? [];
+  });
+
+export const puedeRectificar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bodegaId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { data: ok, error } = await context.supabase
+      .rpc("can_rectify_movimientos", { _bodega: data.bodegaId });
+    if (error) throw new Error(error.message);
+    return !!ok;
   });
