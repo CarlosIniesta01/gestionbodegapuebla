@@ -437,54 +437,84 @@ export type Database = {
       movimientos: {
         Row: {
           alcohol_absoluto: number | null
+          anulado_en: string | null
+          anulado_por: string | null
           bodega_id: string
+          corregido_en: string | null
+          corregido_por: string | null
           created_at: string
           created_by: string | null
           deposito_destino_id: string | null
           deposito_origen_id: string | null
+          estado_movimiento: Database["public"]["Enums"]["movimiento_estado"]
           fecha: string
           grado: number | null
           hora: string
           id: string
           litros: number
+          motivo_anulacion: string | null
+          motivo_correccion: string | null
+          movimiento_original_id: string | null
           observaciones: string | null
           producto_id: string | null
           tipo: Database["public"]["Enums"]["movimiento_tipo"]
           trabajo_id: string | null
+          updated_at: string
+          updated_by: string | null
         }
         Insert: {
           alcohol_absoluto?: number | null
+          anulado_en?: string | null
+          anulado_por?: string | null
           bodega_id: string
+          corregido_en?: string | null
+          corregido_por?: string | null
           created_at?: string
           created_by?: string | null
           deposito_destino_id?: string | null
           deposito_origen_id?: string | null
+          estado_movimiento?: Database["public"]["Enums"]["movimiento_estado"]
           fecha?: string
           grado?: number | null
           hora?: string
           id?: string
           litros: number
+          motivo_anulacion?: string | null
+          motivo_correccion?: string | null
+          movimiento_original_id?: string | null
           observaciones?: string | null
           producto_id?: string | null
           tipo: Database["public"]["Enums"]["movimiento_tipo"]
           trabajo_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           alcohol_absoluto?: number | null
+          anulado_en?: string | null
+          anulado_por?: string | null
           bodega_id?: string
+          corregido_en?: string | null
+          corregido_por?: string | null
           created_at?: string
           created_by?: string | null
           deposito_destino_id?: string | null
           deposito_origen_id?: string | null
+          estado_movimiento?: Database["public"]["Enums"]["movimiento_estado"]
           fecha?: string
           grado?: number | null
           hora?: string
           id?: string
           litros?: number
+          motivo_anulacion?: string | null
+          motivo_correccion?: string | null
+          movimiento_original_id?: string | null
           observaciones?: string | null
           producto_id?: string | null
           tipo?: Database["public"]["Enums"]["movimiento_tipo"]
           trabajo_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -492,6 +522,13 @@ export type Database = {
             columns: ["bodega_id"]
             isOneToOne: false
             referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_movimiento_original_id_fkey"
+            columns: ["movimiento_original_id"]
+            isOneToOne: false
+            referencedRelation: "movimientos"
             referencedColumns: ["id"]
           },
           {
@@ -1105,6 +1142,85 @@ export type Database = {
           },
         ]
       }
+      trabajo_trabajadores: {
+        Row: {
+          bodega_id: string
+          confirmado_por_trabajador: boolean
+          created_at: string
+          created_by: string | null
+          estado_participacion: Database["public"]["Enums"]["participacion_estado"]
+          fecha_confirmacion: string | null
+          hora_fin: string | null
+          hora_inicio: string | null
+          id: string
+          movimiento_id: string | null
+          observaciones: string | null
+          proceso_id: string | null
+          rol_en_trabajo: string | null
+          trabajador_id: string
+          trabajo_id: string
+          updated_at: string
+        }
+        Insert: {
+          bodega_id: string
+          confirmado_por_trabajador?: boolean
+          created_at?: string
+          created_by?: string | null
+          estado_participacion?: Database["public"]["Enums"]["participacion_estado"]
+          fecha_confirmacion?: string | null
+          hora_fin?: string | null
+          hora_inicio?: string | null
+          id?: string
+          movimiento_id?: string | null
+          observaciones?: string | null
+          proceso_id?: string | null
+          rol_en_trabajo?: string | null
+          trabajador_id: string
+          trabajo_id: string
+          updated_at?: string
+        }
+        Update: {
+          bodega_id?: string
+          confirmado_por_trabajador?: boolean
+          created_at?: string
+          created_by?: string | null
+          estado_participacion?: Database["public"]["Enums"]["participacion_estado"]
+          fecha_confirmacion?: string | null
+          hora_fin?: string | null
+          hora_inicio?: string | null
+          id?: string
+          movimiento_id?: string | null
+          observaciones?: string | null
+          proceso_id?: string | null
+          rol_en_trabajo?: string | null
+          trabajador_id?: string
+          trabajo_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabajo_trabajadores_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trabajo_trabajadores_movimiento_id_fkey"
+            columns: ["movimiento_id"]
+            isOneToOne: false
+            referencedRelation: "movimientos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trabajo_trabajadores_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trabajos: {
         Row: {
           asignado_a: string | null
@@ -1188,6 +1304,7 @@ export type Database = {
       }
     }
     Functions: {
+      can_rectify_movimientos: { Args: { _bodega: string }; Returns: boolean }
       current_user_bodegas: { Args: never; Returns: string[] }
       has_permission: {
         Args: { _bodega: string; _perm: string }
@@ -1199,6 +1316,7 @@ export type Database = {
     Enums: {
       membership_estado: "activo" | "inactivo" | "suspendido" | "rechazado"
       mensaje_canal: "general" | "deposito" | "trabajo"
+      movimiento_estado: "activo" | "corregido" | "anulado"
       movimiento_tipo:
         | "entrada"
         | "salida"
@@ -1207,6 +1325,12 @@ export type Database = {
         | "embotellado"
         | "correccion"
         | "ajuste"
+      participacion_estado:
+        | "asignado"
+        | "en_proceso"
+        | "finalizado"
+        | "ausente"
+        | "rechazado"
       producto_tipo: "enologico" | "limpieza" | "otro"
       trabajo_estado: "pendiente" | "en_curso" | "completado" | "cancelado"
       trabajo_prioridad: "baja" | "normal" | "alta" | "urgente"
@@ -1347,6 +1471,7 @@ export const Constants = {
     Enums: {
       membership_estado: ["activo", "inactivo", "suspendido", "rechazado"],
       mensaje_canal: ["general", "deposito", "trabajo"],
+      movimiento_estado: ["activo", "corregido", "anulado"],
       movimiento_tipo: [
         "entrada",
         "salida",
@@ -1355,6 +1480,13 @@ export const Constants = {
         "embotellado",
         "correccion",
         "ajuste",
+      ],
+      participacion_estado: [
+        "asignado",
+        "en_proceso",
+        "finalizado",
+        "ausente",
+        "rechazado",
       ],
       producto_tipo: ["enologico", "limpieza", "otro"],
       trabajo_estado: ["pendiente", "en_curso", "completado", "cancelado"],
