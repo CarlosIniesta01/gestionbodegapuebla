@@ -18,6 +18,7 @@ import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
 import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
+import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActividadRouteImport } from './routes/_authenticated/actividad'
 
@@ -65,6 +66,11 @@ const AuthenticatedBodegaRoute = AuthenticatedBodegaRouteImport.update({
   path: '/bodega',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAlmacenRoute = AuthenticatedAlmacenRouteImport.update({
+  id: '/almacen',
+  path: '/almacen',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/pendiente': typeof PendienteRoute
   '/actividad': typeof AuthenticatedActividadRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/almacen': typeof AuthenticatedAlmacenRoute
   '/bodega': typeof AuthenticatedBodegaRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/pendiente': typeof PendienteRoute
   '/actividad': typeof AuthenticatedActividadRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/almacen': typeof AuthenticatedAlmacenRoute
   '/bodega': typeof AuthenticatedBodegaRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/pendiente': typeof PendienteRoute
   '/_authenticated/actividad': typeof AuthenticatedActividadRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
   '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
   '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/pendiente'
     | '/actividad'
     | '/admin'
+    | '/almacen'
     | '/bodega'
     | '/mensajes'
     | '/pendientes'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/pendiente'
     | '/actividad'
     | '/admin'
+    | '/almacen'
     | '/bodega'
     | '/mensajes'
     | '/pendientes'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
     | '/pendiente'
     | '/_authenticated/actividad'
     | '/_authenticated/admin'
+    | '/_authenticated/almacen'
     | '/_authenticated/bodega'
     | '/_authenticated/mensajes'
     | '/_authenticated/pendientes'
@@ -225,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBodegaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/almacen': {
+      id: '/_authenticated/almacen'
+      path: '/almacen'
+      fullPath: '/almacen'
+      preLoaderRoute: typeof AuthenticatedAlmacenRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -245,6 +264,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedActividadRoute: typeof AuthenticatedActividadRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
   AuthenticatedBodegaRoute: typeof AuthenticatedBodegaRoute
   AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
@@ -256,6 +276,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedActividadRoute: AuthenticatedActividadRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
   AuthenticatedBodegaRoute: AuthenticatedBodegaRoute,
   AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
