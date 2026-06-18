@@ -6,6 +6,8 @@ import { Clock, ArrowRight, Play, Check, X, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { TIPO_META, ESTADO_LABEL, PRIORIDAD_LABEL, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { updateTrabajoEstado, deleteTrabajo } from "@/lib/api/trabajos.functions";
+import { trabajoConsumosCompletos } from "@/lib/api/lotes.functions";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrabajoDetailDialog } from "@/components/trabajos/TrabajoDetailDialog";
@@ -33,12 +35,31 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   const qc = useQueryClient();
   const updFn = useServerFn(updateTrabajoEstado);
   const delFn = useServerFn(deleteTrabajo);
+  const checkFn = useServerFn(trabajoConsumosCompletos);
+  const { bodegaId } = useActiveBodega();
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["trabajos"] });
     qc.invalidateQueries({ queryKey: ["actividad"] });
   };
   const upd = useMutation({ mutationFn: updFn, onSuccess: () => { toast.success("Actualizado"); invalidate(); }, onError: (e: Error) => toast.error(e.message) });
   const del = useMutation({ mutationFn: delFn, onSuccess: () => { toast.success("Eliminado"); invalidate(); }, onError: (e: Error) => toast.error(e.message) });
+
+  async function finalizar() {
+    if (!bodegaId) return;
+    try {
+      const r = await checkFn({ data: { bodegaId, trabajo_id: t.id, intentoFinalizacion: true } });
+      if (!r.completo) {
+        toast.error("Debe registrar producto, lote y cantidad utilizada antes de finalizar este trabajo.", {
+          description: r.motivos.slice(0, 3).join(" · "),
+        });
+        return;
+      }
+      upd.mutate({ data: { id: t.id, estado: "completado" } });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
 
   const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
   const [trabsOpen, setTrabsOpen] = useState(false);
@@ -109,14 +130,14 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => upd.mutate({ data: { id: t.id, estado: "completado" }})}
+                    onClick={finalizar}
                   >
                     <Check className="size-3.5 mr-1" />Finalizar
                   </Button>
                 </>
               )}
               {t.estado !== "cancelado" && t.estado !== "completado" && t.estado !== "en_curso" && t.estado !== "pendiente" && (
-                <Button size="sm" variant="ghost" onClick={() => upd.mutate({ data: { id: t.id, estado: "completado" }})}>
+                <Button size="sm" variant="ghost" onClick={finalizar}>
                   <Check className="size-3.5 mr-1" />Finalizar
                 </Button>
               )}
