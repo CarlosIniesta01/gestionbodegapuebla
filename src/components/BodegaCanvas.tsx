@@ -13,6 +13,8 @@ import { TrabajoFormDialog } from "./TrabajoFormDialog";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { listTrabajos } from "@/lib/api/trabajos.functions";
+import { listExistencias } from "@/lib/api/movimientos.functions";
+import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import type { TrabajoTipo } from "@/lib/trabajo-meta";
 import { CANVAS_H, CANVAS_W, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
 
@@ -36,6 +38,57 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
     refetchInterval: 8000,
   });
   const enCurso: any[] = trabajosQ.data ?? [];
+
+  const listExistFn = useServerFn(listExistencias);
+  const listProdFn = useServerFn(listProductosComerciales);
+  const existenciasQ = useQuery({
+    queryKey: ["existencias", bodegaId, "map"],
+    queryFn: () => listExistFn({ data: { bodegaId: bodegaId! } }),
+    enabled: !!bodegaId,
+    refetchInterval: 10000,
+  });
+  const productosQ = useQuery({
+    queryKey: ["productos-comerciales", bodegaId, "map"],
+    queryFn: () => listProdFn({ data: { bodegaId: bodegaId! } }),
+    enabled: !!bodegaId,
+  });
+
+  // Resumen por depósito desde existencias_actuales (join por bodega_id + deposito_id + producto_id)
+  const existenciaByDeposito = useMemo(() => {
+    const productos = (productosQ.data ?? []) as any[];
+    const prodById: Record<string, any> = Object.fromEntries(productos.map((p) => [p.id, p]));
+    const rows = (existenciasQ.data ?? []) as any[];
+    const acc: Record<string, {
+      litros: number;
+      alcohol_absoluto: number;
+      grado_medio: number;
+      lineas: { producto_id: string | null; nombre: string; litros: number; grado: number; aa: number }[];
+    }> = {};
+    rows.forEach((r) => {
+      const did = r?.deposito_id;
+      if (!did) return;
+      const litros = Number(r?.litros ?? 0) || 0;
+      const aa = Number(r?.alcohol_absoluto ?? 0) || 0;
+      const grado = Number(r?.grado_medio ?? 0) || 0;
+      const prod = r?.producto_id ? prodById[r.producto_id] : null;
+      const entry = acc[did] ?? { litros: 0, alcohol_absoluto: 0, grado_medio: 0, lineas: [] };
+      entry.litros += litros;
+      entry.alcohol_absoluto += aa;
+      entry.lineas.push({
+        producto_id: r?.producto_id ?? null,
+        nombre: prod?.nombre ?? "(sin producto)",
+        litros,
+        grado,
+        aa,
+      });
+      acc[did] = entry;
+    });
+    Object.values(acc).forEach((e) => {
+      e.grado_medio = e.litros > 0 ? (e.alcohol_absoluto * 100) / e.litros : 0;
+    });
+    return acc;
+  }, [existenciasQ.data, productosQ.data]);
+
   const [editMode, setEditMode] = useState(false);
   const [zoom, setZoom] = useState(0.85);
   const [selectedDepId, setSelectedDepId] = useState<string | null>(null);
@@ -45,7 +98,21 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const selected = map.depositos.find((d) => d.id === selectedDepId) ?? null;
+  const selectedBase = map.depositos.find((d) => d.id === selectedDepId) ?? null;
+  const existenciaSelected = selectedBase ? existenciaByDeposito[selectedBase.id] ?? null : null;
+  const selected = selectedBase
+    ? {
+        ...selectedBase,
+        litros: existenciaSelected ? existenciaSelected.litros : selectedBase.litros,
+        contenido: existenciaSelected
+          ? (existenciaSelected.lineas.length === 1
+              ? existenciaSelected.lineas[0].nombre
+              : existenciaSelected.lineas.length > 1
+                ? `${existenciaSelected.lineas.length} productos`
+                : selectedBase.contenido ?? undefined)
+          : selectedBase.contenido ?? undefined,
+      }
+    : null;
   const zonaSelected = selected ? map.zonas.find((z) => z.id === selected.zona_id) : null;
 
   // (trasiegos se calcula tras depositosLayout para usar posiciones auto-ordenadas)
@@ -108,6 +175,22 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
     });
     return { depositosLayout: deps, zonasLayout: zonas };
   }, [map.depositos, map.zonas]);
+
+  // Overlay litros desde existencias_actuales (fuente única de verdad)
+  const depositosConExistencias: Deposito[] = useMemo(() => {
+    return depositosLayout.map((d) => {
+      const e = existenciaByDeposito[d.id];
+      if (!e) return d;
+      const contenidoOverlay = e.lineas.length === 1
+        ? e.lineas[0].nombre
+        : e.lineas.length > 1
+          ? `${e.lineas.length} productos`
+          : d.contenido ?? undefined;
+      return { ...d, litros: e.litros, contenido: contenidoOverlay ?? undefined };
+    });
+  }, [depositosLayout, existenciaByDeposito]);
+
+
 
 
   // Trasiegos activos: combina demo + trabajos reales en curso
@@ -244,7 +327,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
               </svg>
 
               {/* Deposits — auto-arranged en línea dentro de cada zona */}
-              {depositosLayout.map((d) => (
+              {depositosConExistencias.map((d) => (
                 <DepositoNode
                   key={d.id}
                   deposito={d}
@@ -279,6 +362,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
       <DepositoPanel
         deposito={selected}
+        existencia={existenciaSelected}
         zonaName={zonaSelected?.nombre}
         onClose={() => setSelectedDepId(null)}
         onEdit={selected ? () => setDepDialog({ open: true, deposito: selected }) : undefined}
