@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Ban } from "lucide-react";
 
-import { listConsumos, createConsumo, anularConsumo, listLotes } from "@/lib/api/lotes.functions";
+import { listConsumos, createConsumo, anularConsumo, listLotes, trabajoConsumosCompletos } from "@/lib/api/lotes.functions";
 import { listProductos } from "@/lib/api/productos.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
