@@ -101,18 +101,16 @@ function ParteFormDialog({ open, onOpenChange, editing, onSave }: {
   const [email, setEmail] = useState("");
   const [obs, setObs] = useState("");
 
-  if (open && editing && nombre === "" && editing.nombre) {
-    // seed
-    setNombre(editing.nombre ?? "");
-    setCif(editing.cif_nif ?? "");
-    setDireccion(editing.direccion ?? "");
-    setTel(editing.telefono ?? "");
-    setEmail(editing.email ?? "");
-    setObs(editing.observaciones ?? "");
-  }
-  if (!open && nombre !== "") {
-    setNombre(""); setCif(""); setDireccion(""); setTel(""); setEmail(""); setObs("");
-  }
+  useEffect(() => {
+    if (!open) return;
+    setNombre(editing?.nombre ?? "");
+    setCif(editing?.cif_nif ?? "");
+    setDireccion(editing?.direccion ?? "");
+    setTel(editing?.telefono ?? "");
+    setEmail(editing?.email ?? "");
+    setObs(editing?.observaciones ?? "");
+  }, [open, editing?.id]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
