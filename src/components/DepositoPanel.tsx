@@ -143,9 +143,52 @@ function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobil
           </div>
         </div>
 
+        <Section icon={Droplets} title="Existencias actuales">
+          {existencia && existencia.lineas.length > 0 ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-lg bg-secondary/40 p-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Litros</div>
+                  <div className="font-semibold tabular-nums">{existencia.litros.toLocaleString("es-ES", { maximumFractionDigits: 0 })}</div>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Grado medio</div>
+                  <div className="font-semibold tabular-nums">{existencia.grado_medio.toFixed(2)}</div>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Alc. absoluto</div>
+                  <div className="font-semibold tabular-nums">{existencia.alcohol_absoluto.toLocaleString("es-ES", { maximumFractionDigits: 1 })}</div>
+                </div>
+              </div>
+              {existencia.lineas.length > 1 && (
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead className="bg-secondary/30 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <tr><th className="text-left p-1.5">Producto</th><th className="text-right p-1.5">L</th><th className="text-right p-1.5">°</th><th className="text-right p-1.5">AA</th></tr>
+                    </thead>
+                    <tbody>
+                      {existencia.lineas.map((l, i) => (
+                        <tr key={i} className="border-t border-border">
+                          <td className="p-1.5">{l.nombre}</td>
+                          <td className="p-1.5 text-right tabular-nums">{l.litros.toLocaleString("es-ES", { maximumFractionDigits: 0 })}</td>
+                          <td className="p-1.5 text-right tabular-nums">{l.grado.toFixed(2)}</td>
+                          <td className="p-1.5 text-right tabular-nums">{l.aa.toLocaleString("es-ES", { maximumFractionDigits: 1 })}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Sin existencias registradas</div>
+          )}
+        </Section>
+
         <Section icon={History} title="Último movimiento">
           <div className="text-sm">{deposito.ultimoMovimiento ?? "Sin movimientos recientes"}</div>
         </Section>
+
 
         <Section icon={Activity} title="Acciones rápidas">
           <div className="grid grid-cols-2 gap-2">
