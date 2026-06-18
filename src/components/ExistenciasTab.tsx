@@ -37,29 +37,30 @@ export function ExistenciasTab({ bodegaId }: Props) {
   const depById = useMemo(() => Object.fromEntries(depositos.map((d) => [d.id, d])), [depositos]);
 
   const [filtroProducto, setFiltroProducto] = useState<string>("__todos__");
-  const [filtroCampana, setFiltroCampana] = useState<string>("");
-  const [filtroTipoColor, setFiltroTipoColor] = useState<string>("");
+  const [filtroCampana, setFiltroCampana] = useState<string>("__todos__");
+  const [filtroTipoColor, setFiltroTipoColor] = useState<string>("__todos__");
 
   const filasPorProducto = useMemo(() => {
-    const rows = existenciasPorProducto.map((e) => {
-      const p = e.producto_id ? prodById[e.producto_id] : null;
+    const rows = existenciasPorProducto.map((e: any) => {
+      const p = e?.producto_id ? prodById[e.producto_id] : null;
+      const tipoColor = p ? [p.tipo, p.color].filter(Boolean).join(" / ") : "";
       return {
-        producto_id: e.producto_id,
+        producto_id: e?.producto_id ?? null,
         producto: p?.nombre ?? "(sin producto)",
         codigo: p?.codigo ?? "—",
         campana: p?.campaña ?? "—",
-        tipoColor: p ? [p.tipo, p.color].filter(Boolean).join(" / ") : "—",
-        litros: Number(e.litros),
-        grado_medio: Number(e.grado_medio),
-        alcohol_absoluto: Number(e.alcohol_absoluto),
+        tipoColor: tipoColor || "—",
+        litros: Number(e?.litros ?? 0) || 0,
+        grado_medio: Number(e?.grado_medio ?? 0) || 0,
+        alcohol_absoluto: Number(e?.alcohol_absoluto ?? 0) || 0,
       };
     });
 
     return rows
       .filter((r) => {
-        if (filtroProducto && filtroProducto !== "__todos__" && r.producto_id !== filtroProducto) return false;
-        if (filtroCampana && !(r.campana ?? "").toLowerCase().includes(filtroCampana.toLowerCase())) return false;
-        if (filtroTipoColor && !(r.tipoColor ?? "").toLowerCase().includes(filtroTipoColor.toLowerCase())) return false;
+        if (filtroProducto !== "__todos__" && r.producto_id !== filtroProducto) return false;
+        if (filtroCampana !== "__todos__" && (r.campana ?? "") !== filtroCampana) return false;
+        if (filtroTipoColor !== "__todos__" && (r.tipoColor ?? "") !== filtroTipoColor) return false;
         return true;
       })
       .sort((a, b) => b.litros - a.litros);
@@ -73,17 +74,30 @@ export function ExistenciasTab({ bodegaId }: Props) {
   }, [filasPorProducto]);
 
   const campanasUnicas = useMemo(
-    () => Array.from(new Set(productos.map((p) => p.campaña).filter(Boolean))).sort(),
+    () => Array.from(new Set(productos.map((p: any) => p?.campaña).filter(Boolean))).sort() as string[],
     [productos]
   );
   const tipoColorUnicos = useMemo(() => {
     const vals = new Set<string>();
-    productos.forEach((p) => {
-      const t = [p.tipo, p.color].filter(Boolean).join(" / ");
+    productos.forEach((p: any) => {
+      const t = [p?.tipo, p?.color].filter(Boolean).join(" / ");
       if (t) vals.add(t);
     });
     return Array.from(vals).sort();
   }, [productos]);
+
+  const isLoading = eQ.isLoading || epQ.isLoading || pQ.isLoading;
+  const error = eQ.error || epQ.error || pQ.error;
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+        No se pudieron cargar las existencias: {(error as Error).message ?? "error desconocido"}
+      </div>
+    );
+  }
+  if (isLoading) {
+    return <div className="p-6 text-sm text-muted-foreground">Cargando existencias…</div>;
+  }
 
   return (
     <div className="space-y-4">
@@ -119,7 +133,7 @@ export function ExistenciasTab({ bodegaId }: Props) {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="__todos__">Todas</SelectItem>
                   {campanasUnicas.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
@@ -133,7 +147,7 @@ export function ExistenciasTab({ bodegaId }: Props) {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__todos__">Todos</SelectItem>
                   {tipoColorUnicos.map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
