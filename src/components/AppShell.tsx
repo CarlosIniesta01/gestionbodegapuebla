@@ -7,6 +7,7 @@ import {
   MessageSquare,
   BookOpen,
   Boxes,
+  Beaker,
   Shield,
   Wine,
   Circle,
