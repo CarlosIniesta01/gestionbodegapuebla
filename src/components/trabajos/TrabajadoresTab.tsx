@@ -59,6 +59,7 @@ export function TrabajadoresTab({ bodegaId, trabajoId }: { bodegaId: string; tra
   });
 
   const [obs, setObs] = useState<Record<string, string>>({});
+  const [rol, setRol] = useState<Record<string, string>>({});
 
   return (
     <div className="space-y-4">
