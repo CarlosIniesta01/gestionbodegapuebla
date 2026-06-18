@@ -35,12 +35,31 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   const qc = useQueryClient();
   const updFn = useServerFn(updateTrabajoEstado);
   const delFn = useServerFn(deleteTrabajo);
+  const checkFn = useServerFn(trabajoConsumosCompletos);
+  const { bodegaId } = useActiveBodega();
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["trabajos"] });
     qc.invalidateQueries({ queryKey: ["actividad"] });
   };
   const upd = useMutation({ mutationFn: updFn, onSuccess: () => { toast.success("Actualizado"); invalidate(); }, onError: (e: Error) => toast.error(e.message) });
   const del = useMutation({ mutationFn: delFn, onSuccess: () => { toast.success("Eliminado"); invalidate(); }, onError: (e: Error) => toast.error(e.message) });
+
+  async function finalizar() {
+    if (!bodegaId) return;
+    try {
+      const r = await checkFn({ data: { bodegaId, trabajo_id: t.id, intentoFinalizacion: true } });
+      if (!r.completo) {
+        toast.error("Debe registrar producto, lote y cantidad utilizada antes de finalizar este trabajo.", {
+          description: r.motivos.slice(0, 3).join(" · "),
+        });
+        return;
+      }
+      upd.mutate({ data: { id: t.id, estado: "completado" } });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
 
   const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
   const [trabsOpen, setTrabsOpen] = useState(false);
