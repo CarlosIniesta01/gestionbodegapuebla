@@ -8,6 +8,7 @@ import { ProductosTab } from "@/components/admin/ProductosTab";
 import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
 import { PerfilesAuditoriaTab } from "@/components/admin/PerfilesAuditoriaTab";
 import { AuditoriaTab } from "@/components/admin/AuditoriaTab";
+import { StockTab } from "@/components/admin/StockTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -111,11 +112,12 @@ function AdminPage() {
 
       {activeBodegaId && (
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-8 w-full md:w-auto">
+          <TabsList className="grid grid-cols-2 md:grid-cols-9 w-full md:w-auto">
             <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
             <TabsTrigger value="productos"><Beaker className="size-4 mr-2" />Productos enológicos</TabsTrigger>
+            <TabsTrigger value="stock"><Beaker className="size-4 mr-2" />Stock</TabsTrigger>
             <TabsTrigger value="productos-comerciales"><Beaker className="size-4 mr-2" />Productos comerciales</TabsTrigger>
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
             <TabsTrigger value="perfiles-auditoria"><Shield className="size-4 mr-2" />Perfiles auditoría</TabsTrigger>
@@ -133,6 +135,9 @@ function AdminPage() {
           <TabsContent value="productos" className="mt-6">
             <ProductosTab bodegaId={activeBodegaId} />
           </TabsContent>
+          <TabsContent value="stock" className="mt-6">
+            <StockTab bodegaId={activeBodegaId} />
+          </TabsContent>
           <TabsContent value="productos-comerciales" className="mt-6">
             <ProductosComercialesTab bodegaId={activeBodegaId} />
           </TabsContent>
@@ -145,6 +150,7 @@ function AdminPage() {
           <TabsContent value="auditoria" className="mt-6">
             <AuditoriaTab bodegaId={activeBodegaId} />
           </TabsContent>
+
 
 
         </Tabs>
