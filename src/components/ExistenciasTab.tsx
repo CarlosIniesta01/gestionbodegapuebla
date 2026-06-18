@@ -147,7 +147,7 @@ export function ExistenciasTab({ bodegaId }: Props) {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__todos__">Todos</SelectItem>
                   {tipoColorUnicos.map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
