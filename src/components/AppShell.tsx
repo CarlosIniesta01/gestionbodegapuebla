@@ -12,6 +12,7 @@ import {
   Wine,
   Circle,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,7 @@ const NAV = [
   { to: "/recetas", label: "Recetas", icon: BookOpen },
   { to: "/bodega", label: "Bodega", icon: Boxes },
   { to: "/almacen", label: "Almacén enológico", icon: Beaker },
+  { to: "/contratos", label: "Contratos", icon: FileText },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
 

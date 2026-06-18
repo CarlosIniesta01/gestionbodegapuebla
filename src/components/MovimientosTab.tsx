@@ -10,6 +10,7 @@ import {
   listMovimientos, createMovimiento, editMovimiento, anularMovimiento, puedeRectificar,
 } from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
+import { listContratosCompra, listContratosVenta } from "@/lib/api/contratos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 
 interface Props { bodegaId: string }
@@ -38,6 +39,8 @@ export function MovimientosTab({ bodegaId }: Props) {
   const anular = useServerFn(anularMovimiento);
   const canRectFn = useServerFn(puedeRectificar);
   const listProd = useServerFn(listProductosComerciales);
+  const listCC = useServerFn(listContratosCompra);
+  const listCV = useServerFn(listContratosVenta);
   const { depositos } = useBodegaMap(bodegaId);
 
   const movsQ = useQuery({
@@ -52,8 +55,12 @@ export function MovimientosTab({ bodegaId }: Props) {
     queryKey: ["puede-rectificar", bodegaId],
     queryFn: () => canRectFn({ data: { bodegaId } }),
   });
+  const ccQ = useQuery({ queryKey: ["contratos-compra", bodegaId], queryFn: () => listCC({ data: { bodegaId } }) });
+  const cvQ = useQuery({ queryKey: ["contratos-venta", bodegaId], queryFn: () => listCV({ data: { bodegaId } }) });
   const productos = (prodsQ.data ?? []) as any[];
   const movs = (movsQ.data ?? []) as any[];
+  const contratosCompra = (ccQ.data ?? []) as any[];
+  const contratosVenta = (cvQ.data ?? []) as any[];
   const canRect = !!rectQ.data;
 
   const [open, setOpen] = useState(false);
@@ -64,6 +71,8 @@ export function MovimientosTab({ bodegaId }: Props) {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["movimientos", bodegaId] });
     qc.invalidateQueries({ queryKey: ["existencias", bodegaId] });
+    qc.invalidateQueries({ queryKey: ["contratos-compra", bodegaId] });
+    qc.invalidateQueries({ queryKey: ["contratos-venta", bodegaId] });
   };
 
   const createM = useMutation({
@@ -189,6 +198,8 @@ export function MovimientosTab({ bodegaId }: Props) {
         onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setDuplicating(null); } }}
         productos={productos}
         depositos={depositos}
+        contratosCompra={contratosCompra}
+        contratosVenta={contratosVenta}
         editing={editing}
         duplicating={duplicating}
         onSave={(d, motivo) => {
@@ -208,12 +219,14 @@ export function MovimientosTab({ bodegaId }: Props) {
 }
 
 function MovimientoDialog({
-  open, onOpenChange, productos, depositos, onSave, editing, duplicating,
+  open, onOpenChange, productos, depositos, contratosCompra, contratosVenta, onSave, editing, duplicating,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   productos: any[];
   depositos: any[];
+  contratosCompra: any[];
+  contratosVenta: any[];
   editing: any | null;
   duplicating: any | null;
   onSave: (d: any, motivo?: string) => void;
@@ -230,6 +243,8 @@ function MovimientoDialog({
   const [grado, setGrado] = useState("");
   const [obs, setObs] = useState("");
   const [motivo, setMotivo] = useState("");
+  const [contratoCompraId, setContratoCompraId] = useState("");
+  const [contratoVentaId, setContratoVentaId] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -243,12 +258,15 @@ function MovimientoDialog({
       setLitros(String(seed.litros ?? ""));
       setGrado(seed.grado != null ? String(seed.grado) : "");
       setObs(seed.observaciones ?? "");
+      setContratoCompraId(seed.contrato_compra_id ?? "");
+      setContratoVentaId(seed.contrato_venta_id ?? "");
     } else {
       const n = new Date();
       setTipo("entrada");
       setFecha(n.toISOString().slice(0,10));
       setHora(n.toTimeString().slice(0,5));
       setOrigen(""); setDestino(""); setProductoId(""); setLitros(""); setGrado(""); setObs("");
+      setContratoCompraId(""); setContratoVentaId("");
     }
     setMotivo("");
   }, [open, editing?.id, duplicating?.id]);
@@ -337,6 +355,37 @@ function MovimientoDialog({
             <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} className={cls} />
           </Field>
 
+          {tipo === "entrada" && (
+            <Field label="Contrato de compra (opcional)">
+              <select value={contratoCompraId} onChange={(e) => setContratoCompraId(e.target.value)} className={cls}>
+                <option value="">— Sin contrato —</option>
+                {contratosCompra
+                  .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
+                    && (!productoId || !c.producto_id || c.producto_id === productoId))
+                  .map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.numero_contrato} · {c.proveedores?.nombre ?? "—"} · pend. {Number(c.litros_pendientes).toLocaleString("es-ES")} L
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          )}
+          {tipo === "salida" && (
+            <Field label="Contrato de venta (opcional)">
+              <select value={contratoVentaId} onChange={(e) => setContratoVentaId(e.target.value)} className={cls}>
+                <option value="">— Sin contrato —</option>
+                {contratosVenta
+                  .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
+                    && (!productoId || !c.producto_id || c.producto_id === productoId))
+                  .map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.numero_contrato} · {c.clientes?.nombre ?? "—"} · pend. {Number(c.litros_pendientes).toLocaleString("es-ES")} L
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          )}
+
           {editing && (
             <Field label="Motivo de la corrección *">
               <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} className={cls}
@@ -358,6 +407,8 @@ function MovimientoDialog({
               litros: Number(litros),
               grado: grado ? Number(grado) : null,
               observaciones: obs.trim() || null,
+              contrato_compra_id: tipo === "entrada" ? (contratoCompraId || null) : null,
+              contrato_venta_id: tipo === "salida" ? (contratoVentaId || null) : null,
             }, editing ? motivo.trim() : undefined)}
             className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >{editing ? "Guardar corrección" : "Registrar"}</button>

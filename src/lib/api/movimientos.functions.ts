@@ -33,6 +33,8 @@ const MovimientoSchema = z.object({
   grado: z.number().min(0).max(25).nullable().optional(),
   observaciones: z.string().max(500).nullable().optional(),
   trabajo_id: z.string().uuid().nullable().optional(),
+  contrato_compra_id: z.string().uuid().nullable().optional(),
+  contrato_venta_id: z.string().uuid().nullable().optional(),
 });
 
 function validatePorTipo(d: z.infer<typeof MovimientoSchema>) {
