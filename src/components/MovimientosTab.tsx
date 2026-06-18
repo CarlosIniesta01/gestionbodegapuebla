@@ -258,12 +258,15 @@ function MovimientoDialog({
       setLitros(String(seed.litros ?? ""));
       setGrado(seed.grado != null ? String(seed.grado) : "");
       setObs(seed.observaciones ?? "");
+      setContratoCompraId(seed.contrato_compra_id ?? "");
+      setContratoVentaId(seed.contrato_venta_id ?? "");
     } else {
       const n = new Date();
       setTipo("entrada");
       setFecha(n.toISOString().slice(0,10));
       setHora(n.toTimeString().slice(0,5));
       setOrigen(""); setDestino(""); setProductoId(""); setLitros(""); setGrado(""); setObs("");
+      setContratoCompraId(""); setContratoVentaId("");
     }
     setMotivo("");
   }, [open, editing?.id, duplicating?.id]);
