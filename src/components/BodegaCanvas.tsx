@@ -162,6 +162,21 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
     return { depositosLayout: deps, zonasLayout: zonas };
   }, [map.depositos, map.zonas]);
 
+  // Overlay litros desde existencias_actuales (fuente única de verdad)
+  const depositosConExistencias = useMemo(() => {
+    return depositosLayout.map((d) => {
+      const e = existenciaByDeposito[d.id];
+      if (!e) return d;
+      const contenidoOverlay = e.lineas.length === 1
+        ? e.lineas[0].nombre
+        : e.lineas.length > 1
+          ? `${e.lineas.length} productos`
+          : d.contenido ?? null;
+      return { ...d, litros: e.litros, contenido: contenidoOverlay };
+    });
+  }, [depositosLayout, existenciaByDeposito]);
+
+
 
   // Trasiegos activos: combina demo + trabajos reales en curso
   const trasiegos = useMemo(() => {
