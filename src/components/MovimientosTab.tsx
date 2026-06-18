@@ -71,6 +71,8 @@ export function MovimientosTab({ bodegaId }: Props) {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["movimientos", bodegaId] });
     qc.invalidateQueries({ queryKey: ["existencias", bodegaId] });
+    qc.invalidateQueries({ queryKey: ["contratos-compra", bodegaId] });
+    qc.invalidateQueries({ queryKey: ["contratos-venta", bodegaId] });
   };
 
   const createM = useMutation({
