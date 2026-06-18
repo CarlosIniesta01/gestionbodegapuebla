@@ -25,7 +25,7 @@ export function TrabajadoresTab({ bodegaId, trabajoId }: { bodegaId: string; tra
   const actualizarFn = useServerFn(actualizarParticipacion);
   const retirarFn = useServerFn(retirarTrabajador);
 
-  const yo = supabase.auth.getUser ? null : null; // not used directly; relies on RLS
+  
 
   const membrosQ = useQuery({
     queryKey: ["miembros-bodega", bodegaId],
