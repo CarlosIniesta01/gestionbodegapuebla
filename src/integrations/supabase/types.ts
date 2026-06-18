@@ -119,6 +119,59 @@ export type Database = {
           },
         ]
       }
+      clientes: {
+        Row: {
+          activo: boolean
+          bodega_id: string
+          cif_nif: string | null
+          created_at: string
+          created_by: string | null
+          direccion: string | null
+          email: string | null
+          id: string
+          nombre: string
+          observaciones: string | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id: string
+          cif_nif?: string | null
+          created_at?: string
+          created_by?: string | null
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre: string
+          observaciones?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string
+          cif_nif?: string | null
+          created_at?: string
+          created_by?: string | null
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre?: string
+          observaciones?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consumos_producto: {
         Row: {
           anulado: boolean
@@ -249,6 +302,170 @@ export type Database = {
             columns: ["trabajo_id"]
             isOneToOne: false
             referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_compra: {
+        Row: {
+          bodega_id: string
+          campana: string | null
+          created_at: string
+          created_by: string | null
+          estado: Database["public"]["Enums"]["contrato_estado"]
+          fecha_contrato: string
+          fecha_limite: string | null
+          id: string
+          litros_contratados: number
+          litros_pendientes: number | null
+          litros_retirados: number
+          numero_contrato: string
+          observaciones: string | null
+          precio: number | null
+          producto_id: string | null
+          proveedor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bodega_id: string
+          campana?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["contrato_estado"]
+          fecha_contrato?: string
+          fecha_limite?: string | null
+          id?: string
+          litros_contratados: number
+          litros_pendientes?: number | null
+          litros_retirados?: number
+          numero_contrato: string
+          observaciones?: string | null
+          precio?: number | null
+          producto_id?: string | null
+          proveedor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bodega_id?: string
+          campana?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["contrato_estado"]
+          fecha_contrato?: string
+          fecha_limite?: string | null
+          id?: string
+          litros_contratados?: number
+          litros_pendientes?: number | null
+          litros_retirados?: number
+          numero_contrato?: string
+          observaciones?: string | null
+          precio?: number | null
+          producto_id?: string | null
+          proveedor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_compra_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_compra_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_comerciales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_compra_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_venta: {
+        Row: {
+          bodega_id: string
+          campana: string | null
+          cliente_id: string | null
+          created_at: string
+          created_by: string | null
+          estado: Database["public"]["Enums"]["contrato_estado"]
+          fecha_contrato: string
+          fecha_limite: string | null
+          id: string
+          litros_contratados: number
+          litros_pendientes: number | null
+          litros_servidos: number
+          numero_contrato: string
+          observaciones: string | null
+          precio: number | null
+          producto_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bodega_id: string
+          campana?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["contrato_estado"]
+          fecha_contrato?: string
+          fecha_limite?: string | null
+          id?: string
+          litros_contratados: number
+          litros_pendientes?: number | null
+          litros_servidos?: number
+          numero_contrato: string
+          observaciones?: string | null
+          precio?: number | null
+          producto_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bodega_id?: string
+          campana?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["contrato_estado"]
+          fecha_contrato?: string
+          fecha_limite?: string | null
+          id?: string
+          litros_contratados?: number
+          litros_pendientes?: number | null
+          litros_servidos?: number
+          numero_contrato?: string
+          observaciones?: string | null
+          precio?: number | null
+          producto_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_venta_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_venta_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_venta_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_comerciales"
             referencedColumns: ["id"]
           },
         ]
@@ -681,6 +898,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "movimientos_contrato_compra_fkey"
+            columns: ["contrato_compra_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_contrato_venta_fkey"
+            columns: ["contrato_venta_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_venta"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "movimientos_elaboracion_id_fkey"
             columns: ["elaboracion_id"]
             isOneToOne: false
@@ -1085,6 +1316,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      proveedores: {
+        Row: {
+          activo: boolean
+          bodega_id: string
+          cif_nif: string | null
+          created_at: string
+          created_by: string | null
+          direccion: string | null
+          email: string | null
+          id: string
+          nombre: string
+          observaciones: string | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id: string
+          cif_nif?: string | null
+          created_at?: string
+          created_by?: string | null
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre: string
+          observaciones?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string
+          cif_nif?: string | null
+          created_at?: string
+          created_by?: string | null
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre?: string
+          observaciones?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proveedores_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       receta_depositos: {
         Row: {
@@ -1610,6 +1894,67 @@ export type Database = {
         }
         Relationships: []
       }
+      v_contratos_compra_pendientes: {
+        Row: {
+          bodega_id: string | null
+          campana: string | null
+          litros_pendientes: number | null
+          n_contratos: number | null
+          producto_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_compra_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_compra_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_comerciales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_contratos_venta_pendientes: {
+        Row: {
+          bodega_id: string | null
+          campana: string | null
+          litros_pendientes: number | null
+          n_contratos: number | null
+          producto_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_venta_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_venta_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_comerciales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_posicion_comercial: {
+        Row: {
+          bodega_id: string | null
+          compras_pendientes: number | null
+          disponible_comercial: number | null
+          litros_existencia: number | null
+          producto_id: string | null
+          ventas_pendientes: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_rectify_movimientos: { Args: { _bodega: string }; Returns: boolean }
@@ -1620,9 +1965,12 @@ export type Database = {
       }
       is_bodega_admin: { Args: { _bodega: string }; Returns: boolean }
       marcar_lotes_caducados: { Args: never; Returns: number }
+      recalcular_contrato_compra: { Args: { _id: string }; Returns: undefined }
+      recalcular_contrato_venta: { Args: { _id: string }; Returns: undefined }
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
+      contrato_estado: "pendiente" | "parcial" | "completado" | "cancelado"
       lote_estado: "disponible" | "agotado" | "caducado" | "bloqueado"
       membership_estado: "activo" | "inactivo" | "suspendido" | "rechazado"
       mensaje_canal: "general" | "deposito" | "trabajo"
@@ -1790,6 +2138,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      contrato_estado: ["pendiente", "parcial", "completado", "cancelado"],
       lote_estado: ["disponible", "agotado", "caducado", "bloqueado"],
       membership_estado: ["activo", "inactivo", "suspendido", "rechazado"],
       mensaje_canal: ["general", "deposito", "trabajo"],
