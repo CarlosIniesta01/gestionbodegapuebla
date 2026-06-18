@@ -33,7 +33,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
   const listFn = useServerFn(listTrabajos);
   const trabajosQ = useQuery({
     queryKey: ["trabajos", bodegaId, "en_curso-map"],
-    queryFn: () => listFn({ data: { bodegaId: bodegaId! } }),
+    queryFn: () => listFn({ data: { bodegaId: bodegaId!, estado: ["en_curso"] } }),
     enabled: !!bodegaId,
     refetchInterval: 8000,
   });
