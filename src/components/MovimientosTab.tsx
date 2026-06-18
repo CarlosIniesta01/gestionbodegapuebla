@@ -355,6 +355,37 @@ function MovimientoDialog({
             <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} className={cls} />
           </Field>
 
+          {tipo === "entrada" && (
+            <Field label="Contrato de compra (opcional)">
+              <select value={contratoCompraId} onChange={(e) => setContratoCompraId(e.target.value)} className={cls}>
+                <option value="">— Sin contrato —</option>
+                {contratosCompra
+                  .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
+                    && (!productoId || !c.producto_id || c.producto_id === productoId))
+                  .map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.numero_contrato} · {c.proveedores?.nombre ?? "—"} · pend. {Number(c.litros_pendientes).toLocaleString("es-ES")} L
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          )}
+          {tipo === "salida" && (
+            <Field label="Contrato de venta (opcional)">
+              <select value={contratoVentaId} onChange={(e) => setContratoVentaId(e.target.value)} className={cls}>
+                <option value="">— Sin contrato —</option>
+                {contratosVenta
+                  .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
+                    && (!productoId || !c.producto_id || c.producto_id === productoId))
+                  .map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.numero_contrato} · {c.clientes?.nombre ?? "—"} · pend. {Number(c.litros_pendientes).toLocaleString("es-ES")} L
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          )}
+
           {editing && (
             <Field label="Motivo de la corrección *">
               <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} className={cls}
@@ -376,6 +407,8 @@ function MovimientoDialog({
               litros: Number(litros),
               grado: grado ? Number(grado) : null,
               observaciones: obs.trim() || null,
+              contrato_compra_id: tipo === "entrada" ? (contratoCompraId || null) : null,
+              contrato_venta_id: tipo === "salida" ? (contratoVentaId || null) : null,
             }, editing ? motivo.trim() : undefined)}
             className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >{editing ? "Guardar corrección" : "Registrar"}</button>
