@@ -47,6 +47,17 @@ export function LotesDialog({
 
   const [form, setForm] = React.useState<any | null>(null);
 
+  React.useEffect(() => {
+    if (open && autoNew && producto) {
+      setForm({
+        producto_id: producto.id, numero_lote: "",
+        cantidad_inicial: 0, unidad: producto.unidad ?? "kg",
+        fecha_recepcion: new Date().toISOString().slice(0, 10),
+      });
+    }
+    if (!open) setForm(null);
+  }, [open, autoNew, producto]);
+
   if (!producto) return null;
 
   return (
