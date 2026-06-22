@@ -50,6 +50,7 @@ export function ProductosTab({ bodegaId }: { bodegaId: string }) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
   const [lotesFor, setLotesFor] = React.useState<any | null>(null);
+  const [lotesAutoNew, setLotesAutoNew] = React.useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "productos", bodegaId] });
   const mToggle = useMutation({ mutationFn: fnToggle, onSuccess: invalidate });
