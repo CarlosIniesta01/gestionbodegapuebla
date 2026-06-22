@@ -443,7 +443,7 @@ function DetalleDialog({ bodegaId, productoId, row, onClose }: {
                 {d.movimientos.length === 0 ? <Empty>Sin movimientos.</Empty> : (
                   <SimpleTable headers={["Fecha","Tipo","Origen","Destino","Litros","Grado"]}
                     rows={d.movimientos.map((m: any) => [
-                      m.fecha, m.tipo, m.deposito_origen_id ?? "—", m.deposito_destino_id ?? "—",
+                      m.fecha, m.tipo, m.deposito_origen_codigo ?? m.deposito_origen_id ?? "—", m.deposito_destino_codigo ?? m.deposito_destino_id ?? "—",
                       `${fmt(Number(m.litros))} L`,
                       m.grado != null ? `${Number(m.grado).toFixed(2)}°` : "—",
                     ])} />
