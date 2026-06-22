@@ -225,7 +225,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
   return (
     <>
-      <div className="scada-panel overflow-hidden flex flex-col h-[calc(100vh-7rem)] md:h-[calc(100vh-5rem)]">
+      <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04)] overflow-hidden flex flex-col h-[calc(100vh-7rem)] md:h-[calc(100vh-5rem)]">
         <MapToolbar
           editMode={editMode}
           onToggleEdit={() => setEditMode((v) => !v)}
