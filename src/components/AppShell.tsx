@@ -123,7 +123,7 @@ export function AppShell() {
       </main>
 
       {/* Mobile bottom nav - horizontal scroll para todos los items */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar/95 backdrop-blur border-t border-border">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar/95 backdrop-blur border-t border-sidebar-border">
         <div
           className="flex overflow-x-auto no-scrollbar"
           style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity" }}
