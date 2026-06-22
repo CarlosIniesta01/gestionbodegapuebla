@@ -96,12 +96,12 @@ export function AppShell() {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="md:hidden flex items-center justify-between px-4 h-14 border-b border-border bg-sidebar">
+      <header className="md:hidden flex items-center justify-between px-4 h-14 border-b border-sidebar-border bg-sidebar">
         <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center">
-            <Wine className="size-4 text-primary" />
+          <div className="size-8 rounded-md bg-primary flex items-center justify-center">
+            <Wine className="size-4 text-primary-foreground" />
           </div>
-          <span className="font-display font-semibold tracking-tight">Vinea</span>
+          <span className="font-display font-semibold tracking-tight text-foreground">Vinea</span>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -110,7 +110,7 @@ export function AppShell() {
           </div>
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
             aria-label="Cerrar sesión"
           >
             <LogOut className="size-[18px]" />
