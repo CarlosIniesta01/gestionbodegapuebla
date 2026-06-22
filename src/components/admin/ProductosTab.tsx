@@ -403,7 +403,7 @@ function ProductoDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={m.isPending}>Guardar</Button>
+          <Button onClick={submit}>Guardar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
