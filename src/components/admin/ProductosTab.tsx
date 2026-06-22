@@ -2,9 +2,10 @@ import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Edit3, Trash2, Power, PowerOff, Beaker, Sparkles, Package, Boxes, FileText } from "lucide-react";
+import { Plus, Edit3, Trash2, Power, PowerOff, Beaker, Sparkles, Package, Boxes, FileText, PackagePlus } from "lucide-react";
 
 import { listProductos, upsertProducto, toggleProductoActivo, deleteProducto } from "@/lib/api/productos.functions";
+import { upsertLote } from "@/lib/api/lotes.functions";
 import { LotesDialog } from "./LotesDialog";
 
 import { Button } from "@/components/ui/button";
