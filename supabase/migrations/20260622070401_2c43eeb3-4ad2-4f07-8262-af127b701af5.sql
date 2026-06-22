@@ -1,0 +1,1 @@
+ALTER VIEW public.v_posicion_comercial SET (security_invoker = on);
