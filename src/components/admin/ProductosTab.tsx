@@ -197,38 +197,91 @@ function ProductoDialog({
   producto: any | null; onSaved: () => void;
 }) {
   const fnUpsert = useServerFn(upsertProducto);
+  const fnUpsertLote = useServerFn(upsertLote);
   const [f, setF] = React.useState<any>({});
+  const [lote, setLote] = React.useState<any>({ enabled: false });
+  const isNew = !producto;
 
   React.useEffect(() => {
     if (!open) return;
     setF(producto ? { ...producto } : {
       nombre: "", tipo: "enologico", categoria: "otro", unidad: "kg", activo: true,
     });
+    setLote({
+      enabled: false,
+      numero_lote: "",
+      proveedor: "",
+      fecha_recepcion: new Date().toISOString().slice(0, 10),
+      fecha_caducidad: "",
+      cantidad_inicial: "",
+      cantidad_disponible: "",
+      unidad: "",
+      coste_unitario: "",
+      ubicacion: "",
+      estado: "disponible",
+    });
   }, [open, producto]);
 
-  const m = useMutation({
-    mutationFn: fnUpsert,
-    onSuccess: () => { toast.success(producto ? "Producto actualizado" : "Producto creado"); onSaved(); onOpenChange(false); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  function submit() {
+  async function submit() {
     if (!f.nombre?.trim()) return toast.error("El nombre es obligatorio");
-    m.mutate({ data: {
-      id: producto?.id, bodegaId,
-      nombre: f.nombre.trim(),
-      tipo: f.tipo ?? "enologico",
-      categoria: f.categoria ?? null,
-      fabricante: f.fabricante?.trim() || null,
-      referencia: f.referencia?.trim() || null,
-      unidad: f.unidad?.trim() || "kg",
-      stock_minimo: f.stock_minimo != null && f.stock_minimo !== "" ? Number(f.stock_minimo) : null,
-      stock_critico: f.stock_critico != null && f.stock_critico !== "" ? Number(f.stock_critico) : null,
-      ficha_tecnica_url: f.ficha_tecnica_url?.trim() || null,
-      ficha_seguridad_url: f.ficha_seguridad_url?.trim() || null,
-      activo: !!f.activo,
-      observaciones: f.observaciones?.trim() || undefined,
-    } });
+
+    // Validar lote inicial si está activo
+    if (isNew && lote.enabled) {
+      if (!lote.numero_lote?.trim()) return toast.error("Lote inicial: nº de lote obligatorio");
+      const cantIni = Number(lote.cantidad_inicial);
+      if (!Number.isFinite(cantIni) || cantIni <= 0) return toast.error("Lote inicial: cantidad inicial debe ser > 0");
+      if (lote.cantidad_disponible !== "" && lote.cantidad_disponible != null) {
+        const d = Number(lote.cantidad_disponible);
+        if (!Number.isFinite(d) || d < 0) return toast.error("Lote inicial: cantidad disponible inválida");
+        if (d > cantIni) return toast.error("Lote inicial: disponible no puede superar la cantidad inicial");
+      }
+      if (lote.fecha_recepcion && lote.fecha_caducidad && lote.fecha_caducidad < lote.fecha_recepcion) {
+        if (!confirm("La fecha de caducidad es anterior a la fecha de recepción. ¿Continuar (requiere autorización del Enólogo)?")) return;
+      }
+    }
+
+    try {
+      const res = await fnUpsert({ data: {
+        id: producto?.id, bodegaId,
+        nombre: f.nombre.trim(),
+        tipo: f.tipo ?? "enologico",
+        categoria: f.categoria ?? null,
+        fabricante: f.fabricante?.trim() || null,
+        referencia: f.referencia?.trim() || null,
+        unidad: f.unidad?.trim() || "kg",
+        stock_minimo: f.stock_minimo != null && f.stock_minimo !== "" ? Number(f.stock_minimo) : null,
+        stock_critico: f.stock_critico != null && f.stock_critico !== "" ? Number(f.stock_critico) : null,
+        ficha_tecnica_url: f.ficha_tecnica_url?.trim() || null,
+        ficha_seguridad_url: f.ficha_seguridad_url?.trim() || null,
+        activo: !!f.activo,
+        observaciones: f.observaciones?.trim() || undefined,
+      } });
+
+      if (isNew && lote.enabled && res?.id) {
+        const cantIni = Number(lote.cantidad_inicial);
+        const cantDisp = lote.cantidad_disponible !== "" && lote.cantidad_disponible != null
+          ? Number(lote.cantidad_disponible) : cantIni;
+        await fnUpsertLote({ data: { bodegaId, data: {
+          producto_id: res.id,
+          numero_lote: lote.numero_lote.trim(),
+          proveedor: lote.proveedor?.trim() || null,
+          fecha_recepcion: lote.fecha_recepcion || null,
+          fecha_caducidad: lote.fecha_caducidad || null,
+          cantidad_inicial: cantIni,
+          cantidad_disponible: cantDisp,
+          unidad: (lote.unidad?.trim() || f.unidad?.trim() || "kg"),
+          coste_unitario: lote.coste_unitario !== "" && lote.coste_unitario != null ? Number(lote.coste_unitario) : null,
+          ubicacion: lote.ubicacion?.trim() || null,
+        } } });
+        toast.success("Producto y lote inicial creados");
+      } else {
+        toast.success(producto ? "Producto actualizado" : "Producto creado");
+      }
+      onSaved();
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Error al guardar");
+    }
   }
 
   return (
@@ -287,9 +340,66 @@ function ProductoDialog({
             <input type="checkbox" checked={!!f.activo} onChange={(e) => setF({ ...f, activo: e.target.checked })} />
             Activo
           </label>
-          <p className="text-xs text-muted-foreground">
-            Los lotes se gestionan desde el botón <strong>Lotes</strong> de cada producto.
-          </p>
+
+          {isNew && (
+            <div className="scada-panel p-4 space-y-3 border-dashed">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <input type="checkbox" checked={!!lote.enabled}
+                  onChange={(e) => setLote({ ...lote, enabled: e.target.checked })} />
+                Añadir lote inicial (opcional)
+              </label>
+              {lote.enabled && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Nº de lote *</Label>
+                      <Input value={lote.numero_lote ?? ""} onChange={(e) => setLote({ ...lote, numero_lote: e.target.value })} />
+                    </div>
+                    <div><Label>Proveedor</Label>
+                      <Input value={lote.proveedor ?? ""} onChange={(e) => setLote({ ...lote, proveedor: e.target.value })} />
+                    </div>
+                    <div><Label>Fecha recepción</Label>
+                      <Input type="date" value={lote.fecha_recepcion ?? ""} onChange={(e) => setLote({ ...lote, fecha_recepcion: e.target.value })} />
+                    </div>
+                    <div><Label>Fecha caducidad</Label>
+                      <Input type="date" value={lote.fecha_caducidad ?? ""} onChange={(e) => setLote({ ...lote, fecha_caducidad: e.target.value })} />
+                    </div>
+                    <div><Label>Cantidad inicial *</Label>
+                      <Input type="number" step="0.001" min="0" value={lote.cantidad_inicial ?? ""}
+                        onChange={(e) => setLote({ ...lote, cantidad_inicial: e.target.value })} />
+                    </div>
+                    <div><Label>Cantidad disponible</Label>
+                      <Input type="number" step="0.001" min="0" value={lote.cantidad_disponible ?? ""}
+                        placeholder="= cantidad inicial"
+                        onChange={(e) => setLote({ ...lote, cantidad_disponible: e.target.value })} />
+                    </div>
+                    <div><Label>Unidad</Label>
+                      <Input value={lote.unidad ?? ""} placeholder={f.unidad ?? "kg"}
+                        onChange={(e) => setLote({ ...lote, unidad: e.target.value })} />
+                    </div>
+                    <div><Label>Coste unitario</Label>
+                      <Input type="number" step="0.0001" min="0" value={lote.coste_unitario ?? ""}
+                        onChange={(e) => setLote({ ...lote, coste_unitario: e.target.value })} />
+                    </div>
+                    <div><Label>Ubicación física</Label>
+                      <Input value={lote.ubicacion ?? ""} onChange={(e) => setLote({ ...lote, ubicacion: e.target.value })} />
+                    </div>
+                    <div><Label>Estado</Label>
+                      <Input value="disponible" disabled />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    El lote se creará vinculado al producto y aparecerá automáticamente en la pestaña Lotes y en el stock.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isNew && (
+            <p className="text-xs text-muted-foreground">
+              Los lotes se gestionan desde el botón <strong>Lotes</strong> o <strong>Añadir lote</strong> de cada producto.
+            </p>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
