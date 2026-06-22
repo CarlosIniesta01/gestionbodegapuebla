@@ -346,15 +346,15 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
           </div>
 
           {editMode && (
-            <div className="absolute bottom-3 left-3 right-3 md:right-auto md:max-w-md bg-surface-elevated/95 backdrop-blur border border-accent/40 rounded-lg p-3 text-xs text-foreground shadow-glow">
-              <span className="font-semibold text-accent">Modo edición.</span>{" "}
-              Arrastra depósitos y zonas para reorganizarlos. Pulsa un depósito para editarlo. Los cambios se guardan en la bodega.
+            <div className="absolute bottom-3 left-3 right-3 md:right-auto md:max-w-md bg-card/95 backdrop-blur border border-primary/30 rounded-lg p-3 text-xs text-foreground shadow-md">
+              <span className="font-semibold text-primary">Modo edición.</span>{" "}
+              Arrastra zonas para reorganizarlas. Pulsa un depósito para editarlo. Los cambios se guardan en la bodega.
             </div>
           )}
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 py-2.5 border-t border-border text-[11px]">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 px-4 py-3 border-t border-border bg-surface/60 text-[11px]">
           <LegendItems />
         </div>
       </div>
