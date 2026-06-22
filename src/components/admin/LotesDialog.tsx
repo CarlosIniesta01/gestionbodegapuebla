@@ -20,10 +20,10 @@ const ESTADO_COLOR: Record<string, string> = {
 };
 
 export function LotesDialog({
-  open, onOpenChange, bodegaId, producto,
+  open, onOpenChange, bodegaId, producto, autoNew,
 }: {
   open: boolean; onOpenChange: (v: boolean) => void;
-  bodegaId: string; producto: any | null;
+  bodegaId: string; producto: any | null; autoNew?: boolean;
 }) {
   const qc = useQueryClient();
   const fnList = useServerFn(listLotes);
