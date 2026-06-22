@@ -107,31 +107,39 @@ function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobil
 
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         <div
-          className="rounded-xl p-4 border"
+          className="rounded-xl p-4 border bg-surface"
           style={{
-            background: `color-mix(in oklab, ${meta.color} 10%, transparent)`,
-            borderColor: `color-mix(in oklab, ${meta.color} 40%, transparent)`,
+            borderColor: `color-mix(in oklab, ${meta.color} 25%, var(--border))`,
           }}
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Estado</span>
-            <span className="text-sm font-medium" style={{ color: meta.color }}>{meta.label}</span>
+            <span
+              className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+              style={{
+                color: meta.color,
+                background: `color-mix(in oklab, ${meta.color} 12%, transparent)`,
+                border: `1px solid color-mix(in oklab, ${meta.color} 30%, transparent)`,
+              }}
+            >
+              {meta.label}
+            </span>
           </div>
           <div className="flex items-end justify-between mb-2">
             <div>
-              <div className="text-3xl font-display font-semibold tracking-tight">
+              <div className="text-3xl font-display font-semibold tracking-tight tabular-nums">
                 {deposito.litros.toLocaleString("es-ES")}
-                <span className="text-base text-muted-foreground ml-1">L</span>
+                <span className="text-base text-muted-foreground ml-1 font-normal">L</span>
               </div>
               <div className="text-xs text-muted-foreground">
                 de {deposito.capacidad.toLocaleString("es-ES")} L · {pct}%
               </div>
             </div>
-            <div className="text-right text-xs text-muted-foreground">
+            <div className="text-right text-xs text-muted-foreground max-w-[55%] truncate">
               {deposito.contenido ?? "Sin contenido"}
             </div>
           </div>
-          <div className="h-2 bg-background rounded-full overflow-hidden">
+          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
             <motion.div
               key={deposito.id + pct}
               initial={{ width: 0 }}
