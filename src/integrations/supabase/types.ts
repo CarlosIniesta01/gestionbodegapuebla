@@ -1946,11 +1946,18 @@ export type Database = {
       }
       v_posicion_comercial: {
         Row: {
+          alcohol_absoluto: number | null
           bodega_id: string | null
+          campana: string | null
+          codigo: string | null
+          color: string | null
           compras_pendientes: number | null
           disponible_comercial: number | null
+          grado_referencia: number | null
           litros_existencia: number | null
           producto_id: string | null
+          producto_nombre: string | null
+          tipo: string | null
           ventas_pendientes: number | null
         }
         Relationships: []
