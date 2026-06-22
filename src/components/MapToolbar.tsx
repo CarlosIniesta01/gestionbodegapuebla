@@ -19,7 +19,7 @@ export function MapToolbar({
   zoom, onZoom, procesosCount, zonasCount, depositosCount,
 }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-border bg-surface-elevated/60 backdrop-blur">
+    <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-border bg-surface/80">
       {/* Mode switch */}
       <div className="inline-flex bg-background/60 rounded-lg border border-border p-0.5 relative">
         {(["vista", "editar"] as const).map((m) => {

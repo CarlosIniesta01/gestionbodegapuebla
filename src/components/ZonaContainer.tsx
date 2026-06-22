@@ -24,15 +24,15 @@ export function ZonaContainer({ zona, count, editMode, onMoveEnd, onEdit, onDele
         if (!editMode) return;
         onMoveEnd(zona.pos_x + info.offset.x / scale, zona.pos_y + info.offset.y / scale);
       }}
-      className="absolute rounded-2xl pointer-events-auto"
+      className="absolute rounded-xl pointer-events-auto"
       style={{
         left: zona.pos_x,
         top: zona.pos_y,
         width: zona.ancho,
         height: zona.alto,
-        background: `color-mix(in oklab, ${zona.color} 8%, oklch(0.18 0.014 250))`,
-        border: `2px dashed color-mix(in oklab, ${zona.color} 70%, transparent)`,
-        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${zona.color} 25%, transparent), 0 0 24px -8px color-mix(in oklab, ${zona.color} 30%, transparent)`,
+        background: `color-mix(in oklab, ${zona.color} 4%, var(--surface-elevated))`,
+        border: `1px solid color-mix(in oklab, ${zona.color} 28%, var(--border))`,
+        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${zona.color} 8%, transparent), 0 1px 2px rgba(15,23,42,0.04)`,
       }}
 
     >
@@ -40,12 +40,12 @@ export function ZonaContainer({ zona, count, editMode, onMoveEnd, onEdit, onDele
         <div className="flex items-center gap-2 min-w-0">
           <span
             className="size-2 rounded-full shrink-0"
-            style={{ background: zona.color, boxShadow: `0 0 8px ${zona.color}` }}
+            style={{ background: zona.color }}
           />
           <div className="min-w-0">
             <div
-              className="text-[10px] uppercase font-semibold tracking-[0.18em] truncate"
-              style={{ color: `color-mix(in oklab, ${zona.color} 70%, white)`, fontFamily: "var(--font-mono)" }}
+              className="text-[10px] uppercase font-semibold tracking-[0.18em] truncate text-foreground"
+              style={{ fontFamily: "var(--font-mono)" }}
             >
               {zona.nombre}
             </div>
