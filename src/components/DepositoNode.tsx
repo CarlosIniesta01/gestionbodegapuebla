@@ -57,13 +57,13 @@ export function DepositoNode({ deposito, selected, editMode, filling, onClick, o
       <span
         className="absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: "oklch(0.16 0.012 250)",
-          border: `${selected ? 2.5 : 1.5}px solid ${selected ? "var(--accent)" : color}`,
-          boxShadow: active
-            ? `0 0 ${Math.max(12, deposito.radio)}px color-mix(in oklab, ${color} 45%, transparent)`
-            : selected
-            ? `0 0 16px color-mix(in oklab, var(--accent) 50%, transparent)`
-            : undefined,
+          background: "var(--surface-elevated)",
+          border: `${selected ? 2 : 1}px solid ${selected ? "var(--primary)" : `color-mix(in oklab, ${color} 55%, var(--border))`}`,
+          boxShadow: selected
+            ? `0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent), 0 2px 8px -2px color-mix(in oklab, var(--primary) 25%, transparent)`
+            : active
+            ? `0 0 0 2px color-mix(in oklab, ${color} 18%, transparent), 0 1px 3px rgba(15,23,42,0.06)`
+            : `0 1px 2px rgba(15,23,42,0.05)`,
         }}
       >
         {/* Liquid fill with looping wave surface */}
@@ -76,15 +76,14 @@ export function DepositoNode({ deposito, selected, editMode, filling, onClick, o
           >
             <defs>
               <linearGradient id={`liq-${deposito.id}`} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity="0.55" />
-                <stop offset="100%" stopColor={color} stopOpacity="0.85" />
+                <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+                <stop offset="100%" stopColor={color} stopOpacity="0.65" />
               </linearGradient>
             </defs>
             <g
               className={filling ? "liquid-filling" : undefined}
               transform={filling ? undefined : `translate(0 ${100 - Math.max(4, pct)})`}
             >
-              {/* Two waves drifting in opposite directions, looping seamlessly */}
               <path
                 className="liquid-wave"
                 fill={`url(#liq-${deposito.id})`}
@@ -93,7 +92,7 @@ export function DepositoNode({ deposito, selected, editMode, filling, onClick, o
               <path
                 className="liquid-wave-2"
                 fill={color}
-                fillOpacity="0.35"
+                fillOpacity="0.22"
                 d="M0,5 C15,9 35,1 50,5 C65,9 85,1 100,5 L200,5 C215,9 235,1 250,5 C265,9 285,1 300,5 L300,120 L0,120 Z"
               />
             </g>
@@ -106,8 +105,8 @@ export function DepositoNode({ deposito, selected, editMode, filling, onClick, o
         className="absolute inset-0 flex items-center justify-center font-semibold text-foreground select-none"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: Math.max(9, deposito.radio * 0.42),
-          textShadow: "0 1px 2px oklch(0.16 0.012 250 / 0.6)",
+          fontSize: Math.max(9, deposito.radio * 0.44),
+          letterSpacing: "-0.01em",
           pointerEvents: "none",
         }}
       >
