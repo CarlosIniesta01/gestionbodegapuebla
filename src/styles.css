@@ -123,10 +123,6 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
-    background-image:
-      radial-gradient(ellipse 80% 60% at 20% 0%, oklch(0.55 0.18 18 / 0.08), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, oklch(0.72 0.14 75 / 0.06), transparent 60%);
-    background-attachment: fixed;
   }
 
   h1, h2, h3, h4 {
@@ -138,8 +134,8 @@
 @layer utilities {
   .grid-bg {
     background-image:
-      linear-gradient(to right, oklch(1 0 0 / 0.025) 1px, transparent 1px),
-      linear-gradient(to bottom, oklch(1 0 0 / 0.025) 1px, transparent 1px);
+      linear-gradient(to right, oklch(0 0 0 / 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0 0 0 / 0.03) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
