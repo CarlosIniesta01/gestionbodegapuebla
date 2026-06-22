@@ -406,7 +406,7 @@ function DetalleDialog({ bodegaId, productoId, row, onClose }: {
                 {d.existencias.length === 0 ? <Empty>Sin existencias.</Empty> : (
                   <SimpleTable headers={["Depósito","Litros","Grado","Alcohol Abs."]}
                     rows={d.existencias.map((e: any) => [
-                      e.deposito_id, `${fmt(Number(e.litros))} L`,
+                      e.deposito_codigo ?? e.deposito_id, `${fmt(Number(e.litros))} L`,
                       `${Number(e.grado_medio ?? 0).toFixed(2)}°`,
                       `${Number(e.alcohol_absoluto ?? 0).toFixed(2)} L`,
                     ])} />
