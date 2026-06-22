@@ -42,16 +42,16 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row text-foreground">
+    <div className="min-h-screen flex flex-col md:flex-row text-foreground bg-background">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-[240px] shrink-0 flex-col border-r border-border bg-sidebar">
-        <div className="px-5 py-5 flex items-center gap-2.5 border-b border-border">
-          <div className="size-9 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center">
-            <Wine className="size-5 text-primary" />
+      <aside className="hidden md:flex w-[240px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
+        <div className="px-5 py-4 flex items-center gap-2.5 border-b border-sidebar-border">
+          <div className="size-9 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <Wine className="size-5 text-primary-foreground" />
           </div>
           <div className="leading-tight">
-            <div className="font-display text-[15px] font-semibold tracking-tight">Vinea Control</div>
-            <div className="text-[11px] text-muted-foreground uppercase tracking-[0.14em]">Bodega Central</div>
+            <div className="font-display text-[15px] font-semibold tracking-tight text-foreground">Vinea Control</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-[0.14em]">Bodega Central</div>
           </div>
         </div>
         <nav className="flex-1 p-2 space-y-0.5">
@@ -62,33 +62,33 @@ export function AppShell() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${
                   active
-                    ? "bg-sidebar-accent text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
+                    ? "bg-sidebar-accent text-primary"
+                    : "text-sidebar-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
                 }`}
               >
                 {active && (
                   <motion.span
                     layoutId="nav-indicator"
-                    className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-accent"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-primary"
                   />
                 )}
-                <Icon className="size-[18px]" />
+                <Icon className={`size-[17px] ${active ? "text-primary" : "text-muted-foreground"}`} />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="p-3 border-t border-border space-y-2">
+        <div className="p-3 border-t border-sidebar-border space-y-2">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+            className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-[13px] text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
           >
-            <LogOut className="size-[18px]" />
+            <LogOut className="size-[17px]" />
             <span>Cerrar sesión</span>
           </button>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground px-3">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-3">
             <Circle className="size-2 fill-state-fermentacion text-state-fermentacion" />
             Sistema en línea
           </div>
@@ -96,12 +96,12 @@ export function AppShell() {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="md:hidden flex items-center justify-between px-4 h-14 border-b border-border bg-sidebar">
+      <header className="md:hidden flex items-center justify-between px-4 h-14 border-b border-sidebar-border bg-sidebar">
         <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center">
-            <Wine className="size-4 text-primary" />
+          <div className="size-8 rounded-md bg-primary flex items-center justify-center">
+            <Wine className="size-4 text-primary-foreground" />
           </div>
-          <span className="font-display font-semibold tracking-tight">Vinea</span>
+          <span className="font-display font-semibold tracking-tight text-foreground">Vinea</span>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -110,7 +110,7 @@ export function AppShell() {
           </div>
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
             aria-label="Cerrar sesión"
           >
             <LogOut className="size-[18px]" />
@@ -123,7 +123,7 @@ export function AppShell() {
       </main>
 
       {/* Mobile bottom nav - horizontal scroll para todos los items */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar/95 backdrop-blur border-t border-border">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar/95 backdrop-blur border-t border-sidebar-border">
         <div
           className="flex overflow-x-auto no-scrollbar"
           style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity" }}
@@ -136,7 +136,7 @@ export function AppShell() {
                 key={item.to}
                 to={item.to}
                 className={`flex flex-col items-center gap-1 py-2.5 px-4 text-[10px] shrink-0 min-w-[72px] ${
-                  active ? "text-accent" : "text-muted-foreground"
+                  active ? "text-primary" : "text-muted-foreground"
                 }`}
                 style={{ scrollSnapAlign: "start" }}
               >
