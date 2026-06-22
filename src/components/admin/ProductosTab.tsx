@@ -167,8 +167,8 @@ export function ProductosTab({ bodegaId }: { bodegaId: string }) {
         open={dialogOpen} onOpenChange={setDialogOpen} bodegaId={bodegaId}
         producto={editing} onSaved={invalidate}
       />
-      <LotesDialog open={!!lotesFor} onOpenChange={(v) => !v && setLotesFor(null)}
-        bodegaId={bodegaId} producto={lotesFor} />
+      <LotesDialog open={!!lotesFor} onOpenChange={(v) => { if (!v) { setLotesFor(null); setLotesAutoNew(false); } }}
+        bodegaId={bodegaId} producto={lotesFor} autoNew={lotesAutoNew} />
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
         <AlertDialogContent>
