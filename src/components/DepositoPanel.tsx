@@ -44,7 +44,7 @@ export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAc
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-foreground/15 backdrop-blur-[2px] z-40"
           />
           <motion.aside
             initial={isMobile ? { y: "100%" } : { x: "100%" }}
@@ -53,8 +53,8 @@ export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAc
             transition={{ type: "spring", damping: 30, stiffness: 280 }}
             className={
               isMobile
-                ? "fixed left-0 right-0 bottom-0 z-50 max-h-[88vh] bg-surface border-t border-border rounded-t-2xl flex flex-col"
-                : "fixed top-0 right-0 bottom-0 z-50 w-[420px] bg-surface border-l border-border flex flex-col"
+                ? "fixed left-0 right-0 bottom-0 z-50 max-h-[88vh] bg-card border-t border-border rounded-t-2xl flex flex-col shadow-2xl"
+                : "fixed top-0 right-0 bottom-0 z-50 w-[420px] bg-card border-l border-border flex flex-col shadow-[-8px_0_24px_-12px_rgba(15,23,42,0.12)]"
             }
           >
             <Content deposito={deposito} existencia={existencia ?? null} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} />
