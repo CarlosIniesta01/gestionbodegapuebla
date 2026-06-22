@@ -140,8 +140,11 @@ export function ProductosTab({ bodegaId }: { bodegaId: string }) {
                         <FileText className="size-4" />
                       </a>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => setLotesFor(p)} title="Lotes">
+                    <Button variant="ghost" size="sm" onClick={() => { setLotesAutoNew(false); setLotesFor(p); }} title="Lotes">
                       <Boxes className="size-4 mr-1" /> Lotes
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setLotesAutoNew(true); setLotesFor(p); }} title="Añadir lote">
+                      <PackagePlus className="size-4 mr-1" /> Añadir lote
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => { setEditing(p); setDialogOpen(true); }} title="Editar">
                       <Edit3 className="size-4" />
