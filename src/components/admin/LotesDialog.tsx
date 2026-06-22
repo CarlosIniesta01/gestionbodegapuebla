@@ -20,10 +20,10 @@ const ESTADO_COLOR: Record<string, string> = {
 };
 
 export function LotesDialog({
-  open, onOpenChange, bodegaId, producto,
+  open, onOpenChange, bodegaId, producto, autoNew,
 }: {
   open: boolean; onOpenChange: (v: boolean) => void;
-  bodegaId: string; producto: any | null;
+  bodegaId: string; producto: any | null; autoNew?: boolean;
 }) {
   const qc = useQueryClient();
   const fnList = useServerFn(listLotes);
@@ -46,6 +46,17 @@ export function LotesDialog({
   const mDel = useMutation({ mutationFn: fnDel, onSuccess: invalidate, onError: (e: Error) => toast.error(e.message) });
 
   const [form, setForm] = React.useState<any | null>(null);
+
+  React.useEffect(() => {
+    if (open && autoNew && producto) {
+      setForm({
+        producto_id: producto.id, numero_lote: "",
+        cantidad_inicial: 0, unidad: producto.unidad ?? "kg",
+        fecha_recepcion: new Date().toISOString().slice(0, 10),
+      });
+    }
+    if (!open) setForm(null);
+  }, [open, autoNew, producto]);
 
   if (!producto) return null;
 
