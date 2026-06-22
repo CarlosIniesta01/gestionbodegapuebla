@@ -151,7 +151,7 @@ function Inicio() {
               label="Bajo stock mínimo"
               value={d.almacen.bajo_minimo}
               icon={Package}
-              accent={d.almacen.bajo_minimo ? "var(--state-llenado)" : "var(--state-empty)"}
+              accent={d.almacen.bajo_minimo ? "var(--state-trasiego)" : "var(--state-empty)"}
             />
             <StatCard
               label="Stock crítico"
@@ -164,7 +164,7 @@ function Inicio() {
               value={d.almacen.lotes_por_caducar}
               hint="≤ 30 días"
               icon={Clock}
-              accent={d.almacen.lotes_por_caducar ? "var(--state-llenado)" : "var(--state-empty)"}
+              accent={d.almacen.lotes_por_caducar ? "var(--state-trasiego)" : "var(--state-empty)"}
             />
             <StatCard
               label="Lotes caducados"
@@ -183,7 +183,7 @@ function Inicio() {
             label="Trabajos pendientes"
             value={d.operaciones.pendientes}
             icon={Clock}
-            accent="var(--state-llenado)"
+            accent="var(--state-trasiego)"
           />
           <StatCard
             label="En proceso"
@@ -243,7 +243,7 @@ function Inicio() {
                       className="h-full rounded-full"
                       style={{
                         width: `${Math.min(x.pct, 100)}%`,
-                        background: x.pct >= 95 ? "var(--state-incidencia)" : "var(--state-llenado)",
+                        background: x.pct >= 95 ? "var(--state-incidencia)" : "var(--state-trasiego)",
                       }}
                     />
                   </div>
@@ -263,7 +263,7 @@ function Inicio() {
                 {d.comercial.top_productos.map((p) => {
                   const color =
                     p.disponible < 0 ? "var(--state-incidencia)" :
-                    p.disponible < 1000 ? "var(--state-llenado)" : "var(--state-empty)";
+                    p.disponible < 1000 ? "var(--state-trasiego)" : "var(--state-empty)";
                   return (
                     <div key={p.producto_id} className="flex items-center gap-2 text-xs sm:text-sm min-w-0">
                       <span className="size-2 rounded-full shrink-0" style={{ background: color }} />
@@ -287,7 +287,7 @@ function Inicio() {
                   <div key={p.producto_id} className="flex items-center gap-2 text-xs sm:text-sm min-w-0">
                     <span
                       className="size-2 rounded-full shrink-0"
-                      style={{ background: p.nivel === "critico" ? "var(--state-incidencia)" : "var(--state-llenado)" }}
+                      style={{ background: p.nivel === "critico" ? "var(--state-incidencia)" : "var(--state-trasiego)" }}
                     />
                     <span className="flex-1 truncate">{p.nombre}</span>
                     <span className="tabular-nums shrink-0 text-muted-foreground">
@@ -311,7 +311,7 @@ function Inicio() {
                     className="size-2 rounded-full shrink-0"
                     style={{
                       background: t.prioridad === "urgente" ? "var(--state-incidencia)" :
-                                  t.prioridad === "alta" ? "var(--state-llenado)" : "var(--accent)",
+                                  t.prioridad === "alta" ? "var(--state-trasiego)" : "var(--accent)",
                     }}
                   />
                   <span className="flex-1 truncate">{t.titulo}</span>
@@ -334,7 +334,7 @@ function Inicio() {
                   <div key={l.id} className="flex items-center gap-2 text-xs sm:text-sm min-w-0">
                     <span
                       className="size-2 rounded-full shrink-0"
-                      style={{ background: l.dias <= 7 ? "var(--state-incidencia)" : "var(--state-llenado)" }}
+                      style={{ background: l.dias <= 7 ? "var(--state-incidencia)" : "var(--state-trasiego)" }}
                     />
                     <span className="flex-1 truncate">
                       <span className="font-mono text-[11px] text-muted-foreground mr-1">{l.numero_lote}</span>
