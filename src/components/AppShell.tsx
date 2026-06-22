@@ -28,6 +28,7 @@ const NAV = [
   { to: "/bodega", label: "Bodega", icon: Boxes },
   { to: "/almacen", label: "Almacén enológico", icon: Beaker },
   { to: "/contratos", label: "Contratos", icon: FileText },
+  { to: "/posicion-comercial", label: "Posición Comercial", icon: BarChart3 },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
 
