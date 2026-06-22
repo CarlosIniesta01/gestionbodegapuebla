@@ -433,9 +433,9 @@ function LegendItems() {
   return (
     <>
       {estados.map((e) => (
-        <div key={e.key} className="flex items-center gap-1.5 text-muted-foreground">
-          <span className="size-2.5 rounded-full" style={{ background: e.color }} />
-          {e.label}
+        <div key={e.key} className="flex items-center gap-2 text-muted-foreground">
+          <span className="size-2.5 rounded-full ring-1 ring-border" style={{ background: e.color }} />
+          <span className="text-foreground/80">{e.label}</span>
         </div>
       ))}
     </>
