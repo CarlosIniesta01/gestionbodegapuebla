@@ -13,6 +13,7 @@ import {
   Circle,
   LogOut,
   FileText,
+  BarChart3,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
