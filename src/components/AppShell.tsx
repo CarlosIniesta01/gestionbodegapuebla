@@ -136,7 +136,7 @@ export function AppShell() {
                 key={item.to}
                 to={item.to}
                 className={`flex flex-col items-center gap-1 py-2.5 px-4 text-[10px] shrink-0 min-w-[72px] ${
-                  active ? "text-accent" : "text-muted-foreground"
+                  active ? "text-primary" : "text-muted-foreground"
                 }`}
                 style={{ scrollSnapAlign: "start" }}
               >
