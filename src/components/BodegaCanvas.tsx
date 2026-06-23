@@ -16,7 +16,7 @@ import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { listExistencias } from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import type { TrabajoTipo } from "@/lib/trabajo-meta";
-import { CANVAS_H, CANVAS_W, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
+import { CANVAS_H, CANVAS_W, type Deposito, type Zona } from "@/lib/bodega-data";
 
 import { useColorSettings } from "@/lib/use-color-settings";
 
