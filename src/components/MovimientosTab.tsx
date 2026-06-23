@@ -13,6 +13,7 @@ import {
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import { listContratosCompra, listContratosVenta } from "@/lib/api/contratos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { useColorSettings } from "@/lib/use-color-settings";
 
 function derivarEstadoDeposito(grado: number | null | undefined, currentEstado?: string): string {
   if (grado != null && !Number.isNaN(grado)) {
