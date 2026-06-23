@@ -13,6 +13,7 @@ import {
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import { listContratosCompra, listContratosVenta } from "@/lib/api/contratos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { useColorSettings } from "@/lib/use-color-settings";
 
 function derivarEstadoDeposito(grado: number | null | undefined, currentEstado?: string): string {
   if (grado != null && !Number.isNaN(grado)) {
@@ -93,12 +94,20 @@ export function MovimientosTab({ bodegaId }: Props) {
     const origenId: string | null = d.deposito_origen_id ?? null;
     const prod = d.producto_id ? productos.find((p) => p.id === d.producto_id) : null;
     const tipo: string = d.tipo;
+    const estadoOverride: string | null = d._estadoVisual || null;
 
-    // 1) Aplicar producto/estado al destino (entrada, trasiego, mezcla)
-    if (destinoId && prod && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla")) {
+    // 1) Aplicar producto/estado al destino (entrada, trasiego, mezcla, correccion, ajuste)
+    if (destinoId && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla" || tipo === "correccion" || tipo === "ajuste")) {
       const dest = depositos.find((x) => x.id === destinoId);
-      const estado = derivarEstadoDeposito(d.grado, dest?.estado);
-      updateDeposito(destinoId, { contenido: prod.nombre, estado });
+      const estado = estadoOverride ?? derivarEstadoDeposito(d.grado, dest?.estado);
+      const patch: any = { estado };
+      if (prod) patch.contenido = prod.nombre;
+      updateDeposito(destinoId, patch);
+    }
+
+    // Salida con override: aplicar al origen si aún queda contenido
+    if (origenId && tipo === "salida" && estadoOverride) {
+      updateDeposito(origenId, { estado: estadoOverride });
     }
 
     // 2) Tras el recálculo de existencias, marcar como vacío los depósitos a 0L.
@@ -117,8 +126,10 @@ export function MovimientosTab({ bodegaId }: Props) {
     } catch { /* ignore */ }
   };
 
+  const stripVisual = (d: any) => { const { _estadoVisual, ...rest } = d; return rest; };
+
   const createM = useMutation({
-    mutationFn: (d: any) => create({ data: { bodegaId, data: d } }),
+    mutationFn: (d: any) => create({ data: { bodegaId, data: stripVisual(d) } }),
     onSuccess: (_res, vars) => {
       toast.success("Movimiento registrado");
       invalidate();
@@ -131,7 +142,7 @@ export function MovimientosTab({ bodegaId }: Props) {
 
   const editM = useMutation({
     mutationFn: (p: { id: string; data: any; motivo: string }) =>
-      edit({ data: { bodegaId, id: p.id, data: p.data, motivo: p.motivo } }),
+      edit({ data: { bodegaId, id: p.id, data: stripVisual(p.data), motivo: p.motivo } }),
     onSuccess: (_res, vars) => {
       toast.success("Movimiento corregido");
       invalidate();
@@ -293,6 +304,8 @@ function MovimientoDialog({
 }) {
   const seed = editing ?? duplicating;
   const now = new Date();
+  const { getAllEstados, getEstadoMeta } = useColorSettings();
+  const estadosList = getAllEstados();
   const [tipo, setTipo] = useState<string>("entrada");
   const [fecha, setFecha] = useState(now.toISOString().slice(0,10));
   const [hora, setHora] = useState(now.toTimeString().slice(0,5));
@@ -305,6 +318,7 @@ function MovimientoDialog({
   const [motivo, setMotivo] = useState("");
   const [contratoCompraId, setContratoCompraId] = useState("");
   const [contratoVentaId, setContratoVentaId] = useState("");
+  const [estadoVisual, setEstadoVisual] = useState<string>("");
 
   useEffect(() => {
     if (!open) return;
@@ -328,6 +342,7 @@ function MovimientoDialog({
       setOrigen(""); setDestino(""); setProductoId(""); setLitros(""); setGrado(""); setObs("");
       setContratoCompraId(""); setContratoVentaId("");
     }
+    setEstadoVisual("");
     setMotivo("");
   }, [open, editing?.id, duplicating?.id]);
 
@@ -456,6 +471,35 @@ function MovimientoDialog({
             </Field>
           )}
 
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
+              Estado visual del depósito {tipo === "salida" ? "(origen, opcional)" : "(destino)"}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <button type="button" onClick={() => setEstadoVisual("")}
+                className={`px-2 py-1 rounded-md border text-[11px] transition ${
+                  estadoVisual === "" ? "border-foreground bg-secondary" : "border-border hover:border-muted-foreground"
+                }`}
+              >Auto</button>
+              {estadosList.map((e) => {
+                const active = estadoVisual === e.key;
+                return (
+                  <button key={e.key} type="button" onClick={() => setEstadoVisual(e.key)}
+                    className={`px-2 py-1 rounded-md border text-[11px] inline-flex items-center gap-1.5 transition ${
+                      active ? "border-foreground bg-secondary" : "border-border hover:border-muted-foreground"
+                    }`}
+                  >
+                    <span className="inline-block size-2.5 rounded-full" style={{ background: getEstadoMeta(e.key).color }} />
+                    {e.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Determina el color y el estado visual mostrado en el mapa. "Auto" lo deriva del grado/producto.
+            </p>
+          </div>
+
           {editing && (
             <Field label="Motivo de la corrección *">
               <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} className={cls}
@@ -479,6 +523,7 @@ function MovimientoDialog({
               observaciones: obs.trim() || null,
               contrato_compra_id: tipo === "entrada" ? (contratoCompraId || null) : null,
               contrato_venta_id: tipo === "salida" ? (contratoVentaId || null) : null,
+              _estadoVisual: estadoVisual || null,
             }, editing ? motivo.trim() : undefined)}
             className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >{editing ? "Guardar corrección" : "Registrar"}</button>
