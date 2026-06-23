@@ -471,6 +471,35 @@ function MovimientoDialog({
             </Field>
           )}
 
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
+              Estado visual del depósito {tipo === "salida" ? "(origen, opcional)" : "(destino)"}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <button type="button" onClick={() => setEstadoVisual("")}
+                className={`px-2 py-1 rounded-md border text-[11px] transition ${
+                  estadoVisual === "" ? "border-foreground bg-secondary" : "border-border hover:border-muted-foreground"
+                }`}
+              >Auto</button>
+              {estadosList.map((e) => {
+                const active = estadoVisual === e.key;
+                return (
+                  <button key={e.key} type="button" onClick={() => setEstadoVisual(e.key)}
+                    className={`px-2 py-1 rounded-md border text-[11px] inline-flex items-center gap-1.5 transition ${
+                      active ? "border-foreground bg-secondary" : "border-border hover:border-muted-foreground"
+                    }`}
+                  >
+                    <span className="inline-block size-2.5 rounded-full" style={{ background: getEstadoMeta(e.key).color }} />
+                    {e.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Determina el color y el estado visual mostrado en el mapa. "Auto" lo deriva del grado/producto.
+            </p>
+          </div>
+
           {editing && (
             <Field label="Motivo de la corrección *">
               <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} className={cls}
@@ -494,6 +523,7 @@ function MovimientoDialog({
               observaciones: obs.trim() || null,
               contrato_compra_id: tipo === "entrada" ? (contratoCompraId || null) : null,
               contrato_venta_id: tipo === "salida" ? (contratoVentaId || null) : null,
+              _estadoVisual: estadoVisual || null,
             }, editing ? motivo.trim() : undefined)}
             className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >{editing ? "Guardar corrección" : "Registrar"}</button>
