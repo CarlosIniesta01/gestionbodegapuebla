@@ -94,12 +94,20 @@ export function MovimientosTab({ bodegaId }: Props) {
     const origenId: string | null = d.deposito_origen_id ?? null;
     const prod = d.producto_id ? productos.find((p) => p.id === d.producto_id) : null;
     const tipo: string = d.tipo;
+    const estadoOverride: string | null = d._estadoVisual || null;
 
-    // 1) Aplicar producto/estado al destino (entrada, trasiego, mezcla)
-    if (destinoId && prod && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla")) {
+    // 1) Aplicar producto/estado al destino (entrada, trasiego, mezcla, correccion, ajuste)
+    if (destinoId && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla" || tipo === "correccion" || tipo === "ajuste")) {
       const dest = depositos.find((x) => x.id === destinoId);
-      const estado = derivarEstadoDeposito(d.grado, dest?.estado);
-      updateDeposito(destinoId, { contenido: prod.nombre, estado });
+      const estado = estadoOverride ?? derivarEstadoDeposito(d.grado, dest?.estado);
+      const patch: any = { estado };
+      if (prod) patch.contenido = prod.nombre;
+      updateDeposito(destinoId, patch);
+    }
+
+    // Salida con override: aplicar al origen si aún queda contenido
+    if (origenId && tipo === "salida" && estadoOverride) {
+      updateDeposito(origenId, { estado: estadoOverride });
     }
 
     // 2) Tras el recálculo de existencias, marcar como vacío los depósitos a 0L.
@@ -118,8 +126,10 @@ export function MovimientosTab({ bodegaId }: Props) {
     } catch { /* ignore */ }
   };
 
+  const stripVisual = (d: any) => { const { _estadoVisual, ...rest } = d; return rest; };
+
   const createM = useMutation({
-    mutationFn: (d: any) => create({ data: { bodegaId, data: d } }),
+    mutationFn: (d: any) => create({ data: { bodegaId, data: stripVisual(d) } }),
     onSuccess: (_res, vars) => {
       toast.success("Movimiento registrado");
       invalidate();
@@ -132,7 +142,7 @@ export function MovimientosTab({ bodegaId }: Props) {
 
   const editM = useMutation({
     mutationFn: (p: { id: string; data: any; motivo: string }) =>
-      edit({ data: { bodegaId, id: p.id, data: p.data, motivo: p.motivo } }),
+      edit({ data: { bodegaId, id: p.id, data: stripVisual(p.data), motivo: p.motivo } }),
     onSuccess: (_res, vars) => {
       toast.success("Movimiento corregido");
       invalidate();
