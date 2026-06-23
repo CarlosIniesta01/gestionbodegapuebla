@@ -8,10 +8,20 @@ import {
 import { Plus, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, FlaskConical, Wrench, Pencil, Ban, Copy } from "lucide-react";
 import {
   listMovimientos, createMovimiento, editMovimiento, anularMovimiento, puedeRectificar,
+  listExistencias,
 } from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import { listContratosCompra, listContratosVenta } from "@/lib/api/contratos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+
+function derivarEstadoDeposito(grado: number | null | undefined, currentEstado?: string): string {
+  if (grado != null && !Number.isNaN(grado)) {
+    if (grado >= 11) return "vino";
+    return "fermentacion";
+  }
+  if (currentEstado && currentEstado !== "vacio" && currentEstado !== "limpieza") return currentEstado;
+  return "vino";
+}
 
 interface Props { bodegaId: string }
 
@@ -41,7 +51,8 @@ export function MovimientosTab({ bodegaId }: Props) {
   const listProd = useServerFn(listProductosComerciales);
   const listCC = useServerFn(listContratosCompra);
   const listCV = useServerFn(listContratosVenta);
-  const { depositos } = useBodegaMap(bodegaId);
+  const listExistFn = useServerFn(listExistencias);
+  const { depositos, updateDeposito } = useBodegaMap(bodegaId);
 
   const movsQ = useQuery({
     queryKey: ["movimientos", bodegaId],
@@ -75,22 +86,71 @@ export function MovimientosTab({ bodegaId }: Props) {
     qc.invalidateQueries({ queryKey: ["contratos-venta", bodegaId] });
   };
 
+  // Sincroniza el depósito (contenido / estado / vacío) tras crear o editar
+  // un movimiento, evitando que el usuario tenga que abrir "Editar depósito".
+  const sincronizarDepositos = async (d: any) => {
+    const destinoId: string | null = d.deposito_destino_id ?? null;
+    const origenId: string | null = d.deposito_origen_id ?? null;
+    const prod = d.producto_id ? productos.find((p) => p.id === d.producto_id) : null;
+    const tipo: string = d.tipo;
+
+    // 1) Aplicar producto/estado al destino (entrada, trasiego, mezcla)
+    if (destinoId && prod && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla")) {
+      const dest = depositos.find((x) => x.id === destinoId);
+      const estado = derivarEstadoDeposito(d.grado, dest?.estado);
+      updateDeposito(destinoId, { contenido: prod.nombre, estado });
+    }
+
+    // 2) Tras el recálculo de existencias, marcar como vacío los depósitos a 0L.
+    try {
+      const rows = (await listExistFn({ data: { bodegaId } })) as any[];
+      qc.setQueryData(["existencias", bodegaId], rows);
+      const totalFor = (id: string) => rows
+        .filter((r) => r?.deposito_id === id)
+        .reduce((s, r) => s + (Number(r?.litros) || 0), 0);
+      const targets = Array.from(new Set([origenId, destinoId].filter(Boolean))) as string[];
+      for (const id of targets) {
+        if (totalFor(id) <= 0.01) {
+          updateDeposito(id, { estado: "vacio", contenido: "" });
+        }
+      }
+    } catch { /* ignore */ }
+  };
+
   const createM = useMutation({
     mutationFn: (d: any) => create({ data: { bodegaId, data: d } }),
-    onSuccess: () => { toast.success("Movimiento registrado"); invalidate(); setOpen(false); setDuplicating(null); },
+    onSuccess: (_res, vars) => {
+      toast.success("Movimiento registrado");
+      invalidate();
+      setOpen(false);
+      setDuplicating(null);
+      void sincronizarDepositos(vars);
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
   const editM = useMutation({
     mutationFn: (p: { id: string; data: any; motivo: string }) =>
       edit({ data: { bodegaId, id: p.id, data: p.data, motivo: p.motivo } }),
-    onSuccess: () => { toast.success("Movimiento corregido"); invalidate(); setEditing(null); },
+    onSuccess: (_res, vars) => {
+      toast.success("Movimiento corregido");
+      invalidate();
+      setEditing(null);
+      void sincronizarDepositos(vars.data);
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
   const anularM = useMutation({
     mutationFn: (p: { id: string; motivo: string }) => anular({ data: { bodegaId, id: p.id, motivo: p.motivo } }),
-    onSuccess: () => { toast.success("Movimiento anulado"); invalidate(); setAnulandoId(null); },
+    onSuccess: (_res, vars) => {
+      toast.success("Movimiento anulado");
+      invalidate();
+      setAnulandoId(null);
+      // Sincroniza usando los depósitos del movimiento anulado
+      const mv = movs.find((m) => m.id === vars.id);
+      if (mv) void sincronizarDepositos(mv);
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -274,9 +334,11 @@ function MovimientoDialog({
   const needsOrigen = ["salida","trasiego","mezcla","embotellado","correccion","ajuste"].includes(tipo);
   const needsDestino = ["entrada","trasiego","mezcla","correccion","ajuste"].includes(tipo);
 
+  const needsProducto = ["entrada","trasiego","mezcla"].includes(tipo);
   const canSave = !!tipo && !!litros && Number(litros) > 0
     && (!needsOrigen || !!origen)
     && (!needsDestino || !!destino)
+    && (!needsProducto || !!productoId)
     && (!editing || motivo.trim().length >= 3);
 
   const title = editing ? "Editar movimiento (corrección)" : duplicating ? "Duplicar movimiento" : "Nuevo movimiento";
@@ -333,13 +395,21 @@ function MovimientoDialog({
             </Field>
           </div>
 
-          <Field label="Producto">
+          <Field label={
+            tipo === "mezcla" ? "Producto resultante *" :
+            tipo === "entrada" || tipo === "trasiego" ? "Producto *" : "Producto"
+          }>
             <select value={productoId} onChange={(e) => setProductoId(e.target.value)} className={cls}>
               <option value="">—</option>
               {productos.filter((p) => p.activo).map((p) => (
                 <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>
               ))}
             </select>
+            {(tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla") && (
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Se asignará automáticamente al depósito destino (contenido, color y estado).
+              </p>
+            )}
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
