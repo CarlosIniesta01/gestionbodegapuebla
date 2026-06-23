@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network, RotateCcw } from "lucide-react";
+import { ReinicioOperativoTab } from "@/components/admin/ReinicioOperativoTab";
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
@@ -112,7 +113,7 @@ function AdminPage() {
 
       {activeBodegaId && (
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-9 w-full md:w-auto">
+          <TabsList className="grid grid-cols-2 md:grid-cols-10 w-full md:w-auto">
             <TabsTrigger value="pending"><UserCheck className="size-4 mr-2" />Pendientes</TabsTrigger>
             <TabsTrigger value="users"><Users className="size-4 mr-2" />Usuarios</TabsTrigger>
             <TabsTrigger value="roles"><KeyRound className="size-4 mr-2" />Roles y permisos</TabsTrigger>
@@ -122,6 +123,7 @@ function AdminPage() {
             <TabsTrigger value="bodega"><Building2 className="size-4 mr-2" />Bodega</TabsTrigger>
             <TabsTrigger value="perfiles-auditoria"><Shield className="size-4 mr-2" />Perfiles auditoría</TabsTrigger>
             <TabsTrigger value="auditoria"><Shield className="size-4 mr-2" />Auditoría</TabsTrigger>
+            <TabsTrigger value="reinicio"><RotateCcw className="size-4 mr-2" />Reinicio</TabsTrigger>
           </TabsList>
           <TabsContent value="pending" className="mt-6">
             <PendingTab bodegaId={activeBodegaId} />
@@ -149,6 +151,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="auditoria" className="mt-6">
             <AuditoriaTab bodegaId={activeBodegaId} />
+          </TabsContent>
+          <TabsContent value="reinicio" className="mt-6">
+            <ReinicioOperativoTab />
           </TabsContent>
 
 
