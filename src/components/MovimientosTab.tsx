@@ -393,13 +393,21 @@ function MovimientoDialog({
             </Field>
           </div>
 
-          <Field label="Producto">
+          <Field label={
+            tipo === "mezcla" ? "Producto resultante *" :
+            tipo === "entrada" || tipo === "trasiego" ? "Producto *" : "Producto"
+          }>
             <select value={productoId} onChange={(e) => setProductoId(e.target.value)} className={cls}>
               <option value="">—</option>
               {productos.filter((p) => p.activo).map((p) => (
                 <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>
               ))}
             </select>
+            {(tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla") && (
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Se asignará automáticamente al depósito destino (contenido, color y estado).
+              </p>
+            )}
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
