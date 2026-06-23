@@ -225,19 +225,14 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
 
 
-  // Trasiegos activos: combina demo + trabajos reales en curso
+  // Trasiegos activos: SOLO trabajos reales en curso (sin datos demo)
   const trasiegos = useMemo(() => {
-    const fromReal = enCurso
-      .filter((t) => t.tipo === "trasiego" && t.deposito_origen && t.deposito_destino)
-      .map((t) => ({ id: t.id, origen_codigo: t.deposito_origen, destino_codigo: t.deposito_destino, titulo: t.titulo }));
-    const fromDemo = PROCESOS_ACTIVOS
-      .filter((p) => p.tipo === "trasiego" && p.origen_codigo && p.destino_codigo)
-      .map((p) => ({ id: p.id, origen_codigo: p.origen_codigo!, destino_codigo: p.destino_codigo!, titulo: "" }));
-    return [...fromReal, ...fromDemo]
-      .map((p) => {
-        const o = depositosLayout.find((d) => d.codigo === p.origen_codigo);
-        const dest = depositosLayout.find((d) => d.codigo === p.destino_codigo);
-        return o && dest ? { id: p.id, o, d: dest, titulo: p.titulo } : null;
+    return enCurso
+      .filter((t) => t.tipo === "trasiego" && t.estado === "en_curso" && t.deposito_origen && t.deposito_destino)
+      .map((t) => {
+        const o = depositosLayout.find((d) => d.codigo === t.deposito_origen);
+        const dest = depositosLayout.find((d) => d.codigo === t.deposito_destino);
+        return o && dest ? { id: t.id, o, d: dest, titulo: t.titulo ?? "" } : null;
       })
       .filter(Boolean) as { id: string; o: Deposito; d: Deposito; titulo: string }[];
   }, [depositosLayout, enCurso]);
