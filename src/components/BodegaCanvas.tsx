@@ -261,7 +261,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
           onReset={() => { if (confirm("¿Restablecer el mapa al estado inicial?")) map.resetMap(); }}
           zoom={zoom}
           onZoom={setZoom}
-          procesosCount={PROCESOS_ACTIVOS.length}
+          procesosCount={trasiegos.length + llenados.length}
           zonasCount={map.zonas.length}
           depositosCount={map.depositos.length}
         />
