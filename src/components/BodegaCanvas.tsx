@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -100,17 +100,19 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
   const selectedBase = map.depositos.find((d) => d.id === selectedDepId) ?? null;
   const existenciaSelected = selectedBase ? existenciaByDeposito[selectedBase.id] ?? null : null;
+  const selectedEmpty = !existenciaSelected || existenciaSelected.litros <= 0.01;
   const selected = selectedBase
     ? {
         ...selectedBase,
-        litros: existenciaSelected ? existenciaSelected.litros : selectedBase.litros,
-        contenido: existenciaSelected
-          ? (existenciaSelected.lineas.length === 1
-              ? existenciaSelected.lineas[0].nombre
-              : existenciaSelected.lineas.length > 1
-                ? `${existenciaSelected.lineas.length} productos`
-                : selectedBase.contenido ?? undefined)
-          : selectedBase.contenido ?? undefined,
+        litros: existenciaSelected ? existenciaSelected.litros : (selectedEmpty ? 0 : selectedBase.litros),
+        estado: selectedEmpty ? ("vacio" as any) : selectedBase.estado,
+        contenido: selectedEmpty
+          ? undefined
+          : (existenciaSelected!.lineas.length === 1
+              ? existenciaSelected!.lineas[0].nombre
+              : existenciaSelected!.lineas.length > 1
+                ? `${existenciaSelected!.lineas.length} productos`
+                : selectedBase.contenido ?? undefined),
       }
     : null;
   const zonaSelected = selected ? map.zonas.find((z) => z.id === selected.zona_id) : null;
@@ -180,7 +182,12 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
   const depositosConExistencias: Deposito[] = useMemo(() => {
     return depositosLayout.map((d) => {
       const e = existenciaByDeposito[d.id];
-      if (!e) return d;
+      const litros = e?.litros ?? 0;
+      // Sin existencias reales → estado y contenido se anulan, sin importar
+      // el último estado heredado (vino, fermentacion, mosto, etc.).
+      if (!e || litros <= 0.01) {
+        return { ...d, litros: 0, contenido: undefined, estado: "vacio" as any };
+      }
       const contenidoOverlay = e.lineas.length === 1
         ? e.lineas[0].nombre
         : e.lineas.length > 1
@@ -189,6 +196,31 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
       return { ...d, litros: e.litros, contenido: contenidoOverlay ?? undefined };
     });
   }, [depositosLayout, existenciaByDeposito]);
+
+  // Persistencia: sincroniza el mapa cuando un depósito quede sin existencias,
+  // limpiando estado y contenido heredados (variedad, color, vino terminado…).
+  // Solo escribe si el estado guardado difiere del derivado.
+  useEffect(() => {
+    if (!bodegaId) return;
+    if (existenciasQ.isLoading || !existenciasQ.data) return;
+    for (const d of map.depositos) {
+      const e = existenciaByDeposito[d.id];
+      const litros = e?.litros ?? 0;
+      if (!e || litros <= 0.01) {
+        const needsEstado = d.estado !== "vacio" && d.estado !== "limpieza";
+        const needsContenido = !!(d.contenido && d.contenido.trim() !== "");
+        const needsLitros = (d.litros ?? 0) > 0.01;
+        if (needsEstado || needsContenido || needsLitros) {
+          map.updateDeposito(d.id, {
+            estado: "vacio" as any,
+            contenido: "",
+            litros: 0,
+          });
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bodegaId, existenciasQ.data, existenciasQ.isLoading]);
 
 
 
