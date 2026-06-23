@@ -16,7 +16,7 @@ import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { listExistencias } from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import type { TrabajoTipo } from "@/lib/trabajo-meta";
-import { CANVAS_H, CANVAS_W, PROCESOS_ACTIVOS, type Deposito, type Zona } from "@/lib/bodega-data";
+import { CANVAS_H, CANVAS_W, type Deposito, type Zona } from "@/lib/bodega-data";
 
 import { useColorSettings } from "@/lib/use-color-settings";
 
@@ -225,19 +225,14 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
 
 
 
-  // Trasiegos activos: combina demo + trabajos reales en curso
+  // Trasiegos activos: SOLO trabajos reales en curso (sin datos demo)
   const trasiegos = useMemo(() => {
-    const fromReal = enCurso
-      .filter((t) => t.tipo === "trasiego" && t.deposito_origen && t.deposito_destino)
-      .map((t) => ({ id: t.id, origen_codigo: t.deposito_origen, destino_codigo: t.deposito_destino, titulo: t.titulo }));
-    const fromDemo = PROCESOS_ACTIVOS
-      .filter((p) => p.tipo === "trasiego" && p.origen_codigo && p.destino_codigo)
-      .map((p) => ({ id: p.id, origen_codigo: p.origen_codigo!, destino_codigo: p.destino_codigo!, titulo: "" }));
-    return [...fromReal, ...fromDemo]
-      .map((p) => {
-        const o = depositosLayout.find((d) => d.codigo === p.origen_codigo);
-        const dest = depositosLayout.find((d) => d.codigo === p.destino_codigo);
-        return o && dest ? { id: p.id, o, d: dest, titulo: p.titulo } : null;
+    return enCurso
+      .filter((t) => t.tipo === "trasiego" && t.estado === "en_curso" && t.deposito_origen && t.deposito_destino)
+      .map((t) => {
+        const o = depositosLayout.find((d) => d.codigo === t.deposito_origen);
+        const dest = depositosLayout.find((d) => d.codigo === t.deposito_destino);
+        return o && dest ? { id: t.id, o, d: dest, titulo: t.titulo ?? "" } : null;
       })
       .filter(Boolean) as { id: string; o: Deposito; d: Deposito; titulo: string }[];
   }, [depositosLayout, enCurso]);
@@ -266,7 +261,7 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
           onReset={() => { if (confirm("¿Restablecer el mapa al estado inicial?")) map.resetMap(); }}
           zoom={zoom}
           onZoom={setZoom}
-          procesosCount={PROCESOS_ACTIVOS.length}
+          procesosCount={trasiegos.length + llenados.length}
           zonasCount={map.zonas.length}
           depositosCount={map.depositos.length}
         />
