@@ -8,10 +8,20 @@ import {
 import { Plus, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, FlaskConical, Wrench, Pencil, Ban, Copy } from "lucide-react";
 import {
   listMovimientos, createMovimiento, editMovimiento, anularMovimiento, puedeRectificar,
+  listExistencias,
 } from "@/lib/api/movimientos.functions";
 import { listProductosComerciales } from "@/lib/api/productos-comerciales.functions";
 import { listContratosCompra, listContratosVenta } from "@/lib/api/contratos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+
+function derivarEstadoDeposito(grado: number | null | undefined, currentEstado?: string): string {
+  if (grado != null && !Number.isNaN(grado)) {
+    if (grado >= 11) return "vino";
+    return "fermentacion";
+  }
+  if (currentEstado && currentEstado !== "vacio" && currentEstado !== "limpieza") return currentEstado;
+  return "vino";
+}
 
 interface Props { bodegaId: string }
 
