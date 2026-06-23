@@ -334,9 +334,11 @@ function MovimientoDialog({
   const needsOrigen = ["salida","trasiego","mezcla","embotellado","correccion","ajuste"].includes(tipo);
   const needsDestino = ["entrada","trasiego","mezcla","correccion","ajuste"].includes(tipo);
 
+  const needsProducto = ["entrada","trasiego","mezcla"].includes(tipo);
   const canSave = !!tipo && !!litros && Number(litros) > 0
     && (!needsOrigen || !!origen)
     && (!needsDestino || !!destino)
+    && (!needsProducto || !!productoId)
     && (!editing || motivo.trim().length >= 3);
 
   const title = editing ? "Editar movimiento (corrección)" : duplicating ? "Duplicar movimiento" : "Nuevo movimiento";
