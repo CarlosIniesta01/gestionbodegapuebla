@@ -304,6 +304,8 @@ function MovimientoDialog({
 }) {
   const seed = editing ?? duplicating;
   const now = new Date();
+  const { getAllEstados, getEstadoMeta } = useColorSettings();
+  const estadosList = getAllEstados();
   const [tipo, setTipo] = useState<string>("entrada");
   const [fecha, setFecha] = useState(now.toISOString().slice(0,10));
   const [hora, setHora] = useState(now.toTimeString().slice(0,5));
@@ -316,6 +318,7 @@ function MovimientoDialog({
   const [motivo, setMotivo] = useState("");
   const [contratoCompraId, setContratoCompraId] = useState("");
   const [contratoVentaId, setContratoVentaId] = useState("");
+  const [estadoVisual, setEstadoVisual] = useState<string>("");
 
   useEffect(() => {
     if (!open) return;
