@@ -342,6 +342,7 @@ function MovimientoDialog({
       setOrigen(""); setDestino(""); setProductoId(""); setLitros(""); setGrado(""); setObs("");
       setContratoCompraId(""); setContratoVentaId("");
     }
+    setEstadoVisual("");
     setMotivo("");
   }, [open, editing?.id, duplicating?.id]);
 
