@@ -118,6 +118,7 @@ function Inicio() {
       }}
     >
       <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6">
+        <CentroHeader />
         {/* Header */}
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
           <div className="min-w-0">
