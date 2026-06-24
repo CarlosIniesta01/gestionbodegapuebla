@@ -111,11 +111,8 @@ export function AppShell() {
           </div>
           <span className="font-display font-semibold tracking-tight text-foreground">Vinea</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Circle className="size-1.5 fill-state-fermentacion text-state-fermentacion" />
-            EN LÍNEA
-          </div>
+        <div className="flex items-center gap-2">
+          <BodegaSwitcher compact />
           <button
             onClick={handleLogout}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
