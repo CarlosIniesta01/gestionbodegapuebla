@@ -17,6 +17,7 @@ import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticated/recetas'
 import { Route as AuthenticatedPosicionComercialRouteImport } from './routes/_authenticated/posicion-comercial'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
+import { Route as AuthenticatedOperativaRouteImport } from './routes/_authenticated/operativa'
 import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
 import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
@@ -64,6 +65,11 @@ const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
   path: '/pendientes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedOperativaRoute = AuthenticatedOperativaRouteImport.update({
+  id: '/operativa',
+  path: '/operativa',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
   id: '/mensajes',
   path: '/mensajes',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/bodega': typeof AuthenticatedBodegaRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
+  '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
   '/recetas': typeof AuthenticatedRecetasRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/bodega': typeof AuthenticatedBodegaRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
+  '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
   '/recetas': typeof AuthenticatedRecetasRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRoute
   '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
+  '/_authenticated/operativa': typeof AuthenticatedOperativaRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
   '/_authenticated/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
   '/_authenticated/recetas': typeof AuthenticatedRecetasRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/bodega'
     | '/contratos'
     | '/mensajes'
+    | '/operativa'
     | '/pendientes'
     | '/posicion-comercial'
     | '/recetas'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/bodega'
     | '/contratos'
     | '/mensajes'
+    | '/operativa'
     | '/pendientes'
     | '/posicion-comercial'
     | '/recetas'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bodega'
     | '/_authenticated/contratos'
     | '/_authenticated/mensajes'
+    | '/_authenticated/operativa'
     | '/_authenticated/pendientes'
     | '/_authenticated/posicion-comercial'
     | '/_authenticated/recetas'
@@ -255,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPendientesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/operativa': {
+      id: '/_authenticated/operativa'
+      path: '/operativa'
+      fullPath: '/operativa'
+      preLoaderRoute: typeof AuthenticatedOperativaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/mensajes': {
       id: '/_authenticated/mensajes'
       path: '/mensajes'
@@ -307,6 +326,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBodegaRoute: typeof AuthenticatedBodegaRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRoute
   AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
+  AuthenticatedOperativaRoute: typeof AuthenticatedOperativaRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
   AuthenticatedPosicionComercialRoute: typeof AuthenticatedPosicionComercialRoute
   AuthenticatedRecetasRoute: typeof AuthenticatedRecetasRoute
@@ -321,6 +341,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBodegaRoute: AuthenticatedBodegaRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRoute,
   AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
+  AuthenticatedOperativaRoute: AuthenticatedOperativaRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
   AuthenticatedPosicionComercialRoute: AuthenticatedPosicionComercialRoute,
   AuthenticatedRecetasRoute: AuthenticatedRecetasRoute,
