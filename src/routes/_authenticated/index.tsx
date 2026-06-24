@@ -8,7 +8,10 @@ import {
 } from "lucide-react";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { getDashboard, type DashboardData } from "@/lib/api/dashboard.functions";
+import { getComparativaCentros, type CentroResumen } from "@/lib/api/centros.functions";
 import { ESTADO_META } from "@/lib/bodega-data";
+import { CentroHeader } from "@/components/CentroHeader";
+import { centroIdentity } from "@/lib/centro-identity";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
