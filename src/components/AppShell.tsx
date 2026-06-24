@@ -14,12 +14,16 @@ import {
   LogOut,
   FileText,
   BarChart3,
+  ClipboardList,
+  GitCompare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { BodegaSwitcher } from "@/components/BodegaSwitcher";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: LayoutDashboard },
+  { to: "/operativa", label: "Operativa", icon: ClipboardList },
   { to: "/trabajos", label: "Trabajos", icon: Hammer },
   { to: "/pendientes", label: "Pendientes", icon: ListTodo },
   { to: "/actividad", label: "Actividad", icon: Activity },
@@ -29,6 +33,7 @@ const NAV = [
   { to: "/almacen", label: "Almacén enológico", icon: Beaker },
   { to: "/contratos", label: "Contratos", icon: FileText },
   { to: "/posicion-comercial", label: "Posición Comercial", icon: BarChart3 },
+  { to: "/comparativa", label: "Comparativa", icon: GitCompare },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
 
