@@ -59,7 +59,10 @@ export function AppShell() {
             <div className="text-[10px] text-muted-foreground uppercase tracking-[0.14em]">Bodega Central</div>
           </div>
         </div>
-        <nav className="flex-1 p-2 space-y-0.5">
+        <div className="px-3 pt-3">
+          <BodegaSwitcher />
+        </div>
+        <nav className="flex-1 p-2 pt-3 space-y-0.5">
           {NAV.map((item) => {
             const active = pathname === item.to;
             const Icon = item.icon;
