@@ -174,7 +174,7 @@ export const getOperativaCentro = createServerFn({ method: "POST" })
       supabase.from("existencias_actuales").select("deposito_id,litros").eq("bodega_id", data.bodegaId),
     ]);
 
-    const mapDeps: any[] = (mapQ.data?.data?.depositos as any[]) ?? [];
+    const mapDeps: any[] = ((mapQ.data?.data as any)?.depositos as any[]) ?? [];
     const litrosByDep = new Map<string, number>();
     for (const e of (exQ.data ?? [])) {
       litrosByDep.set(e.deposito_id, (litrosByDep.get(e.deposito_id) ?? 0) + Number(e.litros ?? 0));
