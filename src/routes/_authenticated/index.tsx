@@ -61,15 +61,33 @@ const erpVars: React.CSSProperties = {
 };
 
 function Inicio() {
-  const { bodegaId, bodega } = useActiveBodega();
+  const { bodegaId, bodega, isGlobal } = useActiveBodega();
   const fn = useServerFn(getDashboard);
+  const fnG = useServerFn(getComparativaCentros);
   const q = useQuery({
     queryKey: ["dashboard", bodegaId],
     queryFn: () => fn({ data: { bodegaId: bodegaId! } }),
-    enabled: !!bodegaId,
+    enabled: !!bodegaId && !isGlobal,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
   });
+  const qG = useQuery({
+    queryKey: ["dashboard-global"],
+    queryFn: () => fnG(),
+    enabled: isGlobal,
+    staleTime: 30_000,
+  });
+
+  if (isGlobal) {
+    return (
+      <div className="erp-shell min-h-screen" style={{ ...erpVars, background: "var(--erp-bg)", color: "var(--erp-text)", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-6 space-y-5">
+          <CentroHeader showResumen={false} />
+          <GlobalDashboard rows={qG.data ?? []} loading={qG.isLoading} />
+        </div>
+      </div>
+    );
+  }
 
   if (!bodegaId) {
     return (
