@@ -66,7 +66,7 @@ async function buildResumen(supabase: any, bodegaId: string, nombre: string): Pr
   let litros_totales = 0;
   for (const e of (exQ.data ?? [])) {
     const l = Number(e.litros ?? 0);
-    litrosByDep.set(e.deposito_id, (litrosByDep.get(e.deposito_id) ?? 0) + l);
+    litrosByDep.set(e.deposito_id as string, (litrosByDep.get(e.deposito_id as string) ?? 0) + l);
     litros_totales += l;
   }
   let capacidad_total = 0;
@@ -177,7 +177,7 @@ export const getOperativaCentro = createServerFn({ method: "POST" })
     const mapDeps: any[] = ((mapQ.data?.data as any)?.depositos as any[]) ?? [];
     const litrosByDep = new Map<string, number>();
     for (const e of (exQ.data ?? [])) {
-      litrosByDep.set(e.deposito_id, (litrosByDep.get(e.deposito_id) ?? 0) + Number(e.litros ?? 0));
+      litrosByDep.set(e.deposito_id as string, (litrosByDep.get(e.deposito_id as string) ?? 0) + Number(e.litros ?? 0));
     }
     const depositos_alta_ocupacion = mapDeps
       .map((d) => {
