@@ -8,7 +8,10 @@ import {
 } from "lucide-react";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { getDashboard, type DashboardData } from "@/lib/api/dashboard.functions";
+import { getComparativaCentros, type CentroResumen } from "@/lib/api/centros.functions";
 import { ESTADO_META } from "@/lib/bodega-data";
+import { CentroHeader } from "@/components/CentroHeader";
+import { centroIdentity } from "@/lib/centro-identity";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -58,15 +61,33 @@ const erpVars: React.CSSProperties = {
 };
 
 function Inicio() {
-  const { bodegaId, bodega } = useActiveBodega();
+  const { bodegaId, bodega, isGlobal } = useActiveBodega();
   const fn = useServerFn(getDashboard);
+  const fnG = useServerFn(getComparativaCentros);
   const q = useQuery({
     queryKey: ["dashboard", bodegaId],
     queryFn: () => fn({ data: { bodegaId: bodegaId! } }),
-    enabled: !!bodegaId,
+    enabled: !!bodegaId && !isGlobal,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
   });
+  const qG = useQuery({
+    queryKey: ["dashboard-global"],
+    queryFn: () => fnG(),
+    enabled: isGlobal,
+    staleTime: 30_000,
+  });
+
+  if (isGlobal) {
+    return (
+      <div className="erp-shell min-h-screen" style={{ ...erpVars, background: "var(--erp-bg)", color: "var(--erp-text)", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-6 space-y-5">
+          <CentroHeader showResumen={false} />
+          <GlobalDashboard rows={qG.data ?? []} loading={qG.isLoading} />
+        </div>
+      </div>
+    );
+  }
 
   if (!bodegaId) {
     return (
@@ -97,6 +118,7 @@ function Inicio() {
       }}
     >
       <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6">
+        <CentroHeader />
         {/* Header */}
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
           <div className="min-w-0">
@@ -598,6 +620,96 @@ function QuickActions({ isOperario }: { isOperario: boolean }) {
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+function GlobalDashboard({ rows, loading }: { rows: CentroResumen[]; loading: boolean }) {
+  const tot = rows.reduce((s, r) => ({
+    cap: s.cap + r.capacidad_total,
+    lit: s.lit + r.litros_totales,
+    occ: s.occ + r.depositos_ocupados,
+    lib: s.lib + r.depositos_vacios,
+    trab: s.trab + r.trabajos_abiertos,
+    inc: s.inc + r.incidencias_abiertas,
+    mov: s.mov + r.movimientos_hoy,
+    cont: s.cont + r.contratos_pendientes,
+    disp: s.disp + r.disponible_comercial,
+  }), { cap: 0, lit: 0, occ: 0, lib: 0, trab: 0, inc: 0, mov: 0, cont: 0, disp: 0 });
+  const ocupGlobal = tot.cap > 0 ? Math.round((tot.lit / tot.cap) * 100) : 0;
+
+  if (loading) return <div className="p-6 text-sm" style={{ color: "var(--erp-text-muted)" }}>Cargando consolidado…</div>;
+
+  return (
+    <div className="space-y-5">
+      <header className="min-w-0">
+        <div className="text-[11px] font-medium uppercase tracking-[0.14em] mb-1.5" style={{ color: "var(--erp-text-subtle)" }}>
+          Consolidado · {rows.length} centro{rows.length === 1 ? "" : "s"}
+        </div>
+        <h1 className="text-[20px] sm:text-[22px] lg:text-[26px] font-semibold tracking-tight leading-tight">
+          Visión global de empresa
+        </h1>
+      </header>
+
+      <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+        {[
+          { l: "Ocupación", v: `${ocupGlobal}%` },
+          { l: "Litros totales", v: tot.lit.toLocaleString("es-ES") },
+          { l: "Capacidad", v: tot.cap.toLocaleString("es-ES") },
+          { l: "Dep. ocupados", v: `${tot.occ}` },
+          { l: "Dep. libres", v: `${tot.lib}` },
+          { l: "Trabajos abiertos", v: `${tot.trab}` },
+          { l: "Incidencias", v: `${tot.inc}` },
+          { l: "Movimientos hoy", v: `${tot.mov}` },
+          { l: "Contratos pdtes.", v: `${tot.cont}` },
+          { l: "Disponible (L)", v: tot.disp.toLocaleString("es-ES") },
+        ].map((k) => (
+          <div key={k.l} className="bg-white rounded-md px-3 py-2.5" style={{ border: "1px solid var(--erp-border)" }}>
+            <div className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--erp-text-subtle)" }}>{k.l}</div>
+            <div className="text-[16px] font-semibold mt-0.5" style={{ color: "var(--erp-text)" }}>{k.v}</div>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-[13px] font-semibold tracking-tight">Centros</h2>
+          <Link to="/comparativa" className="text-[12px] text-primary inline-flex items-center gap-1">
+            Ver comparativa <ChevronRight className="size-3" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {rows.map((r) => {
+            const ident = centroIdentity({ id: r.bodega_id, nombre: r.nombre });
+            const I = ident.Icon;
+            return (
+              <div key={r.bodega_id} className="bg-white rounded-md p-3.5"
+                   style={{ border: "1px solid var(--erp-border)", borderTop: `3px solid ${ident.color}` }}>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="inline-flex items-center justify-center rounded-md size-8 shrink-0"
+                        style={{ background: ident.soft, color: ident.text }}>
+                    <I className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-semibold truncate">{r.nombre}</div>
+                    <div className="text-[11px]" style={{ color: "var(--erp-text-subtle)" }}>
+                      {r.depositos_total} depósitos · {r.capacidad_total.toLocaleString("es-ES")} L cap.
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 text-[12px]">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Ocupación</span><span className="font-semibold">{r.ocupacion_pct}%</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Litros</span><span className="font-mono">{r.litros_totales.toLocaleString("es-ES")}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Trabajos</span><span>{r.trabajos_abiertos}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Incid.</span><span className={r.incidencias_abiertas ? "text-destructive font-semibold" : ""}>{r.incidencias_abiertas}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Mov. hoy</span><span>{r.movimientos_hoy}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Trasiegos</span><span>{r.trasiegos_activos}</span></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

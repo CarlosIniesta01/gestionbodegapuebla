@@ -14,12 +14,16 @@ import {
   LogOut,
   FileText,
   BarChart3,
+  ClipboardList,
+  GitCompare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { BodegaSwitcher } from "@/components/BodegaSwitcher";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: LayoutDashboard },
+  { to: "/operativa", label: "Operativa", icon: ClipboardList },
   { to: "/trabajos", label: "Trabajos", icon: Hammer },
   { to: "/pendientes", label: "Pendientes", icon: ListTodo },
   { to: "/actividad", label: "Actividad", icon: Activity },
@@ -29,6 +33,7 @@ const NAV = [
   { to: "/almacen", label: "Almacén enológico", icon: Beaker },
   { to: "/contratos", label: "Contratos", icon: FileText },
   { to: "/posicion-comercial", label: "Posición Comercial", icon: BarChart3 },
+  { to: "/comparativa", label: "Comparativa", icon: GitCompare },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
 
@@ -54,7 +59,10 @@ export function AppShell() {
             <div className="text-[10px] text-muted-foreground uppercase tracking-[0.14em]">Bodega Central</div>
           </div>
         </div>
-        <nav className="flex-1 p-2 space-y-0.5">
+        <div className="px-3 pt-3">
+          <BodegaSwitcher />
+        </div>
+        <nav className="flex-1 p-2 pt-3 space-y-0.5">
           {NAV.map((item) => {
             const active = pathname === item.to;
             const Icon = item.icon;
@@ -103,11 +111,8 @@ export function AppShell() {
           </div>
           <span className="font-display font-semibold tracking-tight text-foreground">Vinea</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Circle className="size-1.5 fill-state-fermentacion text-state-fermentacion" />
-            EN LÍNEA
-          </div>
+        <div className="flex items-center gap-2">
+          <BodegaSwitcher compact />
           <button
             onClick={handleLogout}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"

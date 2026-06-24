@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { ActiveBodegaProvider } from "@/lib/active-bodega-context";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -23,5 +24,9 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/pendiente" });
     }
   },
-  component: () => <Outlet />,
+  component: () => (
+    <ActiveBodegaProvider>
+      <Outlet />
+    </ActiveBodegaProvider>
+  ),
 });
