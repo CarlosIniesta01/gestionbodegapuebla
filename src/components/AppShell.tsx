@@ -60,7 +60,7 @@ export function AppShell() {
           </div>
         </div>
         <div className="px-3 pt-3">
-          {/* <BodegaSwitcher /> */}
+          <BodegaSwitcher />
         </div>
         <nav className="flex-1 p-2 pt-3 space-y-0.5">
           {NAV.map((item) => {
