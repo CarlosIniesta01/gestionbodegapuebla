@@ -11,5 +11,7 @@ export function useActiveBodega() {
     viewMode: ctx.viewMode,
     setViewMode: ctx.setViewMode,
     isGlobal: ctx.isGlobal,
+    isAdminAnywhere: ctx.isAdminAnywhere,
+    refetchBodegas: ctx.refetchBodegas,
   };
 }
