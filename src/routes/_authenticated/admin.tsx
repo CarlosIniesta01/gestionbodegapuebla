@@ -12,6 +12,7 @@ import { AuditoriaTab } from "@/components/admin/AuditoriaTab";
 import { StockTab } from "@/components/admin/StockTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveBodega } from "@/lib/active-bodega-context";
 
 import {
   listMyBodegas,
