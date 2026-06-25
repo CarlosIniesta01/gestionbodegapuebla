@@ -41,10 +41,16 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
             className="absolute right-0 mt-1 w-[260px] rounded-md border bg-popover text-popover-foreground shadow-lg z-50 overflow-hidden"
             style={{ borderColor: "var(--border)" }}
           >
-            <div className="px-3 pt-2.5 pb-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              Centros
+            <div className="px-3 pt-2.5 pb-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground flex items-center justify-between">
+              <span>Centros</span>
+              <span className="text-muted-foreground/70 normal-case tracking-normal">{bodegas.length}</span>
             </div>
             <ul className="max-h-[320px] overflow-y-auto py-0.5">
+              {bodegas.length === 0 && (
+                <li className="px-3 py-3 text-[12px] text-muted-foreground">
+                  No tienes centros disponibles todavía.
+                </li>
+              )}
               {bodegas.map((m) => {
                 const i = centroIdentity(m.bodega);
                 const I = i.Icon;
@@ -97,6 +103,23 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
                 {isGlobal && <Check className="size-4 text-primary shrink-0" />}
               </button>
             </div>
+            {showCreate && (
+              <div className="border-t" style={{ borderColor: "var(--border)" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setCreateOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-accent text-left text-primary"
+                >
+                  <span className="inline-flex items-center justify-center rounded-md size-7 shrink-0 bg-primary/10 text-primary">
+                    <Plus className="size-3.5" />
+                  </span>
+                  <span className="flex-1 font-medium">Crear nuevo centro</span>
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
