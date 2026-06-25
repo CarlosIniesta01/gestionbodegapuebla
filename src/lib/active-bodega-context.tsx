@@ -112,3 +112,7 @@ export function useActiveBodegaContext(): Ctx {
   }
   return ctx;
 }
+
+// Alias estable usado por componentes.
+export const useActiveBodega = useActiveBodegaContext;
+

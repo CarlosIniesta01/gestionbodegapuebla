@@ -12,6 +12,7 @@ import {
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
+import { ActiveBodegaProvider } from "@/lib/active-bodega-context";
 
 
 
@@ -136,7 +137,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell />
+      <ActiveBodegaProvider>
+        <AppShell />
+      </ActiveBodegaProvider>
     </QueryClientProvider>
   );
 }

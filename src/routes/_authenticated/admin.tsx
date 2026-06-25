@@ -12,6 +12,7 @@ import { AuditoriaTab } from "@/components/admin/AuditoriaTab";
 import { StockTab } from "@/components/admin/StockTab";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveBodega } from "@/lib/active-bodega-context";
 
 import {
   listMyBodegas,
@@ -54,6 +55,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 function AdminPage() {
   const fnListBodegas = useServerFn(listMyBodegas);
+  const { bodegaId: ctxBodegaId, setActiveBodegaId, refetchBodegas } = useActiveBodega();
   const bodegasQ = useQuery({
     queryKey: ["admin", "bodegas"],
     queryFn: async () => {
@@ -68,8 +70,11 @@ function AdminPage() {
     () => (bodegasQ.data ?? []).filter((b) => b.role_key === "admin"),
     [bodegasQ.data],
   );
-  const [bodegaId, setBodegaId] = useState<string | null>(null);
-  const activeBodegaId = bodegaId ?? adminBodegas[0]?.bodega_id ?? null;
+  // Sincronizar con contexto: si el centro activo es admin, úsalo; si no, fallback al primero admin.
+  const activeBodegaId =
+    (ctxBodegaId && adminBodegas.find((b) => b.bodega_id === ctxBodegaId)?.bodega_id) ??
+    adminBodegas[0]?.bodega_id ??
+    null;
   const activeBodega = adminBodegas.find((b) => b.bodega_id === activeBodegaId);
 
   if (bodegasQ.isLoading) {
@@ -82,7 +87,7 @@ function AdminPage() {
           <Shield className="size-10 mx-auto mb-3 opacity-50" />
           <h1 className="text-xl font-semibold mb-1">Sin acceso de administración</h1>
           <p className="text-muted-foreground text-sm mb-4">No eres administrador de ninguna bodega.</p>
-          <CreateBodegaButton onCreated={(id) => { setBodegaId(id); bodegasQ.refetch(); }} />
+          <CreateBodegaButton onCreated={(id) => { setActiveBodegaId(id); bodegasQ.refetch(); refetchBodegas(); }} />
         </div>
       </div>
     );
@@ -98,7 +103,7 @@ function AdminPage() {
         </div>
         <div className="flex items-center gap-2">
           {adminBodegas.length > 1 && (
-            <Select value={activeBodegaId ?? undefined} onValueChange={setBodegaId}>
+            <Select value={activeBodegaId ?? undefined} onValueChange={(v) => setActiveBodegaId(v)}>
               <SelectTrigger className="w-full md:w-[220px]"><SelectValue placeholder="Bodega" /></SelectTrigger>
               <SelectContent>
                 {adminBodegas.map((b) => (
@@ -107,9 +112,10 @@ function AdminPage() {
               </SelectContent>
             </Select>
           )}
-          <CreateBodegaButton onCreated={(id) => { setBodegaId(id); bodegasQ.refetch(); }} />
+          <CreateBodegaButton onCreated={(id) => { setActiveBodegaId(id); bodegasQ.refetch(); refetchBodegas(); }} />
         </div>
       </div>
+
 
       {activeBodegaId && (
         <Tabs defaultValue="pending" className="w-full">
