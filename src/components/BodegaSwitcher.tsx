@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { Check, ChevronDown, Globe2 } from "lucide-react";
+import { Check, ChevronDown, Globe2, Plus } from "lucide-react";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { centroIdentity, GLOBAL_IDENTITY } from "@/lib/centro-identity";
+import { CrearCentroDialog } from "@/components/CrearCentroDialog";
 
 export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
-  const { bodegas, bodegaId, bodega, setActiveBodegaId, viewMode, setViewMode, isGlobal } = useActiveBodega();
+  const { bodegas, bodegaId, bodega, setActiveBodegaId, viewMode, setViewMode, isGlobal, isAdminAnywhere } = useActiveBodega();
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
-  if (!bodegas.length) return null;
+  // Si todavía no hay bodegas, permitir al menos crear una si el usuario está autenticado
+  const showCreate = isAdminAnywhere || bodegas.length === 0;
 
   const ident = isGlobal ? GLOBAL_IDENTITY : centroIdentity(bodega);
   const Icon = ident.Icon;
