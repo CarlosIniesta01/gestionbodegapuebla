@@ -137,7 +137,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell />
+      <ActiveBodegaProvider>
+        <AppShell />
+      </ActiveBodegaProvider>
     </QueryClientProvider>
   );
 }
