@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyBodegas } from "@/lib/api/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,8 @@ type Ctx = {
   setViewMode: (m: ViewMode) => void;
   isGlobal: boolean;
   isLoading: boolean;
+  isAdminAnywhere: boolean;
+  refetchBodegas: () => Promise<unknown>;
 };
 
 const ActiveBodegaContext = createContext<Ctx | null>(null);
@@ -30,6 +32,7 @@ const LS_VIEW = "vinea.viewMode";
 
 export function ActiveBodegaProvider({ children }: { children: ReactNode }) {
   const fn = useServerFn(listMyBodegas);
+  const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["my-bodegas"],
     queryFn: async () => {
@@ -64,13 +67,17 @@ export function ActiveBodegaProvider({ children }: { children: ReactNode }) {
   const setActiveBodegaId = (id: string) => {
     setActiveId(id);
     try { localStorage.setItem(LS_BODEGA, id); } catch {}
+    // Invalidar queries dependientes del centro para refrescar mapas, movimientos, etc.
+    qc.invalidateQueries();
   };
   const setViewMode = (m: ViewMode) => {
     setViewModeState(m);
     try { localStorage.setItem(LS_VIEW, m); } catch {}
+    qc.invalidateQueries();
   };
 
   const active = bodegas.find((b) => b.bodega_id === activeId) ?? bodegas[0];
+  const isAdminAnywhere = bodegas.some((b) => b.role_key === "admin");
 
   const value = useMemo<Ctx>(() => ({
     bodegas,
@@ -81,7 +88,9 @@ export function ActiveBodegaProvider({ children }: { children: ReactNode }) {
     setViewMode,
     isGlobal: viewMode === "global",
     isLoading: q.isLoading,
-  }), [bodegas, active, viewMode, q.isLoading]);
+    isAdminAnywhere,
+    refetchBodegas: () => qc.invalidateQueries({ queryKey: ["my-bodegas"] }),
+  }), [bodegas, active, viewMode, q.isLoading, isAdminAnywhere]);
 
   return (
     <ActiveBodegaContext.Provider value={value}>
@@ -97,7 +106,8 @@ export function useActiveBodegaContext(): Ctx {
     return {
       bodegas: [], bodegaId: undefined, bodega: undefined,
       setActiveBodegaId: () => {}, viewMode: "centro", setViewMode: () => {},
-      isGlobal: false, isLoading: false,
+      isGlobal: false, isLoading: false, isAdminAnywhere: false,
+      refetchBodegas: async () => undefined,
     };
   }
   return ctx;

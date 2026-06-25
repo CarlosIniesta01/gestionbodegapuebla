@@ -1,17 +1,20 @@
 import { useState } from "react";
-import { Check, ChevronDown, Globe2 } from "lucide-react";
+import { Check, ChevronDown, Globe2, Plus } from "lucide-react";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { centroIdentity, GLOBAL_IDENTITY } from "@/lib/centro-identity";
+import { CrearCentroDialog } from "@/components/CrearCentroDialog";
 
 export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
-  const { bodegas, bodegaId, bodega, setActiveBodegaId, viewMode, setViewMode, isGlobal } = useActiveBodega();
+  const { bodegas, bodegaId, bodega, setActiveBodegaId, viewMode, setViewMode, isGlobal, isAdminAnywhere } = useActiveBodega();
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
-  if (!bodegas.length) return null;
+  // Si todavía no hay bodegas, permitir al menos crear una si el usuario está autenticado
+  const showCreate = isAdminAnywhere || bodegas.length === 0;
 
   const ident = isGlobal ? GLOBAL_IDENTITY : centroIdentity(bodega);
   const Icon = ident.Icon;
-  const label = isGlobal ? "Visión global" : (bodega?.nombre ?? "Centro");
+  const label = isGlobal ? "Visión global" : (bodega?.nombre ?? (bodegas.length ? "Centro" : "Sin centros"));
 
   return (
     <div className="relative">
@@ -38,10 +41,16 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
             className="absolute right-0 mt-1 w-[260px] rounded-md border bg-popover text-popover-foreground shadow-lg z-50 overflow-hidden"
             style={{ borderColor: "var(--border)" }}
           >
-            <div className="px-3 pt-2.5 pb-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              Centros
+            <div className="px-3 pt-2.5 pb-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground flex items-center justify-between">
+              <span>Centros</span>
+              <span className="text-muted-foreground/70 normal-case tracking-normal">{bodegas.length}</span>
             </div>
             <ul className="max-h-[320px] overflow-y-auto py-0.5">
+              {bodegas.length === 0 && (
+                <li className="px-3 py-3 text-[12px] text-muted-foreground">
+                  No tienes centros disponibles todavía.
+                </li>
+              )}
               {bodegas.map((m) => {
                 const i = centroIdentity(m.bodega);
                 const I = i.Icon;
@@ -94,6 +103,23 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
                 {isGlobal && <Check className="size-4 text-primary shrink-0" />}
               </button>
             </div>
+            {showCreate && (
+              <div className="border-t" style={{ borderColor: "var(--border)" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setCreateOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-accent text-left text-primary"
+                >
+                  <span className="inline-flex items-center justify-center rounded-md size-7 shrink-0 bg-primary/10 text-primary">
+                    <Plus className="size-3.5" />
+                  </span>
+                  <span className="flex-1 font-medium">Crear nuevo centro</span>
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -106,6 +132,8 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
           style={{ background: ident.color }}
         />
       )}
+
+      <CrearCentroDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }
