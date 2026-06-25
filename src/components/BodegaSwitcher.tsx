@@ -132,6 +132,8 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
           style={{ background: ident.color }}
         />
       )}
+
+      <CrearCentroDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }
