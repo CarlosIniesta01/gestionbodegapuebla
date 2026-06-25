@@ -14,7 +14,7 @@ export function BodegaSwitcher({ compact = false }: { compact?: boolean }) {
 
   const ident = isGlobal ? GLOBAL_IDENTITY : centroIdentity(bodega);
   const Icon = ident.Icon;
-  const label = isGlobal ? "Visión global" : (bodega?.nombre ?? "Centro");
+  const label = isGlobal ? "Visión global" : (bodega?.nombre ?? (bodegas.length ? "Centro" : "Sin centros"));
 
   return (
     <div className="relative">
