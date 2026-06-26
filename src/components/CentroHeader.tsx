@@ -40,7 +40,7 @@ export function CentroHeader({ showResumen = true }: { showResumen?: boolean }) 
   });
 
   const ident = isGlobal ? GLOBAL_IDENTITY : centroIdentity(bodega);
-  const Icon = ident.Icon;
+  const Icon = ident?.Icon ?? Globe2;
   const title = isGlobal ? "Visión global" : (bodega?.nombre ?? "Centro");
   const r = q.data as CentroResumen | undefined;
 
