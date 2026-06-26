@@ -40,7 +40,7 @@ export function CentroHeader({ showResumen = true }: { showResumen?: boolean }) 
   });
 
   const ident = isGlobal ? GLOBAL_IDENTITY : centroIdentity(bodega);
-  const Icon = ident.Icon;
+  const Icon = ident?.Icon ?? Globe2;
   const title = isGlobal ? "Visión global" : (bodega?.nombre ?? "Centro");
   const r = q.data as CentroResumen | undefined;
 
@@ -54,7 +54,7 @@ export function CentroHeader({ showResumen = true }: { showResumen?: boolean }) 
           className="inline-flex items-center justify-center rounded-md size-10 shrink-0"
           style={{ background: ident.soft, color: ident.text }}
         >
-          <Icon className="size-5" />
+          {typeof Icon === "function" || typeof Icon === "object" ? <Icon className="size-5" /> : <Globe2 className="size-5" />}
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Centro activo</div>

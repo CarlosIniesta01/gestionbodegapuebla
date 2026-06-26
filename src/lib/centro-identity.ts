@@ -17,7 +17,9 @@ const PALETTE = [
   { name: "indigo",   color: "#34427a", soft: "#e6e9f5", text: "#2a356a" },
 ] as const;
 
-const ICONS = [Factory, Warehouse, Building2, Wine, FlaskConical, Grape, Boxes, Truck];
+const FallbackIcon = Building2 ?? Boxes ?? Factory;
+const ICONS = [Factory, Warehouse, Building2, Wine, FlaskConical, Grape, Boxes, Truck]
+  .filter((I): I is typeof Factory => typeof I === "function" || typeof I === "object");
 
 function hashStr(s: string): number {
   let h = 2166136261;
@@ -39,8 +41,8 @@ export type CentroIdentity = {
 export function centroIdentity(bodega?: { id?: string; nombre?: string } | null): CentroIdentity {
   const key = (bodega?.id ?? bodega?.nombre ?? "default") + "";
   const h = hashStr(key);
-  const p = PALETTE[h % PALETTE.length];
-  const Icon = ICONS[(h >> 3) % ICONS.length];
+  const p = PALETTE[h % PALETTE.length] ?? PALETTE[0];
+  const Icon = (ICONS.length ? ICONS[(h >> 3) % ICONS.length] : FallbackIcon) ?? FallbackIcon;
   const initials = (bodega?.nombre ?? "·")
     .split(/\s+/)
     .filter(Boolean)
@@ -54,6 +56,6 @@ export const GLOBAL_IDENTITY: CentroIdentity = {
   color: "#0f172a",
   soft: "#eef2f7",
   text: "#0f172a",
-  Icon: Boxes,
+  Icon: Boxes ?? FallbackIcon,
   initials: "GL",
 };
