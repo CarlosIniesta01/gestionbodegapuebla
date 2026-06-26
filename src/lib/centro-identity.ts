@@ -17,7 +17,9 @@ const PALETTE = [
   { name: "indigo",   color: "#34427a", soft: "#e6e9f5", text: "#2a356a" },
 ] as const;
 
-const ICONS = [Factory, Warehouse, Building2, Wine, FlaskConical, Grape, Boxes, Truck];
+const FallbackIcon = Building2 ?? Boxes ?? Factory;
+const ICONS = [Factory, Warehouse, Building2, Wine, FlaskConical, Grape, Boxes, Truck]
+  .filter((I): I is typeof Factory => typeof I === "function" || typeof I === "object");
 
 function hashStr(s: string): number {
   let h = 2166136261;
