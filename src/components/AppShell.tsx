@@ -16,10 +16,12 @@ import {
   BarChart3,
   ClipboardList,
   GitCompare,
+  Workflow,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { BodegaSwitcher } from "@/components/BodegaSwitcher";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: LayoutDashboard },

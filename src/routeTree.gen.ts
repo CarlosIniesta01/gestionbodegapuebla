@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticated/trabajos'
 import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticated/recetas'
+import { Route as AuthenticatedProcesosRouteImport } from './routes/_authenticated/procesos'
 import { Route as AuthenticatedPosicionComercialRouteImport } from './routes/_authenticated/posicion-comercial'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedOperativaRouteImport } from './routes/_authenticated/operativa'
@@ -53,6 +54,11 @@ const AuthenticatedTrabajosRoute = AuthenticatedTrabajosRouteImport.update({
 const AuthenticatedRecetasRoute = AuthenticatedRecetasRouteImport.update({
   id: '/recetas',
   path: '/recetas',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProcesosRoute = AuthenticatedProcesosRouteImport.update({
+  id: '/procesos',
+  path: '/procesos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPosicionComercialRoute =
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
+  '/procesos': typeof AuthenticatedProcesosRoute
   '/recetas': typeof AuthenticatedRecetasRoute
   '/trabajos': typeof AuthenticatedTrabajosRoute
 }
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
+  '/procesos': typeof AuthenticatedProcesosRoute
   '/recetas': typeof AuthenticatedRecetasRoute
   '/trabajos': typeof AuthenticatedTrabajosRoute
   '/': typeof AuthenticatedIndexRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/operativa': typeof AuthenticatedOperativaRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
   '/_authenticated/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
+  '/_authenticated/procesos': typeof AuthenticatedProcesosRoute
   '/_authenticated/recetas': typeof AuthenticatedRecetasRoute
   '/_authenticated/trabajos': typeof AuthenticatedTrabajosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/operativa'
     | '/pendientes'
     | '/posicion-comercial'
+    | '/procesos'
     | '/recetas'
     | '/trabajos'
   fileRoutesByTo: FileRoutesByTo
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/operativa'
     | '/pendientes'
     | '/posicion-comercial'
+    | '/procesos'
     | '/recetas'
     | '/trabajos'
     | '/'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operativa'
     | '/_authenticated/pendientes'
     | '/_authenticated/posicion-comercial'
+    | '/_authenticated/procesos'
     | '/_authenticated/recetas'
     | '/_authenticated/trabajos'
     | '/_authenticated/'
@@ -264,6 +276,13 @@ declare module '@tanstack/react-router' {
       path: '/recetas'
       fullPath: '/recetas'
       preLoaderRoute: typeof AuthenticatedRecetasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/procesos': {
+      id: '/_authenticated/procesos'
+      path: '/procesos'
+      fullPath: '/procesos'
+      preLoaderRoute: typeof AuthenticatedProcesosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/posicion-comercial': {
@@ -350,6 +369,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOperativaRoute: typeof AuthenticatedOperativaRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
   AuthenticatedPosicionComercialRoute: typeof AuthenticatedPosicionComercialRoute
+  AuthenticatedProcesosRoute: typeof AuthenticatedProcesosRoute
   AuthenticatedRecetasRoute: typeof AuthenticatedRecetasRoute
   AuthenticatedTrabajosRoute: typeof AuthenticatedTrabajosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -366,6 +386,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOperativaRoute: AuthenticatedOperativaRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
   AuthenticatedPosicionComercialRoute: AuthenticatedPosicionComercialRoute,
+  AuthenticatedProcesosRoute: AuthenticatedProcesosRoute,
   AuthenticatedRecetasRoute: AuthenticatedRecetasRoute,
   AuthenticatedTrabajosRoute: AuthenticatedTrabajosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
