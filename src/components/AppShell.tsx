@@ -115,6 +115,7 @@ export function AppShell() {
           <span className="font-display font-semibold tracking-tight text-foreground">Vinea</span>
         </div>
         <div className="flex items-center gap-2">
+          <GlobalSearch />
           <BodegaSwitcher compact />
           <button
             onClick={handleLogout}
@@ -127,6 +128,9 @@ export function AppShell() {
       </header>
 
       <main className="flex-1 min-w-0 pb-20 md:pb-0">
+        <div className="hidden md:flex items-center justify-end gap-2 px-4 pt-3">
+          <GlobalSearch />
+        </div>
         <Outlet />
       </main>
 
