@@ -1,115 +1,96 @@
+## FASE — Calendario Operativo de Bodega
 
-# Fase 8 — Optimización Operativa Inteligente
+Añadir un módulo de **Calendario** que centralice la planificación de cargas, descargas, trabajos, limpiezas, trasiegos, mezclas, embotellados, expediciones, mantenimientos, incidencias y revisiones, integrado con trabajos, contratos, depósitos y multicentro existentes.
 
-Mejora de flujo, UX y automatización sobre el núcleo ya estable. **Sin cambios en BBDD** salvo dos vistas de lectura. Sin tocar cálculos de movimientos, existencias, contratos ni auditoría.
+### 1. Base de datos (migración única, sin tocar tablas actuales)
 
-## Alcance por bloques
+Nuevas tablas:
 
-### 1. Asistente de Movimientos (MovimientosTab + diálogo nuevo)
-- Al elegir **producto + depósito**, autocompletar:
-  - grado habitual desde último movimiento activo del producto
-  - estado visual y color recomendado según tipo (entrada→Vino/Fermentación, salida→Vacío si queda 0L)
-  - contrato compatible sugerido (mismo producto, pendiente, mismo centro)
-  - depósito destino sugerido en trasiegos (mismo producto o vacío con capacidad suficiente)
-- Avisos en línea (no bloqueantes salvo capacidad):
-  - "Depósito al 95%" / "Excede capacidad: X L disponibles" (bloqueante)
-  - "Producto distinto al contenido actual: ENOCIANINA vs TINTO" (warning)
-  - "Cantidad supera pendiente del contrato" (bloqueante, ya existe vía trigger SQL)
-- Campos opcionales en el form: `estado_visual_destino`, `color_destino`. Al guardar, `sincronizarDepositos` ya recalcula; añadir override visual si el usuario lo fijó manualmente.
+- `calendario_eventos`
+  - `id`, `bodega_id` (FK), `tipo` (enum), `titulo`, `descripcion`
+  - `zona_id` nullable, `deposito_origen` text, `deposito_destino` text
+  - `producto_id` nullable, `contrato_compra_id` nullable, `contrato_venta_id` nullable
+  - `trabajo_id` nullable (FK opcional a `trabajos`)
+  - `cliente_id` nullable, `proveedor_id` nullable
+  - `fecha_inicio` timestamptz, `fecha_fin` timestamptz
+  - `estado` enum (programado, en_proceso, completado, cancelado, retrasado)
+  - `prioridad` enum (baja, normal, alta, critica)
+  - `datos` jsonb (campos extra: transportista, matrícula, conductor, teléfono, litros previstos, hora real, documentación)
+  - `observaciones`, `created_by`, `created_at`, `updated_at`
 
-### 2. Panel inteligente de depósito (DepositoPanel)
-Ampliar el panel actual con nuevas secciones que leen de queries existentes:
-- Trabajos abiertos (filtro `trabajos` por `deposito_id`, estado != finalizado)
-- Trabajadores asignados a esos trabajos
-- Contratos relacionados (vía producto contenido + contratos pendientes del centro)
-- Consumos enológicos recientes asociados
-- Incidencias abiertas (eventos de trabajo con tipo incidencia)
-- **Próxima acción recomendada** (regla local):
-  - 0L → "Disponible para nueva entrada"
-  - ≥95% → "Evitar nuevas entradas"
-  - trabajo abierto → "Finalizar trabajo pendiente"
-  - sin movimientos 90 días → "Sin actividad reciente, revisar"
-  - producto con contrato venta pendiente → "Producto vinculado a contrato de venta"
+- `calendario_evento_trabajadores` (M:N con `profiles`)
+  - `id`, `evento_id`, `user_id`, `bodega_id`, `created_at`
 
-### 3. Buscador global (GlobalSearch en AppShell topbar)
-- Componente `GlobalSearch.tsx` con cmdk (`@/components/ui/command`), atajo `Ctrl/Cmd+K`.
-- Server fn `searchGlobal({ q, bodegaId, scope })` que consulta en paralelo:
-  - `depositos` (vía `bodega_maps` JSON), `productos_comerciales`, `productos`, `producto_lotes`, `contratos_compra`, `contratos_venta`, `clientes`, `proveedores`, `trabajos`, `movimientos` (por código), `bodegas`.
-  - Limita a 5 por categoría, total 30. ILIKE por nombre/código/numero.
-  - Respeta `bodegaId` del centro activo (filtra por columna `bodega_id`); en visión global no filtra.
-- Resultados navegan a la ruta correcta (ej. depósito → `/bodega` con queryparam que abre panel; contrato → `/contratos?id=...`; lote → `/almacen?lote=...`).
+Enums:
+- `calendario_tipo`: carga, descarga, trabajo, limpieza, trasiego, mezcla, embotellado, expedicion, mantenimiento, incidencia, recordatorio, auditoria, analisis
+- `calendario_estado`, `calendario_prioridad`
 
-### 4. Alertas inteligentes
-- Server fn `getAlertas({ bodegaId | global })` que computa 13 reglas leyendo vistas existentes (`existencias_actuales`, `v_posicion_comercial`, `v_contratos_*_pendientes`, `producto_lotes`, `trabajos`, `bodega_maps`).
-- Componente `AlertasPanel.tsx` reutilizable. Insertado en:
-  - Dashboard (sección "Alertas operativas")
-  - CentroHeader (badge con contador clicable)
-  - DepositoPanel (alertas del propio depósito)
-  - Almacén Enológico (caducidades / stock)
-  - Posición Comercial (disponible negativo)
-- Cada alerta tiene severidad (info/warn/danger), enlace de acción y filtro por centro.
+RLS:
+- SELECT: miembros activos de la bodega; trabajadores no-admin solo ven eventos donde son asignados o creadores.
+- INSERT/UPDATE/DELETE: admin, responsable, enólogo (vía `has_permission`).
+- Triggers: `touch_updated_at`, `audit_generic` (reusa patrón existente).
 
-### 5. Vista Procesos Operativos
-- Nueva ruta `/_authenticated/procesos`.
-- Agrupa registros existentes en buckets (recepción, trasiego, mezcla, corrección, limpieza, embotellado, expedición) derivados de `movimientos.tipo` + `trabajos.tipo`.
-- Server fn `listProcesos({ bodegaId })` une movimientos activos recientes y trabajos abiertos en un timeline con columnas: estado, origen, destino, producto, trabajadores, fechas, incidencias.
-- Sólo lectura + acciones rápidas (abrir trabajo / abrir movimiento).
+GRANTs estándar para `authenticated` y `service_role`.
 
-### 6. Reducción de clics
-- En **MapToolbar**: botón "+ Movimiento" abre el asistente con depósito pre-seleccionado si hay uno activo.
-- En **DepositoPanel**: las acciones rápidas existentes (trasiego/limpieza/producto) pasan a abrir directamente el diálogo de movimiento con tipo y depósito precargados.
-- En **ContratoFormDialog**: botón "Registrar movimiento" abre el asistente con contrato precargado.
-- En **ProductosTab**: botón "Registrar consumo" precarga producto.
+### 2. Server functions (`src/lib/api/calendario.functions.ts`)
 
-### 7. Accesos rápidos contextuales
-- Helper `useQuickActions(context)` que devuelve lista de acciones según contexto (deposito/contrato/producto/centro). Render en `DepositoPanel`, `ContratosTab`, `ProductosTab`, `CentroHeader`.
+- `listEventos({ bodegaId|null (global), from, to, tipos?, estados?, userId?, prioridad? })`
+- `getEvento(id)` con asignados, contrato, trabajo
+- `createEvento(payload)` + asigna trabajadores; valida conflictos (mismo depósito/trabajador solapados) y devuelve warnings
+- `updateEvento(id, patch)`
+- `deleteEvento(id)`
+- `setEventoEstado(id, estado)`
+- `linkTrabajo(eventoId, trabajoId)` y `createTrabajoDesdeEvento(eventoId)`
+- `eventosHoy(bodegaId)` y `eventosCriticosProximos` para Dashboard
+- `contratosComoEventos({ bodegaId, from, to })`: convierte `contratos_*.fecha_entrega/limite` próximos en pseudo-eventos read-only
 
-### 8. Multicentro
-- Todas las server fns nuevas reciben `bodegaId` opcional; si `viewMode==='global'`, no filtran.
-- Las creaciones (movimiento desde asistente, trabajo desde quick action) heredan `bodegaId` del contexto activo.
+Todas con `requireSupabaseAuth` + verificación de membership.
 
-### 9. Validación
-- Build verde + smoke browser:
-  - Crear movimiento entrada con asistente → mapa muestra producto y estado sin editar.
-  - Abrir depósito → panel muestra recomendación.
-  - `Cmd+K` → buscar "D-38", "Enocianina", "Lote", "Finca" devuelve resultados.
-  - Dashboard muestra alertas; al cambiar centro, recalcula.
-  - `/procesos` carga sin errores.
+### 3. UI
 
-## Cambios técnicos resumidos
+Ruta `src/routes/_authenticated/calendario.tsx`:
+- Header con BodegaSwitcher heredado, botón "Nuevo evento".
+- Filtros (tipo, estado, trabajador, prioridad, depósito, contrato).
+- Vistas: Día / Semana / Mes / Agenda (tabs). Implementación ligera con grid CSS (sin dependencias nuevas pesadas — usar `date-fns` ya disponible).
+- Mobile-first: agenda como vista por defecto en móvil.
+- Click evento → `EventoDetailDialog` con acciones (editar, cambiar estado, abrir/crear trabajo, ir a contrato).
 
-**Nuevos archivos:**
-- `src/components/movimientos/MovimientoAsistenteDialog.tsx`
-- `src/components/GlobalSearch.tsx`
-- `src/components/AlertasPanel.tsx`
-- `src/components/ProcesosTimeline.tsx`
-- `src/lib/api/search.functions.ts`
-- `src/lib/api/alertas.functions.ts`
-- `src/lib/api/procesos.functions.ts`
-- `src/lib/quick-actions.ts`
-- `src/routes/_authenticated/procesos.tsx`
+Componentes nuevos:
+- `CalendarioMonthView`, `CalendarioWeekView`, `CalendarioDayView`, `CalendarioAgendaView`
+- `EventoFormDialog` (campos básicos + secciones condicionales por tipo: bloque "Camión" para carga/descarga)
+- `EventoDetailDialog`
+- `EventoCard` (chip de tipo con color suave)
+- `CalendarioFilters`
+- `lib/calendario-meta.ts` con tipos, colores e iconos (patrón `trabajo-meta.ts`)
 
-**Modificados:**
-- `src/components/AppShell.tsx` (montar GlobalSearch + atajo)
-- `src/components/MovimientosTab.tsx` (asistente + sugerencias)
-- `src/components/DepositoPanel.tsx` (secciones extra + recomendación)
-- `src/components/BodegaCanvas.tsx` (pasar contexto al panel)
-- `src/components/CentroHeader.tsx` (badge alertas)
-- `src/routes/_authenticated/index.tsx` (AlertasPanel)
-- `src/routes/_authenticated/posicion-comercial.tsx` (AlertasPanel)
-- `src/routes/_authenticated/almacen.tsx` (AlertasPanel)
+Navegación:
+- Añadir item "Calendario" en `AppShell` sidebar visible para admin/responsable/enólogo; trabajadores ven el ítem pero la página filtra a sus eventos.
 
-**Base de datos:** sólo lectura. No se crean tablas. Opcional: una vista `v_alertas_operativas` si la lógica resulta pesada en TS — decisión durante implementación. Sin migraciones destructivas.
+Dashboard:
+- Nuevo widget "Hoy en el calendario" en `routes/_authenticated/index.tsx` con: eventos de hoy, cargas hoy, retrasados, próximos críticos (3-5 ítems clicables).
 
-## Riesgos y mitigación
-- Búsqueda sobre JSON de `bodega_maps`: filtrar en server con LIMIT y proyección mínima.
-- Asistente no debe bloquear guardado por warnings (solo capacidad excedida y contrato sobre-asignado).
-- Mantener `sincronizarDepositos` como única vía de actualización del mapa salvo override explícito del usuario.
+Conflictos: detector en `createEvento`/`updateEvento` que devuelve `warnings[]`; el diálogo muestra confirmación antes de guardar si hay conflictos no bloqueantes.
 
-## Entrega por iteraciones
-Dado el volumen, propongo dividir la implementación en 3 PRs/turnos:
-1. Buscador global + Alertas + ruta Procesos (mayor impacto inmediato)
-2. Asistente de Movimientos + panel inteligente ampliado
-3. Accesos rápidos contextuales + reducción de clics + pulido
+### 4. Integración con trabajos y contratos
 
-¿Apruebas el plan o quieres que empiece directamente por una iteración concreta (por ejemplo, sólo buscador + alertas)?
+- Si un `trabajo` tiene `scheduled_at`, aparece como evento "fantasma" en el calendario (read-only, badge "Trabajo") vía merge en `listEventos`.
+- Contratos: `fecha_entrega`/`fecha_limite` próximos (±30 días) aparecen como eventos read-only categoría "contrato".
+
+Sin modificar tablas `trabajos`/`contratos_*`.
+
+### 5. Auditoría
+
+Trigger `audit_calendario_evento` que escribe en `auditoria` con acciones: CREADO, MODIFICADO, ESTADO_*, CANCELADO, COMPLETADO, FECHA_CAMBIADA, TRABAJADOR_CAMBIADO.
+
+### 6. Validación final
+
+Checklist de la fase ejecutado manualmente más `tsgo` typecheck.
+
+### Detalles técnicos
+
+- Reutiliza `useActiveBodega`, `requireSupabaseAuth`, patrones de `trabajos.functions.ts`.
+- `bodegaId` en todas las `queryKey` para invalidación al cambiar centro.
+- Colores en `src/styles.css` (tokens `--cal-*`) o derivados de `state-*` ya existentes — sin hex hardcoded.
+- Sin dependencias nuevas pesadas; agenda/mes en grid CSS + `date-fns`.
+
+¿Procedo con la migración + implementación completa, o prefieres dividir en dos PRs (BD+API primero, UI después)?
