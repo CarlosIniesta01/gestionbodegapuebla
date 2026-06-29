@@ -225,7 +225,7 @@ export const deleteEvento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
-    const { error } = await context.(supabase as any).from("calendario_eventos").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).from("calendario_eventos").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
