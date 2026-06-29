@@ -217,7 +217,7 @@ export const setEventoEstado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid(), estado: EstadoEnum }))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("calendario_eventos").update({ estado: data.estado }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
