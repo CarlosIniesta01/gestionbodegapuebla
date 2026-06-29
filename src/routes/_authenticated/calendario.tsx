@@ -147,10 +147,10 @@ function CalendarioPage() {
       )}
 
       <div className="border border-border rounded-md bg-card overflow-hidden">
-        {vista === "mes" && <VistaMes from={range.from} cursor={cursor} eventos={eventos} onOpen={(ev) => { setEditando(ev); setOpenForm(true); }} onNuevo={(date) => { setEditando(null); setOpenForm(true); }} />}
-        {vista === "semana" && <VistaSemana from={range.from} eventos={eventos} onOpen={(ev) => { setEditando(ev); setOpenForm(true); }} />}
-        {vista === "dia" && <VistaDia day={cursor} eventos={eventos} onOpen={(ev) => { setEditando(ev); setOpenForm(true); }} />}
-        {vista === "agenda" && <VistaAgenda eventos={eventos} onOpen={(ev) => { setEditando(ev); setOpenForm(true); }} onEstado={cambiarEstado} onDelete={eliminar} />}
+        {vista === "mes" && <VistaMes from={range.from} cursor={cursor} eventos={eventos} onOpen={(ev: any) => { setEditando(ev); setOpenForm(true); }} onNuevo={(_d: Date) => { setEditando(null); setOpenForm(true); }} />}
+        {vista === "semana" && <VistaSemana from={range.from} eventos={eventos} onOpen={(ev: any) => { setEditando(ev); setOpenForm(true); }} />}
+        {vista === "dia" && <VistaDia day={cursor} eventos={eventos} onOpen={(ev: any) => { setEditando(ev); setOpenForm(true); }} />}
+        {vista === "agenda" && <VistaAgenda eventos={eventos} onOpen={(ev: any) => { setEditando(ev); setOpenForm(true); }} onEstado={cambiarEstado} onDelete={eliminar} />}
       </div>
 
       {bodegaId && (
