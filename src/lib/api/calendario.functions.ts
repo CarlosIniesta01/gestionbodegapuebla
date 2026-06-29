@@ -280,8 +280,11 @@ export const listAsignables = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertMember(supabase, data.bodegaId, userId);
     const { data: mems } = await supabase
-      .from("memberships")
-      .select("user_id, profiles!memberships_user_id_fkey(user_id,nombre,email,avatar_url)")
+      .from("memberships").select("user_id")
       .eq("bodega_id", data.bodegaId).eq("estado", "activo");
-    return (mems ?? []).map((m: any) => m.profiles).filter(Boolean);
+    const ids = (mems ?? []).map((m: any) => m.user_id);
+    if (!ids.length) return [] as Array<{ user_id: string; nombre: string | null; email: string | null; avatar_url: string | null }>;
+    const { data: profs } = await supabase
+      .from("profiles").select("user_id,nombre,email,avatar_url").in("user_id", ids);
+    return (profs ?? []) as Array<{ user_id: string; nombre: string | null; email: string | null; avatar_url: string | null }>;
   });
