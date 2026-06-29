@@ -269,6 +269,7 @@ export function MovimientosTab({ bodegaId }: Props) {
         onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setDuplicating(null); } }}
         productos={productos}
         depositos={depositos}
+        movs={movs}
         contratosCompra={contratosCompra}
         contratosVenta={contratosVenta}
         editing={editing}
@@ -290,12 +291,13 @@ export function MovimientosTab({ bodegaId }: Props) {
 }
 
 function MovimientoDialog({
-  open, onOpenChange, productos, depositos, contratosCompra, contratosVenta, onSave, editing, duplicating,
+  open, onOpenChange, productos, depositos, movs, contratosCompra, contratosVenta, onSave, editing, duplicating,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   productos: any[];
   depositos: any[];
+  movs: any[];
   contratosCompra: any[];
   contratosVenta: any[];
   editing: any | null;
@@ -319,6 +321,8 @@ function MovimientoDialog({
   const [contratoCompraId, setContratoCompraId] = useState("");
   const [contratoVentaId, setContratoVentaId] = useState("");
   const [estadoVisual, setEstadoVisual] = useState<string>("");
+  const [gradoAuto, setGradoAuto] = useState(false);
+  const [contratoAuto, setContratoAuto] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -344,19 +348,70 @@ function MovimientoDialog({
     }
     setEstadoVisual("");
     setMotivo("");
+    setGradoAuto(false);
+    setContratoAuto(false);
   }, [open, editing?.id, duplicating?.id]);
+
+  // ASISTENTE: auto-sugerir grado desde el último movimiento activo del producto
+  useEffect(() => {
+    if (!open || editing || !productoId) return;
+    if (grado && !gradoAuto) return;
+    const last = movs.find((m) => m.producto_id === productoId && m.estado_movimiento === "activo" && m.grado != null);
+    if (last?.grado != null) {
+      setGrado(String(last.grado));
+      setGradoAuto(true);
+    }
+  }, [open, productoId, movs, editing]);
+
+  // ASISTENTE: auto-sugerir contrato pendiente compatible (si hay exactamente uno)
+  useEffect(() => {
+    if (!open || editing) return;
+    if (tipo === "entrada" && productoId && !contratoCompraId) {
+      const candidatos = contratosCompra.filter((c: any) =>
+        c.estado !== "cancelado" && c.estado !== "completado" && c.producto_id === productoId
+        && Number(c.litros_pendientes) > 0);
+      if (candidatos.length === 1) { setContratoCompraId(candidatos[0].id); setContratoAuto(true); }
+    }
+    if (tipo === "salida" && productoId && !contratoVentaId) {
+      const candidatos = contratosVenta.filter((c: any) =>
+        c.estado !== "cancelado" && c.estado !== "completado" && c.producto_id === productoId
+        && Number(c.litros_pendientes) > 0);
+      if (candidatos.length === 1) { setContratoVentaId(candidatos[0].id); setContratoAuto(true); }
+    }
+  }, [open, tipo, productoId, contratosCompra, contratosVenta, editing]);
+
 
   const needsOrigen = ["salida","trasiego","mezcla","embotellado","correccion","ajuste"].includes(tipo);
   const needsDestino = ["entrada","trasiego","mezcla","correccion","ajuste"].includes(tipo);
 
   const needsProducto = ["entrada","trasiego","mezcla"].includes(tipo);
-  const canSave = !!tipo && !!litros && Number(litros) > 0
+
+  // ASISTENTE: cálculos derivados para hints en línea
+  const destDep = destino ? depositos.find((d: any) => d.id === destino) : null;
+  const origenDep = origen ? depositos.find((d: any) => d.id === origen) : null;
+  const litrosNum = Number(litros) || 0;
+  const prodSel = productoId ? productos.find((p) => p.id === productoId) : null;
+  const addsToDestino = needsDestino && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla");
+  const capacidadLibre = destDep ? Math.max(0, Number(destDep.capacidad) - Number(destDep.litros)) : null;
+  const excedeCapacidad = addsToDestino && destDep && litrosNum > 0 && litrosNum > (capacidadLibre ?? Infinity);
+  const cercaCapacidad = addsToDestino && destDep && capacidadLibre != null
+    && litrosNum > 0 && !excedeCapacidad
+    && (Number(destDep.litros) + litrosNum) / Math.max(1, Number(destDep.capacidad)) >= 0.95;
+  const productoDistinto = addsToDestino && destDep && prodSel && destDep.contenido
+    && destDep.contenido.toLowerCase() !== prodSel.nombre.toLowerCase()
+    && Number(destDep.litros) > 0;
+  const excedeOrigen = (tipo === "salida" || tipo === "trasiego") && origenDep
+    && litrosNum > 0 && litrosNum > Number(origenDep.litros);
+
+  const canSave = !!tipo && !!litros && litrosNum > 0
     && (!needsOrigen || !!origen)
     && (!needsDestino || !!destino)
     && (!needsProducto || !!productoId)
+    && !excedeCapacidad
     && (!editing || motivo.trim().length >= 3);
 
   const title = editing ? "Editar movimiento (corrección)" : duplicating ? "Duplicar movimiento" : "Nuevo movimiento";
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -432,17 +487,56 @@ function MovimientoDialog({
               <input type="number" inputMode="decimal" value={litros} onChange={(e) => setLitros(e.target.value)} className={cls} />
             </Field>
             <Field label="Grado (°)">
-              <input type="number" inputMode="decimal" step="0.1" value={grado} onChange={(e) => setGrado(e.target.value)} className={cls} placeholder="12.5" />
+              <input
+                type="number" inputMode="decimal" step="0.1"
+                value={grado}
+                onChange={(e) => { setGrado(e.target.value); setGradoAuto(false); }}
+                className={cls} placeholder="12.5"
+              />
+              {gradoAuto && grado && (
+                <p className="text-[10px] text-sky-600 mt-1">Sugerido del último movimiento del producto. Editable.</p>
+              )}
             </Field>
           </div>
+
+          {/* ASISTENTE: avisos en línea */}
+          {(excedeCapacidad || cercaCapacidad || productoDistinto || excedeOrigen) && (
+            <div className="space-y-1.5">
+              {excedeCapacidad && destDep && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-700">
+                  Excede capacidad del destino: disponibles {capacidadLibre?.toLocaleString("es-ES")} L.
+                </div>
+              )}
+              {!excedeCapacidad && cercaCapacidad && destDep && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700">
+                  El destino quedará a ≥95% de su capacidad.
+                </div>
+              )}
+              {productoDistinto && destDep && prodSel && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700">
+                  El destino ya contiene <b>{destDep.contenido}</b>, distinto de <b>{prodSel.nombre}</b>.
+                </div>
+              )}
+              {excedeOrigen && origenDep && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-700">
+                  Litros superiores al contenido del origen ({Number(origenDep.litros).toLocaleString("es-ES")} L).
+                </div>
+              )}
+            </div>
+          )}
 
           <Field label="Observaciones">
             <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} className={cls} />
           </Field>
 
+
           {tipo === "entrada" && (
             <Field label="Contrato de compra (opcional)">
-              <select value={contratoCompraId} onChange={(e) => setContratoCompraId(e.target.value)} className={cls}>
+              <select
+                value={contratoCompraId}
+                onChange={(e) => { setContratoCompraId(e.target.value); setContratoAuto(false); }}
+                className={cls}
+              >
                 <option value="">— Sin contrato —</option>
                 {contratosCompra
                   .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
@@ -453,11 +547,18 @@ function MovimientoDialog({
                     </option>
                   ))}
               </select>
+              {contratoAuto && contratoCompraId && (
+                <p className="text-[10px] text-sky-600 mt-1">Sugerido automáticamente (único contrato pendiente compatible).</p>
+              )}
             </Field>
           )}
           {tipo === "salida" && (
             <Field label="Contrato de venta (opcional)">
-              <select value={contratoVentaId} onChange={(e) => setContratoVentaId(e.target.value)} className={cls}>
+              <select
+                value={contratoVentaId}
+                onChange={(e) => { setContratoVentaId(e.target.value); setContratoAuto(false); }}
+                className={cls}
+              >
                 <option value="">— Sin contrato —</option>
                 {contratosVenta
                   .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
@@ -468,8 +569,12 @@ function MovimientoDialog({
                     </option>
                   ))}
               </select>
+              {contratoAuto && contratoVentaId && (
+                <p className="text-[10px] text-sky-600 mt-1">Sugerido automáticamente (único contrato pendiente compatible).</p>
+              )}
             </Field>
           )}
+
 
           <div>
             <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-1.5">

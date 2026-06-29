@@ -193,9 +193,14 @@ function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobil
           )}
         </Section>
 
+        <Section icon={Sparkles} title="Próxima acción recomendada">
+          <RecomendacionDeposito deposito={deposito} pct={pct} />
+        </Section>
+
         <Section icon={History} title="Último movimiento">
           <div className="text-sm">{deposito.ultimoMovimiento ?? "Sin movimientos recientes"}</div>
         </Section>
+
 
 
         <Section icon={Activity} title="Acciones rápidas">
@@ -242,3 +247,33 @@ function Section({ icon: Icon, title, children }: { icon: any; title: string; ch
     </div>
   );
 }
+
+function RecomendacionDeposito({ deposito, pct }: { deposito: Deposito; pct: number }) {
+  const litros = Number(deposito.litros) || 0;
+  const items: { tone: "ok" | "warn" | "danger" | "info"; text: string }[] = [];
+  if (litros <= 0.01) {
+    items.push({ tone: "ok", text: "Vacío y disponible para una nueva entrada." });
+  } else if (pct >= 95) {
+    items.push({ tone: "warn", text: "Cerca del 95% de capacidad: evita nuevas entradas." });
+  }
+  if (deposito.estado === "limpieza") {
+    items.push({ tone: "info", text: "En limpieza: finalizar antes de admitir producto." });
+  }
+  if (!items.length) {
+    items.push({ tone: "info", text: "Sin acciones críticas pendientes." });
+  }
+  const TONE: Record<string, string> = {
+    ok: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700",
+    warn: "bg-amber-500/10 border-amber-500/30 text-amber-700",
+    danger: "bg-rose-500/10 border-rose-500/30 text-rose-700",
+    info: "bg-sky-500/10 border-sky-500/30 text-sky-700",
+  };
+  return (
+    <div className="space-y-1.5">
+      {items.map((it, i) => (
+        <div key={i} className={`text-xs px-2.5 py-2 rounded-md border ${TONE[it.tone]}`}>{it.text}</div>
+      ))}
+    </div>
+  );
+}
+
