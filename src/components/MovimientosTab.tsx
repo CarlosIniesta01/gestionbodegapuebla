@@ -532,7 +532,11 @@ function MovimientoDialog({
 
           {tipo === "entrada" && (
             <Field label="Contrato de compra (opcional)">
-              <select value={contratoCompraId} onChange={(e) => setContratoCompraId(e.target.value)} className={cls}>
+              <select
+                value={contratoCompraId}
+                onChange={(e) => { setContratoCompraId(e.target.value); setContratoAuto(false); }}
+                className={cls}
+              >
                 <option value="">— Sin contrato —</option>
                 {contratosCompra
                   .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
@@ -543,11 +547,18 @@ function MovimientoDialog({
                     </option>
                   ))}
               </select>
+              {contratoAuto && contratoCompraId && (
+                <p className="text-[10px] text-sky-600 mt-1">Sugerido automáticamente (único contrato pendiente compatible).</p>
+              )}
             </Field>
           )}
           {tipo === "salida" && (
             <Field label="Contrato de venta (opcional)">
-              <select value={contratoVentaId} onChange={(e) => setContratoVentaId(e.target.value)} className={cls}>
+              <select
+                value={contratoVentaId}
+                onChange={(e) => { setContratoVentaId(e.target.value); setContratoAuto(false); }}
+                className={cls}
+              >
                 <option value="">— Sin contrato —</option>
                 {contratosVenta
                   .filter((c: any) => c.estado !== "cancelado" && c.estado !== "completado"
@@ -558,8 +569,12 @@ function MovimientoDialog({
                     </option>
                   ))}
               </select>
+              {contratoAuto && contratoVentaId && (
+                <p className="text-[10px] text-sky-600 mt-1">Sugerido automáticamente (único contrato pendiente compatible).</p>
+              )}
             </Field>
           )}
+
 
           <div>
             <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
