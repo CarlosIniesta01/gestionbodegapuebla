@@ -114,7 +114,7 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
   const productos = useQuery({ queryKey: ["cal-prods", bodegaId], queryFn: () => fnProd({ data: { bodegaId } }), enabled: open });
   const cc = useQuery({ queryKey: ["cal-cc", bodegaId], queryFn: () => fnCC({ data: { bodegaId } }), enabled: open });
   const cv = useQuery({ queryKey: ["cal-cv", bodegaId], queryFn: () => fnCV({ data: { bodegaId } }), enabled: open });
-  const trabajos = useQuery({ queryKey: ["cal-trabajos", bodegaId], queryFn: () => fnTrab({ data: { bodegaId, limit: 100, offset: 0 } as any }), enabled: open });
+  const trabajos = useQuery({ queryKey: ["cal-trabajos", bodegaId], queryFn: () => fnTrab({ data: { bodegaId, limit: 100 } }), enabled: open });
 
   const qc = useQueryClient();
   const fnCreate = useServerFn(createEvento);
