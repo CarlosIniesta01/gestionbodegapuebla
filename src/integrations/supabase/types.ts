@@ -119,6 +119,131 @@ export type Database = {
           },
         ]
       }
+      calendario_evento_trabajadores: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          evento_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          evento_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          evento_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendario_evento_trabajadores_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_evento_trabajadores_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "calendario_eventos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendario_eventos: {
+        Row: {
+          bodega_id: string
+          cliente_id: string | null
+          contrato_compra_id: string | null
+          contrato_venta_id: string | null
+          created_at: string
+          created_by: string | null
+          datos: Json
+          deposito_destino: string | null
+          deposito_origen: string | null
+          descripcion: string | null
+          estado: Database["public"]["Enums"]["calendario_estado"]
+          fecha_fin: string
+          fecha_inicio: string
+          id: string
+          observaciones: string | null
+          prioridad: Database["public"]["Enums"]["calendario_prioridad"]
+          producto_id: string | null
+          proveedor_id: string | null
+          tipo: Database["public"]["Enums"]["calendario_tipo"]
+          titulo: string
+          trabajo_id: string | null
+          updated_at: string
+          zona_id: string | null
+        }
+        Insert: {
+          bodega_id: string
+          cliente_id?: string | null
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          datos?: Json
+          deposito_destino?: string | null
+          deposito_origen?: string | null
+          descripcion?: string | null
+          estado?: Database["public"]["Enums"]["calendario_estado"]
+          fecha_fin: string
+          fecha_inicio: string
+          id?: string
+          observaciones?: string | null
+          prioridad?: Database["public"]["Enums"]["calendario_prioridad"]
+          producto_id?: string | null
+          proveedor_id?: string | null
+          tipo: Database["public"]["Enums"]["calendario_tipo"]
+          titulo: string
+          trabajo_id?: string | null
+          updated_at?: string
+          zona_id?: string | null
+        }
+        Update: {
+          bodega_id?: string
+          cliente_id?: string | null
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          datos?: Json
+          deposito_destino?: string | null
+          deposito_origen?: string | null
+          descripcion?: string | null
+          estado?: Database["public"]["Enums"]["calendario_estado"]
+          fecha_fin?: string
+          fecha_inicio?: string
+          id?: string
+          observaciones?: string | null
+          prioridad?: Database["public"]["Enums"]["calendario_prioridad"]
+          producto_id?: string | null
+          proveedor_id?: string | null
+          tipo?: Database["public"]["Enums"]["calendario_tipo"]
+          titulo?: string
+          trabajo_id?: string | null
+          updated_at?: string
+          zona_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendario_eventos_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           activo: boolean
@@ -1977,6 +2102,27 @@ export type Database = {
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
+      calendario_estado:
+        | "programado"
+        | "en_proceso"
+        | "completado"
+        | "cancelado"
+        | "retrasado"
+      calendario_prioridad: "baja" | "normal" | "alta" | "critica"
+      calendario_tipo:
+        | "carga"
+        | "descarga"
+        | "trabajo"
+        | "limpieza"
+        | "trasiego"
+        | "mezcla"
+        | "embotellado"
+        | "expedicion"
+        | "mantenimiento"
+        | "incidencia"
+        | "recordatorio"
+        | "auditoria"
+        | "analisis"
       contrato_estado: "pendiente" | "parcial" | "completado" | "cancelado"
       lote_estado: "disponible" | "agotado" | "caducado" | "bloqueado"
       membership_estado: "activo" | "inactivo" | "suspendido" | "rechazado"
@@ -2145,6 +2291,29 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      calendario_estado: [
+        "programado",
+        "en_proceso",
+        "completado",
+        "cancelado",
+        "retrasado",
+      ],
+      calendario_prioridad: ["baja", "normal", "alta", "critica"],
+      calendario_tipo: [
+        "carga",
+        "descarga",
+        "trabajo",
+        "limpieza",
+        "trasiego",
+        "mezcla",
+        "embotellado",
+        "expedicion",
+        "mantenimiento",
+        "incidencia",
+        "recordatorio",
+        "auditoria",
+        "analisis",
+      ],
       contrato_estado: ["pendiente", "parcial", "completado", "cancelado"],
       lote_estado: ["disponible", "agotado", "caducado", "bloqueado"],
       membership_estado: ["activo", "inactivo", "suspendido", "rechazado"],

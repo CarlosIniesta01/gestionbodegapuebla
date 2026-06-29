@@ -12,6 +12,7 @@ import { getComparativaCentros, type CentroResumen } from "@/lib/api/centros.fun
 import { ESTADO_META } from "@/lib/bodega-data";
 import { CentroHeader } from "@/components/CentroHeader";
 import { centroIdentity } from "@/lib/centro-identity";
+import { CalendarioHoyWidget } from "@/components/calendario/CalendarioHoyWidget";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -156,6 +157,11 @@ function Inicio() {
 
         {/* Accesos rápidos */}
         <QuickActions isOperario={isOperario} />
+
+        {/* Agenda de hoy */}
+        {!isOperario && <CalendarioHoyWidget />}
+
+
 
         {/* KPIs Bodega */}
         <Section title="Bodega">

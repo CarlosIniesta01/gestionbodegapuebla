@@ -22,6 +22,7 @@ import { Route as AuthenticatedOperativaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
 import { Route as AuthenticatedComparativaRouteImport } from './routes/_authenticated/comparativa'
+import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
 import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -93,6 +94,11 @@ const AuthenticatedComparativaRoute =
     path: '/comparativa',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedBodegaRoute = AuthenticatedBodegaRouteImport.update({
   id: '/bodega',
   path: '/bodega',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/bodega': typeof AuthenticatedBodegaRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
   '/comparativa': typeof AuthenticatedComparativaRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/bodega': typeof AuthenticatedBodegaRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
   '/comparativa': typeof AuthenticatedComparativaRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
   '/_authenticated/bodega': typeof AuthenticatedBodegaRoute
+  '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/comparativa': typeof AuthenticatedComparativaRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRoute
   '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/almacen'
     | '/bodega'
+    | '/calendario'
     | '/comparativa'
     | '/contratos'
     | '/mensajes'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/almacen'
     | '/bodega'
+    | '/calendario'
     | '/comparativa'
     | '/contratos'
     | '/mensajes'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/almacen'
     | '/_authenticated/bodega'
+    | '/_authenticated/calendario'
     | '/_authenticated/comparativa'
     | '/_authenticated/contratos'
     | '/_authenticated/mensajes'
@@ -327,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComparativaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/calendario': {
+      id: '/_authenticated/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/bodega': {
       id: '/_authenticated/bodega'
       path: '/bodega'
@@ -363,6 +382,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
   AuthenticatedBodegaRoute: typeof AuthenticatedBodegaRoute
+  AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedComparativaRoute: typeof AuthenticatedComparativaRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRoute
   AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
@@ -380,6 +400,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
   AuthenticatedBodegaRoute: AuthenticatedBodegaRoute,
+  AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedComparativaRoute: AuthenticatedComparativaRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRoute,
   AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
