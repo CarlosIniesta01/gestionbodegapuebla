@@ -385,13 +385,33 @@ function MovimientoDialog({
   const needsDestino = ["entrada","trasiego","mezcla","correccion","ajuste"].includes(tipo);
 
   const needsProducto = ["entrada","trasiego","mezcla"].includes(tipo);
-  const canSave = !!tipo && !!litros && Number(litros) > 0
+
+  // ASISTENTE: cálculos derivados para hints en línea
+  const destDep = destino ? depositos.find((d: any) => d.id === destino) : null;
+  const origenDep = origen ? depositos.find((d: any) => d.id === origen) : null;
+  const litrosNum = Number(litros) || 0;
+  const prodSel = productoId ? productos.find((p) => p.id === productoId) : null;
+  const addsToDestino = needsDestino && (tipo === "entrada" || tipo === "trasiego" || tipo === "mezcla");
+  const capacidadLibre = destDep ? Math.max(0, Number(destDep.capacidad) - Number(destDep.litros)) : null;
+  const excedeCapacidad = addsToDestino && destDep && litrosNum > 0 && litrosNum > (capacidadLibre ?? Infinity);
+  const cercaCapacidad = addsToDestino && destDep && capacidadLibre != null
+    && litrosNum > 0 && !excedeCapacidad
+    && (Number(destDep.litros) + litrosNum) / Math.max(1, Number(destDep.capacidad)) >= 0.95;
+  const productoDistinto = addsToDestino && destDep && prodSel && destDep.contenido
+    && destDep.contenido.toLowerCase() !== prodSel.nombre.toLowerCase()
+    && Number(destDep.litros) > 0;
+  const excedeOrigen = (tipo === "salida" || tipo === "trasiego") && origenDep
+    && litrosNum > 0 && litrosNum > Number(origenDep.litros);
+
+  const canSave = !!tipo && !!litros && litrosNum > 0
     && (!needsOrigen || !!origen)
     && (!needsDestino || !!destino)
     && (!needsProducto || !!productoId)
+    && !excedeCapacidad
     && (!editing || motivo.trim().length >= 3);
 
   const title = editing ? "Editar movimiento (corrección)" : duplicating ? "Duplicar movimiento" : "Nuevo movimiento";
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
