@@ -291,12 +291,13 @@ export function MovimientosTab({ bodegaId }: Props) {
 }
 
 function MovimientoDialog({
-  open, onOpenChange, productos, depositos, contratosCompra, contratosVenta, onSave, editing, duplicating,
+  open, onOpenChange, productos, depositos, movs, contratosCompra, contratosVenta, onSave, editing, duplicating,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   productos: any[];
   depositos: any[];
+  movs: any[];
   contratosCompra: any[];
   contratosVenta: any[];
   editing: any | null;
@@ -320,6 +321,8 @@ function MovimientoDialog({
   const [contratoCompraId, setContratoCompraId] = useState("");
   const [contratoVentaId, setContratoVentaId] = useState("");
   const [estadoVisual, setEstadoVisual] = useState<string>("");
+  const [gradoAuto, setGradoAuto] = useState(false);
+  const [contratoAuto, setContratoAuto] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -345,7 +348,38 @@ function MovimientoDialog({
     }
     setEstadoVisual("");
     setMotivo("");
+    setGradoAuto(false);
+    setContratoAuto(false);
   }, [open, editing?.id, duplicating?.id]);
+
+  // ASISTENTE: auto-sugerir grado desde el último movimiento activo del producto
+  useEffect(() => {
+    if (!open || editing || !productoId) return;
+    if (grado && !gradoAuto) return;
+    const last = movs.find((m) => m.producto_id === productoId && m.estado_movimiento === "activo" && m.grado != null);
+    if (last?.grado != null) {
+      setGrado(String(last.grado));
+      setGradoAuto(true);
+    }
+  }, [open, productoId, movs, editing]);
+
+  // ASISTENTE: auto-sugerir contrato pendiente compatible (si hay exactamente uno)
+  useEffect(() => {
+    if (!open || editing) return;
+    if (tipo === "entrada" && productoId && !contratoCompraId) {
+      const candidatos = contratosCompra.filter((c: any) =>
+        c.estado !== "cancelado" && c.estado !== "completado" && c.producto_id === productoId
+        && Number(c.litros_pendientes) > 0);
+      if (candidatos.length === 1) { setContratoCompraId(candidatos[0].id); setContratoAuto(true); }
+    }
+    if (tipo === "salida" && productoId && !contratoVentaId) {
+      const candidatos = contratosVenta.filter((c: any) =>
+        c.estado !== "cancelado" && c.estado !== "completado" && c.producto_id === productoId
+        && Number(c.litros_pendientes) > 0);
+      if (candidatos.length === 1) { setContratoVentaId(candidatos[0].id); setContratoAuto(true); }
+    }
+  }, [open, tipo, productoId, contratosCompra, contratosVenta, editing]);
+
 
   const needsOrigen = ["salida","trasiego","mezcla","embotellado","correccion","ajuste"].includes(tipo);
   const needsDestino = ["entrada","trasiego","mezcla","correccion","ajuste"].includes(tipo);
