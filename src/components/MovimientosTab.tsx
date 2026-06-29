@@ -269,6 +269,7 @@ export function MovimientosTab({ bodegaId }: Props) {
         onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setDuplicating(null); } }}
         productos={productos}
         depositos={depositos}
+        movs={movs}
         contratosCompra={contratosCompra}
         contratosVenta={contratosVenta}
         editing={editing}
