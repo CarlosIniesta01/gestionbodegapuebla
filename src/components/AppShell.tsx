@@ -27,6 +27,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 const NAV = [
   { to: "/", label: "Inicio", icon: LayoutDashboard },
   { to: "/operativa", label: "Operativa", icon: ClipboardList },
+  { to: "/calendario", label: "Calendario", icon: Calendar },
   { to: "/procesos", label: "Procesos", icon: Workflow },
   { to: "/trabajos", label: "Trabajos", icon: Hammer },
   { to: "/pendientes", label: "Pendientes", icon: ListTodo },
