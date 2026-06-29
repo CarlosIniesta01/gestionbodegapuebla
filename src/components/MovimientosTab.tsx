@@ -487,13 +487,48 @@ function MovimientoDialog({
               <input type="number" inputMode="decimal" value={litros} onChange={(e) => setLitros(e.target.value)} className={cls} />
             </Field>
             <Field label="Grado (°)">
-              <input type="number" inputMode="decimal" step="0.1" value={grado} onChange={(e) => setGrado(e.target.value)} className={cls} placeholder="12.5" />
+              <input
+                type="number" inputMode="decimal" step="0.1"
+                value={grado}
+                onChange={(e) => { setGrado(e.target.value); setGradoAuto(false); }}
+                className={cls} placeholder="12.5"
+              />
+              {gradoAuto && grado && (
+                <p className="text-[10px] text-sky-600 mt-1">Sugerido del último movimiento del producto. Editable.</p>
+              )}
             </Field>
           </div>
+
+          {/* ASISTENTE: avisos en línea */}
+          {(excedeCapacidad || cercaCapacidad || productoDistinto || excedeOrigen) && (
+            <div className="space-y-1.5">
+              {excedeCapacidad && destDep && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-700">
+                  Excede capacidad del destino: disponibles {capacidadLibre?.toLocaleString("es-ES")} L.
+                </div>
+              )}
+              {!excedeCapacidad && cercaCapacidad && destDep && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700">
+                  El destino quedará a ≥95% de su capacidad.
+                </div>
+              )}
+              {productoDistinto && destDep && prodSel && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700">
+                  El destino ya contiene <b>{destDep.contenido}</b>, distinto de <b>{prodSel.nombre}</b>.
+                </div>
+              )}
+              {excedeOrigen && origenDep && (
+                <div className="text-[11px] px-2 py-1.5 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-700">
+                  Litros superiores al contenido del origen ({Number(origenDep.litros).toLocaleString("es-ES")} L).
+                </div>
+              )}
+            </div>
+          )}
 
           <Field label="Observaciones">
             <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} className={cls} />
           </Field>
+
 
           {tipo === "entrada" && (
             <Field label="Contrato de compra (opcional)">
