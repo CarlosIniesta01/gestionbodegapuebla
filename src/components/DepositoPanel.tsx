@@ -193,9 +193,14 @@ function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobil
           )}
         </Section>
 
+        <Section icon={Sparkles} title="Próxima acción recomendada">
+          <RecomendacionDeposito deposito={deposito} pct={pct} />
+        </Section>
+
         <Section icon={History} title="Último movimiento">
           <div className="text-sm">{deposito.ultimoMovimiento ?? "Sin movimientos recientes"}</div>
         </Section>
+
 
 
         <Section icon={Activity} title="Acciones rápidas">
