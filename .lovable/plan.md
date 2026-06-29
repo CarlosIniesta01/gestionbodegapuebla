@@ -1,108 +1,115 @@
 
-# FASE 7 — Gestión Multicentro Operativa
+# Fase 8 — Optimización Operativa Inteligente
 
-Sin tocar movimientos, existencias, contratos, trabajos, auditoría, depósitos, naves ni mapas. Solo añadir la capa de **contexto de centro** sobre el ERP actual.
+Mejora de flujo, UX y automatización sobre el núcleo ya estable. **Sin cambios en BBDD** salvo dos vistas de lectura. Sin tocar cálculos de movimientos, existencias, contratos ni auditoría.
 
-## 1. Núcleo: selector de centro activo
+## Alcance por bloques
 
-Hoy `useActiveBodega` coge siempre la **primera** bodega del listado. Eso es el cuello de botella: ningún módulo puede contextualizarse por centro.
+### 1. Asistente de Movimientos (MovimientosTab + diálogo nuevo)
+- Al elegir **producto + depósito**, autocompletar:
+  - grado habitual desde último movimiento activo del producto
+  - estado visual y color recomendado según tipo (entrada→Vino/Fermentación, salida→Vacío si queda 0L)
+  - contrato compatible sugerido (mismo producto, pendiente, mismo centro)
+  - depósito destino sugerido en trasiegos (mismo producto o vacío con capacidad suficiente)
+- Avisos en línea (no bloqueantes salvo capacidad):
+  - "Depósito al 95%" / "Excede capacidad: X L disponibles" (bloqueante)
+  - "Producto distinto al contenido actual: ENOCIANINA vs TINTO" (warning)
+  - "Cantidad supera pendiente del contrato" (bloqueante, ya existe vía trigger SQL)
+- Campos opcionales en el form: `estado_visual_destino`, `color_destino`. Al guardar, `sincronizarDepositos` ya recalcula; añadir override visual si el usuario lo fijó manualmente.
 
-- Crear `src/lib/active-bodega-context.tsx` con un `ActiveBodegaProvider` montado en `_authenticated/route.tsx`.
-- Estado persistido en `localStorage` (`vinea.activeBodegaId`) más un flag `viewMode: "centro" | "global"`.
-- Reescribir `useActiveBodega()` para leer del contexto en vez de devolver el primero. API retrocompatible (`bodegaId`, `bodega`, `bodegas`) + nuevos: `setActiveBodegaId`, `viewMode`, `setViewMode`, `isGlobal`.
+### 2. Panel inteligente de depósito (DepositoPanel)
+Ampliar el panel actual con nuevas secciones que leen de queries existentes:
+- Trabajos abiertos (filtro `trabajos` por `deposito_id`, estado != finalizado)
+- Trabajadores asignados a esos trabajos
+- Contratos relacionados (vía producto contenido + contratos pendientes del centro)
+- Consumos enológicos recientes asociados
+- Incidencias abiertas (eventos de trabajo con tipo incidencia)
+- **Próxima acción recomendada** (regla local):
+  - 0L → "Disponible para nueva entrada"
+  - ≥95% → "Evitar nuevas entradas"
+  - trabajo abierto → "Finalizar trabajo pendiente"
+  - sin movimientos 90 días → "Sin actividad reciente, revisar"
+  - producto con contrato venta pendiente → "Producto vinculado a contrato de venta"
 
-Resultado: todos los módulos existentes (Dashboard, Trabajos, Mapa, Movimientos, Contratos, Posición Comercial, Almacén) pasan automáticamente a filtrar por el centro seleccionado sin tocar su código — ya leen `bodegaId` de ese hook.
+### 3. Buscador global (GlobalSearch en AppShell topbar)
+- Componente `GlobalSearch.tsx` con cmdk (`@/components/ui/command`), atajo `Ctrl/Cmd+K`.
+- Server fn `searchGlobal({ q, bodegaId, scope })` que consulta en paralelo:
+  - `depositos` (vía `bodega_maps` JSON), `productos_comerciales`, `productos`, `producto_lotes`, `contratos_compra`, `contratos_venta`, `clientes`, `proveedores`, `trabajos`, `movimientos` (por código), `bodegas`.
+  - Limita a 5 por categoría, total 30. ILIKE por nombre/código/numero.
+  - Respeta `bodegaId` del centro activo (filtra por columna `bodega_id`); en visión global no filtra.
+- Resultados navegan a la ruta correcta (ej. depósito → `/bodega` con queryparam que abre panel; contrato → `/contratos?id=...`; lote → `/almacen?lote=...`).
 
-## 2. Selector en la barra superior
+### 4. Alertas inteligentes
+- Server fn `getAlertas({ bodegaId | global })` que computa 13 reglas leyendo vistas existentes (`existencias_actuales`, `v_posicion_comercial`, `v_contratos_*_pendientes`, `producto_lotes`, `trabajos`, `bodega_maps`).
+- Componente `AlertasPanel.tsx` reutilizable. Insertado en:
+  - Dashboard (sección "Alertas operativas")
+  - CentroHeader (badge con contador clicable)
+  - DepositoPanel (alertas del propio depósito)
+  - Almacén Enológico (caducidades / stock)
+  - Posición Comercial (disponible negativo)
+- Cada alerta tiene severidad (info/warn/danger), enlace de acción y filtro por centro.
 
-- En `AppShell.tsx`, añadir un `BodegaSwitcher` (dropdown) visible en desktop y móvil, con:
-  - lista de centros del usuario (`bodegas` de membresías)
-  - color identificativo + icono por centro
-  - opción **"Visión global"** al final
-  - el centro activo se muestra con su color como acento de la cabecera (borde superior 2px)
+### 5. Vista Procesos Operativos
+- Nueva ruta `/_authenticated/procesos`.
+- Agrupa registros existentes en buckets (recepción, trasiego, mezcla, corrección, limpieza, embotellado, expedición) derivados de `movimientos.tipo` + `trabajos.tipo`.
+- Server fn `listProcesos({ bodegaId })` une movimientos activos recientes y trabajos abiertos en un timeline con columnas: estado, origen, destino, producto, trabajadores, fechas, incidencias.
+- Sólo lectura + acciones rápidas (abrir trabajo / abrir movimiento).
 
-- Colores asignados de forma estable por hash de `bodega.id` desde una paleta corporativa suave de 8 tonos definida en `src/lib/centro-identity.ts` (color, icono lucide, iniciales).
+### 6. Reducción de clics
+- En **MapToolbar**: botón "+ Movimiento" abre el asistente con depósito pre-seleccionado si hay uno activo.
+- En **DepositoPanel**: las acciones rápidas existentes (trasiego/limpieza/producto) pasan a abrir directamente el diálogo de movimiento con tipo y depósito precargados.
+- En **ContratoFormDialog**: botón "Registrar movimiento" abre el asistente con contrato precargado.
+- En **ProductosTab**: botón "Registrar consumo" precarga producto.
 
-## 3. Herencia automática de centro
+### 7. Accesos rápidos contextuales
+- Helper `useQuickActions(context)` que devuelve lista de acciones según contexto (deposito/contrato/producto/centro). Render en `DepositoPanel`, `ContratosTab`, `ProductosTab`, `CentroHeader`.
 
-Los formularios actuales (movimientos, trabajos, incidencias, consumos, contratos) ya reciben `bodegaId` del hook. Verificar y, donde falte, fijar `defaultValues.bodega_id = activeBodegaId` y bloquear el campo (no editable) cuando hay centro activo. Sin cambios en validación servidor.
+### 8. Multicentro
+- Todas las server fns nuevas reciben `bodegaId` opcional; si `viewMode==='global'`, no filtran.
+- Las creaciones (movimiento desde asistente, trabajo desde quick action) heredan `bodegaId` del contexto activo.
 
-## 4. Cabecera de contexto + resumen del centro
+### 9. Validación
+- Build verde + smoke browser:
+  - Crear movimiento entrada con asistente → mapa muestra producto y estado sin editar.
+  - Abrir depósito → panel muestra recomendación.
+  - `Cmd+K` → buscar "D-38", "Enocianina", "Lote", "Finca" devuelve resultados.
+  - Dashboard muestra alertas; al cambiar centro, recalcula.
+  - `/procesos` carga sin errores.
 
-Nuevo componente `CentroHeader` (mostrado en Dashboard, Bodega, Operativa) con:
+## Cambios técnicos resumidos
 
-- Nombre del centro + color
-- Chips: capacidad total, litros actuales, ocupación %, depósitos ocupados/vacíos, trabajos abiertos, incidencias, movimientos del día, trasiegos activos, contratos pendientes, lotes próximos a caducar.
+**Nuevos archivos:**
+- `src/components/movimientos/MovimientoAsistenteDialog.tsx`
+- `src/components/GlobalSearch.tsx`
+- `src/components/AlertasPanel.tsx`
+- `src/components/ProcesosTimeline.tsx`
+- `src/lib/api/search.functions.ts`
+- `src/lib/api/alertas.functions.ts`
+- `src/lib/api/procesos.functions.ts`
+- `src/lib/quick-actions.ts`
+- `src/routes/_authenticated/procesos.tsx`
 
-Datos vía nuevo server fn `getCentroResumen({ bodegaId })` en `src/lib/api/centros.functions.ts` — solo SELECTs sobre tablas existentes; nada se escribe.
+**Modificados:**
+- `src/components/AppShell.tsx` (montar GlobalSearch + atajo)
+- `src/components/MovimientosTab.tsx` (asistente + sugerencias)
+- `src/components/DepositoPanel.tsx` (secciones extra + recomendación)
+- `src/components/BodegaCanvas.tsx` (pasar contexto al panel)
+- `src/components/CentroHeader.tsx` (badge alertas)
+- `src/routes/_authenticated/index.tsx` (AlertasPanel)
+- `src/routes/_authenticated/posicion-comercial.tsx` (AlertasPanel)
+- `src/routes/_authenticated/almacen.tsx` (AlertasPanel)
 
-## 5. Nueva ruta: Operativa del centro
+**Base de datos:** sólo lectura. No se crean tablas. Opcional: una vista `v_alertas_operativas` si la lógica resulta pesada en TS — decisión durante implementación. Sin migraciones destructivas.
 
-`src/routes/_authenticated/operativa.tsx` + entrada en `AppShell` ("Operativa", icono `ClipboardList`).
+## Riesgos y mitigación
+- Búsqueda sobre JSON de `bodega_maps`: filtrar en server con LIMIT y proyección mínima.
+- Asistente no debe bloquear guardado por warnings (solo capacidad excedida y contrato sobre-asignado).
+- Mantener `sincronizarDepositos` como única vía de actualización del mapa salvo override explícito del usuario.
 
-Secciones (todo SELECT-only, filtrado por `activeBodegaId`):
-- Trabajos pendientes / en curso / vencidos / finalizados hoy
-- Movimientos del día
-- Incidencias abiertas
-- Depósitos en limpieza
-- Trasiegos activos
-- Depósitos con ocupación > 90 %
-- Consumos pendientes
-- Tareas bloqueadas
+## Entrega por iteraciones
+Dado el volumen, propongo dividir la implementación en 3 PRs/turnos:
+1. Buscador global + Alertas + ruta Procesos (mayor impacto inmediato)
+2. Asistente de Movimientos + panel inteligente ampliado
+3. Accesos rápidos contextuales + reducción de clics + pulido
 
-Layout en tarjetas tipo dashboard, mismo lenguaje visual que `/`.
-
-## 6. Dashboard: selector Centro / Global
-
-En `routes/_authenticated/index.tsx` añadir, junto a la cabecera, el toggle `[Centro actual] [Global]` ligado a `viewMode` del contexto.
-
-- `centro`: query existente `getDashboard({ bodegaId })` sin cambios.
-- `global`: nuevo `getDashboardGlobal()` que itera por las bodegas del usuario y suma KPIs / concatena alertas, agrupando por centro en las tablas.
-
-## 7. Nueva ruta: Comparativa de centros
-
-`src/routes/_authenticated/comparativa.tsx` + entrada en `AppShell` ("Comparativa", icono `GitCompare`).
-
-Tabla con columnas: Centro · Capacidad · Litros · Ocupación % · Dep. ocupados · Dep. vacíos · Trabajos abiertos · Incidencias · Contratos pendientes · Disponible comercial. Orden por cualquier columna, color del centro en la primera celda.
-
-Datos vía `getComparativaCentros()` (server fn) que reutiliza `getCentroResumen` por bodega.
-
-## 8. Mapa de Bodega
-
-Sin cambios estructurales. Solo:
-- Cabecera del mapa usa `CentroHeader`.
-- Borde superior con el color del centro activo.
-- Título "Mapa — {centro}".
-
-## 9. Visión global rápida
-
-El toggle del paso 6 sirve también desde la cabecera (botón "Ver global" en `CentroHeader`) para alternar sin volver al Dashboard.
-
-## Validación
-
-- Cambiar de centro recalcula Dashboard, Trabajos, Movimientos, Existencias, Mapa, Posición Comercial.
-- Crear un movimiento/trabajo desde un centro hereda ese `bodega_id`.
-- Modo Global muestra consolidado y desglose por centro.
-- Comparativa ordena correctamente.
-- No se altera ninguna fila existente en BD.
-
-## Detalles técnicos
-
-- Sin migraciones SQL. Todas las tablas relevantes ya tienen `bodega_id`.
-- Nuevos archivos:
-  - `src/lib/active-bodega-context.tsx`
-  - `src/lib/centro-identity.ts`
-  - `src/lib/api/centros.functions.ts`
-  - `src/components/BodegaSwitcher.tsx`
-  - `src/components/CentroHeader.tsx`
-  - `src/routes/_authenticated/operativa.tsx`
-  - `src/routes/_authenticated/comparativa.tsx`
-- Editados:
-  - `src/hooks/use-active-bodega.ts` (lee del contexto)
-  - `src/routes/_authenticated/route.tsx` (envuelve con provider)
-  - `src/components/AppShell.tsx` (switcher + 2 entradas nav)
-  - `src/routes/_authenticated/index.tsx` (toggle centro/global + CentroHeader)
-  - `src/components/BodegaCanvas.tsx` (CentroHeader, color de centro)
-  - `src/lib/api/dashboard.functions.ts` (añadir `getDashboardGlobal`)
-
-Sin tocar lógica de movimientos, existencias, contratos, trabajos, auditoría ni el cálculo de KPIs ya existente: solo se agrega contexto y vistas nuevas que **leen** los mismos datos.
+¿Apruebas el plan o quieres que empiece directamente por una iteración concreta (por ejemplo, sólo buscador + alertas)?
