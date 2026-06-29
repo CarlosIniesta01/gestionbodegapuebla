@@ -157,6 +157,11 @@ function Inicio() {
         {/* Accesos rápidos */}
         <QuickActions isOperario={isOperario} />
 
+        {/* Agenda de hoy */}
+        {!isOperario && <CalendarioHoyWidget />}
+
+
+
         {/* KPIs Bodega */}
         <Section title="Bodega">
           <KpiGrid>
