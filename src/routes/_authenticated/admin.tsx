@@ -300,15 +300,16 @@ function AdminKpis({ bodegaId, onNavigate }: { bodegaId: string; onNavigate: (s:
   const countsQ = useQuery({
     queryKey: ["admin", "kpiCounts", bodegaId],
     queryFn: async () => {
-      const [prodEnol, prodCom, contratos] = await Promise.all([
+      const [prodEnol, prodCom, contratosC, contratosV] = await Promise.all([
         supabase.from("productos").select("id", { count: "exact", head: true }).eq("bodega_id", bodegaId),
         supabase.from("productos_comerciales").select("id", { count: "exact", head: true }).eq("bodega_id", bodegaId),
-        supabase.from("contratos").select("id", { count: "exact", head: true }).eq("bodega_id", bodegaId).eq("estado", "activo"),
+        (supabase as any).from("contratos_compra").select("id", { count: "exact", head: true }).eq("bodega_id", bodegaId).eq("estado", "activo"),
+        (supabase as any).from("contratos_venta").select("id", { count: "exact", head: true }).eq("bodega_id", bodegaId).eq("estado", "activo"),
       ]);
       return {
         prodEnol: prodEnol.count ?? 0,
         prodCom: prodCom.count ?? 0,
-        contratos: contratos.count ?? 0,
+        contratos: (contratosC.count ?? 0) + (contratosV.count ?? 0),
       };
     },
   });
