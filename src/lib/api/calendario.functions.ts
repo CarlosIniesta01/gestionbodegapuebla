@@ -49,7 +49,7 @@ async function detectConflicts(supabase: any, bodegaId: string, input: {
 }) {
   const conflictos: string[] = [];
   const { fechaInicio, fechaFin } = input;
-  let q = supabase.from("calendario_eventos")
+  let q = (supabase as any).from("calendario_eventos")
     .select("id,titulo,deposito_origen,deposito_destino,fecha_inicio,fecha_fin")
     .eq("bodega_id", bodegaId)
     .neq("estado", "cancelado")
@@ -162,13 +162,13 @@ export const createEvento = createServerFn({ method: "POST" })
       datos: data.datos, observaciones: data.observaciones ?? null,
       created_by: userId,
     };
-    const { data: row, error } = await supabase.from("calendario_eventos").insert(payload as any).select("*").single();
+    const { data: row, error } = await (supabase as any).from("calendario_eventos").insert(payload as any).select("*").single();
     if (error) throw new Error(error.message);
     if (data.trabajadores.length) {
       const inserts = data.trabajadores.map((uid) => ({
         evento_id: row.id, user_id: uid, bodega_id: data.bodegaId,
       }));
-      const { error: e2 } = await supabase.from("calendario_evento_trabajadores").insert(inserts as any);
+      const { error: e2 } = await (supabase as any).from("calendario_evento_trabajadores").insert(inserts as any);
       if (e2) throw new Error(e2.message);
     }
     return { ok: true, evento: row, conflictos } as const;
@@ -197,15 +197,15 @@ export const updateEvento = createServerFn({ method: "POST" })
     if (data.fechaInicio && data.fechaFin && data.fechaFin <= data.fechaInicio) {
       throw new Error("La fecha de fin debe ser posterior al inicio");
     }
-    const { error } = await supabase.from("calendario_eventos").update(patch).eq("id", data.id);
+    const { error } = await (supabase as any).from("calendario_eventos").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     if (data.trabajadores) {
-      await supabase.from("calendario_evento_trabajadores").delete().eq("evento_id", data.id);
+      await (supabase as any).from("calendario_evento_trabajadores").delete().eq("evento_id", data.id);
       if (data.trabajadores.length) {
         const inserts = data.trabajadores.map((uid) => ({
           evento_id: data.id, user_id: uid, bodega_id: data.bodegaId,
         }));
-        await supabase.from("calendario_evento_trabajadores").insert(inserts as any);
+        await (supabase as any).from("calendario_evento_trabajadores").insert(inserts as any);
       }
     }
     return { ok: true };
@@ -225,7 +225,7 @@ export const deleteEvento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("calendario_eventos").delete().eq("id", data.id);
+    const { error } = await context.(supabase as any).from("calendario_eventos").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -237,7 +237,7 @@ export const eventosHoy = createServerFn({ method: "POST" })
     const { supabase } = context;
     const start = new Date(); start.setHours(0,0,0,0);
     const end = new Date(); end.setHours(23,59,59,999);
-    let q = supabase.from("calendario_eventos")
+    let q = (supabase as any).from("calendario_eventos")
       .select("id,titulo,tipo,estado,prioridad,fecha_inicio,fecha_fin,deposito_origen,deposito_destino,bodega_id")
       .gte("fecha_fin", start.toISOString())
       .lte("fecha_inicio", end.toISOString())
@@ -246,7 +246,7 @@ export const eventosHoy = createServerFn({ method: "POST" })
     const { data: hoy, error } = await q;
     if (error) throw new Error(error.message);
 
-    let qr = supabase.from("calendario_eventos")
+    let qr = (supabase as any).from("calendario_eventos")
       .select("id,titulo,tipo,estado,fecha_inicio,bodega_id")
       .lt("fecha_inicio", new Date().toISOString())
       .in("estado", ["programado","en_proceso","retrasado"])
@@ -255,7 +255,7 @@ export const eventosHoy = createServerFn({ method: "POST" })
     if (data.bodegaId) qr = qr.eq("bodega_id", data.bodegaId);
     const { data: retrasados } = await qr;
 
-    let qc = supabase.from("calendario_eventos")
+    let qc = (supabase as any).from("calendario_eventos")
       .select("id,titulo,tipo,fecha_inicio,prioridad,bodega_id")
       .gt("fecha_inicio", new Date().toISOString())
       .in("prioridad", ["alta","critica"])
