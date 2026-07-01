@@ -203,3 +203,19 @@
     100% { transform: translateY(0px); }
   }
 }
+
+/* ============ Informes de trazabilidad — A4 ============ */
+.informe-page {
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  page-break-after: always;
+  background: #ffffff;
+  color: #0f172a;
+}
+@media print {
+  .informe-root { gap: 0; }
+  .informe-page { box-shadow: none !important; border: 0 !important; margin: 0 !important; }
+  body { background: #ffffff !important; }
+  @page { size: A4; margin: 0; }
+}
