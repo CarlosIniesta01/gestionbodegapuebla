@@ -38,6 +38,7 @@ const NAV = [
   { to: "/almacen", label: "Almacén enológico", icon: Beaker },
   { to: "/contratos", label: "Contratos", icon: FileText },
   { to: "/posicion-comercial", label: "Posición Comercial", icon: BarChart3 },
+  { to: "/informes", label: "Trazabilidad · Informes", icon: FileText },
   { to: "/comparativa", label: "Comparativa", icon: GitCompare },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
