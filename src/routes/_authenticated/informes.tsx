@@ -74,9 +74,16 @@ function InformesPage() {
               <Select value={bodegaId ?? ""} onValueChange={(v) => setActiveBodegaId(v)}>
                 <SelectTrigger><SelectValue placeholder="Selecciona centro…" /></SelectTrigger>
                 <SelectContent>
-                  {(bodegas ?? []).map((b: any) => (
-                    <SelectItem key={b.id} value={b.id}>{b.nombre}</SelectItem>
-                  ))}
+                  {(bodegas ?? []).map((b: any) => {
+                    const id = b.bodega_id ?? b.id;
+                    const nombre = b.bodega?.nombre ?? b.nombre ?? "Centro";
+                    return <SelectItem key={id} value={id}>{nombre}</SelectItem>;
+                  })}
+                  {(!bodegas || bodegas.length === 0) && (
+                    <div className="px-3 py-4 text-center text-xs text-muted-foreground">
+                      No tienes centros asignados.
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
