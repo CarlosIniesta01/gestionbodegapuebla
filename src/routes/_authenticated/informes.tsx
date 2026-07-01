@@ -41,6 +41,14 @@ function InformesPage() {
   const [ocultarSensibles, setOcultarSensibles] = React.useState(false);
   const [showPreview, setShowPreview] = React.useState(false);
 
+  // Auto-selecciona el primer centro del usuario si no hay uno activo (paridad con BodegaSwitcher).
+  React.useEffect(() => {
+    if (bodegaId || !bodegas || bodegas.length === 0) return;
+    const first = (bodegas as any[])[0];
+    const firstId = first?.bodega_id ?? first?.id;
+    if (firstId) setActiveBodegaId(firstId);
+  }, [bodegaId, bodegas, setActiveBodegaId]);
+
   const listLotesFn = useServerFn(listLotes);
   const lotesQ = useQuery({
     queryKey: ["informes-lotes", bodegaId],
