@@ -194,7 +194,7 @@ function CategoryContent({ category, config, ctx, hidden }: any) {
   if (category === "procesos") return <ProcesosContent on={on} dto={dto} hidden={hidden} />;
   if (category === "productos") return <ProductosContent on={on} dto={dto} hidden={hidden} />;
   if (category === "operarios") return <OperariosContent on={on} dto={dto} hidden={hidden} />;
-  if (category === "analiticas") return <AnaliticasContent on={on} hidden={hidden} />;
+  if (category === "analiticas") return <AnaliticasContent on={on} dto={dto} hidden={hidden} />;
   if (category === "auditoria") return <AuditoriaContent on={on} dto={dto} hidden={hidden} />;
   if (category === "trazabilidad") return <TrazaContent on={on} dto={dto} hidden={hidden} />;
   return null;
