@@ -188,6 +188,7 @@ export const getTrazabilidadLote = createServerFn({ method: "POST" })
       perfilesR,
       auditoriaLoteR,
       auditoriaConsumosR,
+      analiticasR,
     ] = await Promise.all([
       trabajosP,
       trabajadoresTrabajoP,
@@ -198,12 +199,28 @@ export const getTrazabilidadLote = createServerFn({ method: "POST" })
       perfilesP,
       auditoriaLoteP,
       auditoriaConsumosP,
+      analiticasP,
     ] as any);
 
     // Perfiles auxiliares (autorizadores extra en auditoría)
     const perfilesMap = new Map<string, { nombre?: string; email?: string }>();
     for (const p of (perfilesR.data ?? []) as any[]) {
       perfilesMap.set(p.user_id, { nombre: p.nombre, email: p.email });
+    }
+
+    // Perfiles adicionales para analíticas (realizado_por)
+    const analiticasSafe = (analiticasR.data ?? []) as any[];
+    const analiticaUserIds = Array.from(
+      new Set(analiticasSafe.flatMap((a) => [a.realizado_por, a.created_by]).filter(Boolean) as string[])
+    ).filter((id) => !perfilesMap.has(id));
+    if (analiticaUserIds.length) {
+      const { data: extraPerfiles } = await supabase
+        .from("profiles")
+        .select("user_id, nombre, email")
+        .in("user_id", analiticaUserIds);
+      for (const p of (extraPerfiles ?? []) as any[]) {
+        perfilesMap.set(p.user_id, { nombre: p.nombre, email: p.email });
+      }
     }
 
     return {
@@ -220,8 +237,10 @@ export const getTrazabilidadLote = createServerFn({ method: "POST" })
       depositos: depositoIds,
       auditoriaLote: (auditoriaLoteR.data ?? []) as any[],
       auditoriaConsumos: (auditoriaConsumosR.data ?? []) as any[],
+      analiticas: analiticasSafe,
       roleKey,
     };
   });
+
 
 export type TrazabilidadLoteDTO = Awaited<ReturnType<typeof getTrazabilidadLote>>;
