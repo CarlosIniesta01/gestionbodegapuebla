@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { listLotes } from "@/lib/api/lotes.functions";
+import { getTrazabilidadLote } from "@/lib/api/trazabilidad.functions";
 
 import { BUILTIN_PROFILES, getBuiltinProfile, type InformeConfig } from "@/lib/informes/profiles";
 import { loadCustomProfiles, saveCustomProfile, deleteCustomProfile, type CustomProfile } from "@/lib/informes/storage";
@@ -70,7 +71,13 @@ function InformesPage() {
     enabled: !!bodegaId,
   });
   const lotes = lotesQ.data ?? [];
-  const lote = React.useMemo(() => lotes.find((l: any) => l.id === loteId), [lotes, loteId]);
+
+  const getTrazaFn = useServerFn(getTrazabilidadLote);
+  const trazaQ = useQuery({
+    queryKey: ["informe-traza", bodegaId, loteId],
+    queryFn: () => getTrazaFn({ data: { bodegaId: bodegaId!, loteId: loteId! } }),
+    enabled: !!bodegaId && !!loteId,
+  });
 
   const pickProfile = (id: string) => {
     setActiveProfileId(id);
@@ -196,10 +203,20 @@ function InformesPage() {
             />
           </aside>
           <div className="min-w-0">
-            <InformeRenderer
-              config={config}
-              ctx={{ lote, bodega, tipoLabel, fecha, roleKey }}
-            />
+            {trazaQ.isLoading ? (
+              <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+                Cargando trazabilidad del lote…
+              </div>
+            ) : trazaQ.error ? (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-sm text-destructive">
+                Error cargando la trazabilidad: {(trazaQ.error as Error).message}
+              </div>
+            ) : (
+              <InformeRenderer
+                config={config}
+                ctx={{ data: trazaQ.data, tipoLabel, fecha, roleKey }}
+              />
+            )}
           </div>
         </div>
       ) : (
