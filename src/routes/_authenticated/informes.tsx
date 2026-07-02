@@ -16,6 +16,8 @@ import { BUILTIN_PROFILES, getBuiltinProfile, type InformeConfig } from "@/lib/i
 import { loadCustomProfiles, saveCustomProfile, deleteCustomProfile, type CustomProfile } from "@/lib/informes/storage";
 import { BlockConfigurator, ProfilePicker } from "@/components/informes/BlockConfigurator";
 import { InformeRenderer } from "@/components/informes/InformeRenderer";
+import { AnaliticasManager } from "@/components/informes/AnaliticasManager";
+
 
 export const Route = createFileRoute("/_authenticated/informes")({
   head: () => ({
