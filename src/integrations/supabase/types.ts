@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      analiticas_lote: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          created_by: string | null
+          deposito_id: string | null
+          fecha: string
+          id: string
+          lote_id: string
+          observaciones: string | null
+          parametro: string
+          producto_id: string | null
+          realizado_por: string | null
+          resultado_estado: Database["public"]["Enums"]["analitica_estado"]
+          unidad: string | null
+          updated_at: string
+          updated_by: string | null
+          valor: number | null
+          valor_texto: string | null
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          created_by?: string | null
+          deposito_id?: string | null
+          fecha?: string
+          id?: string
+          lote_id: string
+          observaciones?: string | null
+          parametro: string
+          producto_id?: string | null
+          realizado_por?: string | null
+          resultado_estado?: Database["public"]["Enums"]["analitica_estado"]
+          unidad?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number | null
+          valor_texto?: string | null
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          created_by?: string | null
+          deposito_id?: string | null
+          fecha?: string
+          id?: string
+          lote_id?: string
+          observaciones?: string | null
+          parametro?: string
+          producto_id?: string | null
+          realizado_por?: string | null
+          resultado_estado?: Database["public"]["Enums"]["analitica_estado"]
+          unidad?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number | null
+          valor_texto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analiticas_lote_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auditoria: {
         Row: {
           accion: string
@@ -2102,6 +2170,7 @@ export type Database = {
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
+      analitica_estado: "conforme" | "no_conforme" | "pendiente"
       calendario_estado:
         | "programado"
         | "en_proceso"
@@ -2291,6 +2360,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      analitica_estado: ["conforme", "no_conforme", "pendiente"],
       calendario_estado: [
         "programado",
         "en_proceso",
