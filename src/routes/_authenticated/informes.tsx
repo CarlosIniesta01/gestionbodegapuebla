@@ -194,17 +194,27 @@ function InformesPage() {
       {/* Paso 4-5: constructor + preview */}
       {loteId ? (
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
-          <aside className="print:hidden rounded-xl border border-border bg-card p-4 shadow-sm">
-            <BlockConfigurator
-              config={config}
-              setConfig={setConfig}
-              customProfiles={customProfiles}
-              onSaveProfile={onSaveProfile}
-              onDeleteProfile={onDeleteProfile}
-              onLoadProfile={pickProfile}
-            />
+          <aside className="print:hidden space-y-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <BlockConfigurator
+                config={config}
+                setConfig={setConfig}
+                customProfiles={customProfiles}
+                onSaveProfile={onSaveProfile}
+                onDeleteProfile={onDeleteProfile}
+                onLoadProfile={pickProfile}
+              />
+            </div>
+            {bodegaId && loteId && (
+              <AnaliticasManager
+                bodegaId={bodegaId}
+                loteId={loteId}
+                productoId={(trazaQ.data as any)?.lote?.producto_id ?? null}
+              />
+            )}
           </aside>
           <div className="min-w-0">
+
             {trazaQ.isLoading ? (
               <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 Cargando trazabilidad del lote…
