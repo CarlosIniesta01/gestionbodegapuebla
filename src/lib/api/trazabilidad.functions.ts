@@ -168,6 +168,16 @@ export const getTrazabilidadLote = createServerFn({ method: "POST" })
           .limit(200)
       : Promise.resolve({ data: [] as any[] });
 
+    // 13) Analíticas del lote
+    const analiticasP = supabase
+      .from("analiticas_lote")
+      .select("*")
+      .eq("bodega_id", data.bodegaId)
+      .eq("lote_id", data.loteId)
+      .order("fecha", { ascending: true })
+      .order("created_at", { ascending: true });
+
+
     const [
       trabajosR,
       trabajadoresTrabajoR,
