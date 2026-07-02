@@ -439,19 +439,95 @@ function OperariosContent({ on, dto, hidden }: any) {
   );
 }
 
-/* ---- Analíticas ---- (aún sin origen de datos vinculado a lote) */
-function AnaliticasContent({ on, hidden }: any) {
+/* ---- Analíticas ---- */
+function AnaliticasContent({ on, dto, hidden }: any) {
   if (hidden.analiticas) return <Restricted what="analíticas" />;
-  if (!on("analiticas.mostrar") && !on("analiticas.parametros") && !on("analiticas.evolucion")
-    && !on("analiticas.graficos") && !on("analiticas.observaciones"))
-    return <Empty>Sin bloques de analíticas activos.</Empty>;
+  const anyOn =
+    on("analiticas.mostrar") || on("analiticas.parametros") || on("analiticas.evolucion") ||
+    on("analiticas.graficos") || on("analiticas.observaciones");
+  if (!anyOn) return <Empty>Sin bloques de analíticas activos.</Empty>;
+
+  const rows: any[] = dto?.analiticas ?? [];
+  if (rows.length === 0) return <Empty>No hay analíticas registradas para este lote.</Empty>;
+
+  const showObs = on("analiticas.observaciones") && !hidden.observaciones;
+  const showEvol = on("analiticas.evolucion");
+
+  const estadoBadge = (e: string) => {
+    const map: Record<string, string> = {
+      conforme: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      no_conforme: "bg-red-100 text-red-800 border-red-200",
+      pendiente: "bg-amber-100 text-amber-800 border-amber-200",
+    };
+    const label: Record<string, string> = {
+      conforme: "Conforme", no_conforme: "No conforme", pendiente: "Pendiente",
+    };
+    return <span className={`text-[10px] px-1.5 py-0.5 rounded border ${map[e] ?? ""}`}>{label[e] ?? e}</span>;
+  };
+
+  // Agrupar por parámetro para "evolución"
+  const porParametro = new Map<string, any[]>();
+  for (const r of rows) {
+    const arr = porParametro.get(r.parametro) ?? [];
+    arr.push(r);
+    porParametro.set(r.parametro, arr);
+  }
+
   return (
-    <Empty>
-      No hay analíticas registradas para este lote. (El módulo de analíticas por lote
-      aún no está conectado; se añadirá cuando exista la tabla de origen.)
-    </Empty>
+    <div className="space-y-4">
+      <table className="w-full text-xs border-collapse">
+        <thead className="bg-emerald-50 text-emerald-800">
+          <tr>
+            <th className="border border-emerald-100 px-2 py-1.5 text-left">Fecha</th>
+            <th className="border border-emerald-100 px-2 py-1.5 text-left">Parámetro</th>
+            <th className="border border-emerald-100 px-2 py-1.5 text-right">Valor</th>
+            <th className="border border-emerald-100 px-2 py-1.5 text-left">Unidad</th>
+            <th className="border border-emerald-100 px-2 py-1.5 text-left">Estado</th>
+            <th className="border border-emerald-100 px-2 py-1.5 text-left">Realizado por</th>
+            {showObs && <th className="border border-emerald-100 px-2 py-1.5 text-left">Observaciones</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id}>
+              <td className="border border-slate-200 px-2 py-1.5">{fmtDate(r.fecha)}</td>
+              <td className="border border-slate-200 px-2 py-1.5">{r.parametro}</td>
+              <td className="border border-slate-200 px-2 py-1.5 text-right">
+                {r.valor != null ? fmtNum(r.valor, 3) : (r.valor_texto ?? "—")}
+              </td>
+              <td className="border border-slate-200 px-2 py-1.5">{r.unidad ?? "—"}</td>
+              <td className="border border-slate-200 px-2 py-1.5">{estadoBadge(r.resultado_estado)}</td>
+              <td className="border border-slate-200 px-2 py-1.5">{perfilNombre(dto, r.realizado_por, hidden.anonimizar)}</td>
+              {showObs && <td className="border border-slate-200 px-2 py-1.5">{r.observaciones ?? "—"}</td>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {showEvol && porParametro.size > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Evolución cronológica</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Array.from(porParametro.entries()).map(([param, arr]) => (
+              <div key={param} className="rounded border border-slate-200 p-2">
+                <p className="text-xs font-medium text-slate-700 mb-1">{param}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {arr.map((r) => (
+                    <span key={r.id} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-50 border border-slate-200">
+                      {fmtDate(r.fecha)}: <span className="font-medium">{r.valor != null ? fmtNum(r.valor, 3) : (r.valor_texto ?? "—")}</span>
+                      {r.unidad ? ` ${r.unidad}` : ""}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+
 
 /* ---- Auditoría ---- */
 function AuditoriaContent({ on, dto, hidden }: any) {
