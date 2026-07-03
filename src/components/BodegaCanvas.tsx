@@ -391,8 +391,10 @@ export function BodegaCanvas({ bodegaId: bodegaIdProp }: { bodegaId?: string } =
         deposito={selected}
         existencia={existenciaSelected}
         zonaName={zonaSelected?.nombre}
+        bodegaId={bodegaId}
         onClose={() => setSelectedDepId(null)}
         onEdit={selected ? () => setDepDialog({ open: true, deposito: selected }) : undefined}
+
         onQuickAction={(action) => {
           if (!selected) return;
           if (action === "historial") {
