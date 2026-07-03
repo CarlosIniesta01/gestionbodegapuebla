@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Clock, ArrowRight, Play, Check, X, Trash2, Users } from "lucide-react";
+import { Clock, ArrowRight, Play, Check, X, Trash2, Users, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { TIPO_META, ESTADO_LABEL, PRIORIDAD_LABEL, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { updateTrabajoEstado, deleteTrabajo } from "@/lib/api/trabajos.functions";
@@ -11,6 +11,8 @@ import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrabajoDetailDialog } from "@/components/trabajos/TrabajoDetailDialog";
+import { RegistrarAnaliticaDialog } from "@/components/analiticas/RegistrarAnaliticaDialog";
+
 
 interface Trabajo {
   id: string;
@@ -149,6 +151,18 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
               <Button size="sm" variant="ghost" title="Trabajadores" onClick={() => setTrabsOpen(true)}>
                 <Users className="size-3.5" />
               </Button>
+              {bodegaId && (
+                <RegistrarAnaliticaDialog
+                  bodegaId={bodegaId}
+                  contextoLabel={`Trabajo · ${t.titulo}`}
+                  trigger={
+                    <Button size="sm" variant="ghost" title="Registrar analítica">
+                      <FlaskConical className="size-3.5" />
+                    </Button>
+                  }
+                />
+              )}
+
               <Button size="sm" variant="ghost" onClick={() => { if (confirm("¿Eliminar trabajo?")) del.mutate({ data: { id: t.id }}); }}>
                 <Trash2 className="size-3.5" />
               </Button>

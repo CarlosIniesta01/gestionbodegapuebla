@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker, Sparkles, ArrowRightLeft } from "lucide-react";
+import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker, Sparkles, ArrowRightLeft, FlaskConical } from "lucide-react";
 import { type Deposito } from "@/lib/bodega-data";
 import { useColorSettings } from "@/lib/use-color-settings";
 import { useEffect, useState } from "react";
+import { RegistrarAnaliticaDialog } from "@/components/analiticas/RegistrarAnaliticaDialog";
+
 
 
 export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
@@ -21,9 +23,11 @@ interface Props {
   onEdit?: () => void;
   onQuickAction?: (action: QuickAction) => void;
   zonaName?: string;
+  bodegaId?: string;
 }
 
-export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAction, zonaName }: Props) {
+
+export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAction, zonaName, bodegaId }: Props) {
   const [isMobile, setIsMobile] = useState(false);
 
 
@@ -57,7 +61,7 @@ export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAc
                 : "fixed top-0 right-0 bottom-0 z-50 w-[420px] bg-card border-l border-border flex flex-col shadow-[-8px_0_24px_-12px_rgba(15,23,42,0.12)]"
             }
           >
-            <Content deposito={deposito} existencia={existencia ?? null} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} />
+            <Content deposito={deposito} existencia={existencia ?? null} onClose={onClose} onEdit={onEdit} onQuickAction={onQuickAction} isMobile={isMobile} zonaName={zonaName} bodegaId={bodegaId} />
 
           </motion.aside>
         </>
@@ -66,7 +70,7 @@ export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAc
   );
 }
 
-function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobile, zonaName }: { deposito: Deposito; existencia: DepositoExistencia | null; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string }) {
+function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobile, zonaName, bodegaId }: { deposito: Deposito; existencia: DepositoExistencia | null; onClose: () => void; onEdit?: () => void; onQuickAction?: (action: QuickAction) => void; isMobile: boolean; zonaName?: string; bodegaId?: string }) {
 
   const colors = useColorSettings();
   const meta = colors.getEstadoMeta(deposito.estado);
@@ -222,6 +226,22 @@ function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobil
             ))}
           </div>
         </Section>
+
+        {bodegaId && (
+          <Section icon={FlaskConical} title="Analíticas / Calidad">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Registra parámetros de laboratorio asociados al lote actual del depósito.
+              </p>
+              <RegistrarAnaliticaDialog
+                bodegaId={bodegaId}
+                depositoId={deposito.id}
+                contextoLabel={`Depósito ${deposito.codigo}`}
+              />
+            </div>
+          </Section>
+        )}
+
 
 
         <Section icon={ListTodo} title="Procesos abiertos">

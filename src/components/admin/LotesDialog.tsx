@@ -2,7 +2,7 @@ import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, AlertTriangle, FlaskConical } from "lucide-react";
 
 import { listLotes, upsertLote, bloquearLote, deleteLote } from "@/lib/api/lotes.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { AnaliticasLoteDialog } from "@/components/analiticas/AnaliticasLoteDialog";
+
 
 const ESTADO_COLOR: Record<string, string> = {
   disponible: "border-emerald-500/50 text-emerald-600",
@@ -46,6 +48,8 @@ export function LotesDialog({
   const mDel = useMutation({ mutationFn: fnDel, onSuccess: invalidate, onError: (e: Error) => toast.error(e.message) });
 
   const [form, setForm] = React.useState<any | null>(null);
+  const [analitica, setAnalitica] = React.useState<{ open: boolean; lote: any | null }>({ open: false, lote: null });
+
 
   React.useEffect(() => {
     if (open && autoNew && producto) {
@@ -160,6 +164,10 @@ export function LotesDialog({
                         </Badge>
                       )}
                       <Button variant="ghost" size="sm" onClick={() => setForm(l)}>Editar</Button>
+                      <Button variant="ghost" size="icon" title="Analíticas" onClick={() => setAnalitica({ open: true, lote: l })}>
+                        <FlaskConical className="size-4" />
+                      </Button>
+
                       {l.estado === "bloqueado" ? (
                         <Button variant="ghost" size="icon" title="Desbloquear" onClick={() => {
                           const m = prompt("Motivo del desbloqueo:"); if (!m) return;
@@ -187,6 +195,18 @@ export function LotesDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
+
+      {analitica.lote && (
+        <AnaliticasLoteDialog
+          open={analitica.open}
+          onOpenChange={(v) => setAnalitica((s) => ({ ...s, open: v }))}
+          bodegaId={bodegaId}
+          loteId={analitica.lote.id}
+          productoId={producto.id}
+          numeroLote={analitica.lote.numero_lote}
+        />
+      )}
     </Dialog>
   );
+
 }
