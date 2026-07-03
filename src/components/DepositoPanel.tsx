@@ -23,7 +23,9 @@ interface Props {
   onEdit?: () => void;
   onQuickAction?: (action: QuickAction) => void;
   zonaName?: string;
+  bodegaId?: string;
 }
+
 
 export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAction, zonaName }: Props) {
   const [isMobile, setIsMobile] = useState(false);
