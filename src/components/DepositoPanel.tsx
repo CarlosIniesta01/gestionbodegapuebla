@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker, Sparkles, ArrowRightLeft } from "lucide-react";
+import { X, Activity, MessageSquare, ListTodo, Droplets, History, Pencil, Beaker, Sparkles, ArrowRightLeft, FlaskConical } from "lucide-react";
 import { type Deposito } from "@/lib/bodega-data";
 import { useColorSettings } from "@/lib/use-color-settings";
 import { useEffect, useState } from "react";
+import { RegistrarAnaliticaDialog } from "@/components/analiticas/RegistrarAnaliticaDialog";
+
 
 
 export type QuickAction = "trasiego" | "limpieza" | "producto" | "historial";
