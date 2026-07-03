@@ -27,7 +27,7 @@ interface Props {
 }
 
 
-export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAction, zonaName }: Props) {
+export function DepositoPanel({ deposito, existencia, onClose, onEdit, onQuickAction, zonaName, bodegaId }: Props) {
   const [isMobile, setIsMobile] = useState(false);
 
 
