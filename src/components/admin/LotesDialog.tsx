@@ -195,6 +195,18 @@ export function LotesDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
+
+      {analitica.lote && (
+        <AnaliticasLoteDialog
+          open={analitica.open}
+          onOpenChange={(v) => setAnalitica((s) => ({ ...s, open: v }))}
+          bodegaId={bodegaId}
+          loteId={analitica.lote.id}
+          productoId={producto.id}
+          numeroLote={analitica.lote.numero_lote}
+        />
+      )}
     </Dialog>
   );
+
 }
