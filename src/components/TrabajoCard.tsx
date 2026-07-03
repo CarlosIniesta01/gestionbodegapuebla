@@ -11,6 +11,8 @@ import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrabajoDetailDialog } from "@/components/trabajos/TrabajoDetailDialog";
+import { RegistrarAnaliticaDialog } from "@/components/analiticas/RegistrarAnaliticaDialog";
+
 
 interface Trabajo {
   id: string;
