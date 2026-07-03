@@ -2,7 +2,7 @@ import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, AlertTriangle, FlaskConical } from "lucide-react";
 
 import { listLotes, upsertLote, bloquearLote, deleteLote } from "@/lib/api/lotes.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { AnaliticasLoteDialog } from "@/components/analiticas/AnaliticasLoteDialog";
+
 
 const ESTADO_COLOR: Record<string, string> = {
   disponible: "border-emerald-500/50 text-emerald-600",
