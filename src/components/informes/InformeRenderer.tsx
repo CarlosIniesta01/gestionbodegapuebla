@@ -55,40 +55,57 @@ export function InformeRenderer({
     .filter((c) => enabledIds.some((id) => BLOCK_BY_ID[id]?.category === c.key
       && !(c.key === "info" && id === "info.portada")));
 
-  const pages: React.ReactNode[] = [];
+  type PageEntry = { key: string; render: (pageN: number, total: number) => React.ReactNode };
+  const pages: PageEntry[] = [];
 
-  if (hasPortada) pages.push(<Portada key="portada" ctx={ctx} hasLogo={hasLogo} />);
-  if (hasIndice) pages.push(
-    <Indice key="indice" categories={activeCategories} ctx={ctx} hasLogo={hasLogo} />,
-  );
+  if (hasPortada) {
+    pages.push({
+      key: "portada",
+      render: (pageN, total) => (
+        <Portada ctx={ctx} hasLogo={hasLogo} pageN={pageN} total={total} hasNumeracion={hasNumeracion} />
+      ),
+    });
+  }
+  if (hasIndice) {
+    pages.push({
+      key: "indice",
+      render: (pageN, total) => (
+        <Indice categories={activeCategories} ctx={ctx} hasLogo={hasLogo} pageN={pageN} total={total} hasNumeracion={hasNumeracion} />
+      ),
+    });
+  }
 
   activeCategories.forEach((cat) => {
     const Icon = CATEGORY_ICONS[cat.key];
-    pages.push(
-      <SectionPage key={cat.key} titulo={cat.label} icon={Icon} ctx={ctx} hasLogo={hasLogo} hasPie={hasPie}>
-        <CategoryContent category={cat.key} config={config} ctx={ctx} hidden={hidden} />
-      </SectionPage>
-    );
+    pages.push({
+      key: cat.key,
+      render: (pageN, total) => (
+        <SectionPage titulo={cat.label} icon={Icon} ctx={ctx} hasLogo={hasLogo} hasPie={hasPie} pageN={pageN} total={total} hasNumeracion={hasNumeracion}>
+          <CategoryContent category={cat.key} config={config} ctx={ctx} hidden={hidden} />
+        </SectionPage>
+      ),
+    });
   });
 
   const hasFinal = ["vis.firmas", "vis.sellos", "vis.certificados", "vis.qr"].some((id) => enabledIds.includes(id));
   if (hasFinal) {
-    pages.push(
-      <SectionPage key="final" titulo="Validación" icon={ShieldCheck} ctx={ctx} hasLogo={hasLogo} hasPie={hasPie}>
-        <ValidacionBlock config={config} ctx={ctx} />
-      </SectionPage>
-    );
+    pages.push({
+      key: "final",
+      render: (pageN, total) => (
+        <SectionPage titulo="Validación" icon={ShieldCheck} ctx={ctx} hasLogo={hasLogo} hasPie={hasPie} pageN={pageN} total={total} hasNumeracion={hasNumeracion}>
+          <ValidacionBlock config={config} ctx={ctx} />
+        </SectionPage>
+      ),
+    });
   }
 
   const total = pages.length;
 
   return (
     <div className="informe-root space-y-6 print:space-y-0">
-      {pages.map((page, idx) =>
-        React.isValidElement(page)
-          ? React.cloneElement(page as any, { pageN: idx + 1, total, hasNumeracion })
-          : page
-      )}
+      {pages.map((p, idx) => (
+        <React.Fragment key={p.key}>{p.render(idx + 1, total)}</React.Fragment>
+      ))}
     </div>
   );
 }
