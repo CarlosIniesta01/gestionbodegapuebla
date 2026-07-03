@@ -151,6 +151,18 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
               <Button size="sm" variant="ghost" title="Trabajadores" onClick={() => setTrabsOpen(true)}>
                 <Users className="size-3.5" />
               </Button>
+              {bodegaId && (
+                <RegistrarAnaliticaDialog
+                  bodegaId={bodegaId}
+                  contextoLabel={`Trabajo · ${t.titulo}`}
+                  trigger={
+                    <Button size="sm" variant="ghost" title="Registrar analítica">
+                      <FlaskConical className="size-3.5" />
+                    </Button>
+                  }
+                />
+              )}
+
               <Button size="sm" variant="ghost" onClick={() => { if (confirm("¿Eliminar trabajo?")) del.mutate({ data: { id: t.id }}); }}>
                 <Trash2 className="size-3.5" />
               </Button>
