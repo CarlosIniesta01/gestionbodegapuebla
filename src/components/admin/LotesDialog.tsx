@@ -48,6 +48,8 @@ export function LotesDialog({
   const mDel = useMutation({ mutationFn: fnDel, onSuccess: invalidate, onError: (e: Error) => toast.error(e.message) });
 
   const [form, setForm] = React.useState<any | null>(null);
+  const [analitica, setAnalitica] = React.useState<{ open: boolean; lote: any | null }>({ open: false, lote: null });
+
 
   React.useEffect(() => {
     if (open && autoNew && producto) {
