@@ -45,6 +45,9 @@ export function AnaliticasManager({ bodegaId, loteId, productoId }: Props) {
   });
 
   const [open, setOpen] = React.useState(false);
+  // Ensure Radix Dialog portal closes before this component unmounts to avoid
+  // "NotFoundError: Failed to execute 'removeChild' on 'Node'" during route changes.
+  React.useEffect(() => () => setOpen(false), []);
   const [fecha, setFecha] = React.useState(() => new Date().toISOString().slice(0, 10));
   const [parametro, setParametro] = React.useState<string>(PARAMETROS_ANALITICA[0]);
   const [parametroLibre, setParametroLibre] = React.useState("");
