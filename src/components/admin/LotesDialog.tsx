@@ -164,6 +164,10 @@ export function LotesDialog({
                         </Badge>
                       )}
                       <Button variant="ghost" size="sm" onClick={() => setForm(l)}>Editar</Button>
+                      <Button variant="ghost" size="icon" title="Analíticas" onClick={() => setAnalitica({ open: true, lote: l })}>
+                        <FlaskConical className="size-4" />
+                      </Button>
+
                       {l.estado === "bloqueado" ? (
                         <Button variant="ghost" size="icon" title="Desbloquear" onClick={() => {
                           const m = prompt("Motivo del desbloqueo:"); if (!m) return;
