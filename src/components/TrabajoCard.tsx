@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Clock, ArrowRight, Play, Check, X, Trash2, Users } from "lucide-react";
+import { Clock, ArrowRight, Play, Check, X, Trash2, Users, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { TIPO_META, ESTADO_LABEL, PRIORIDAD_LABEL, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { updateTrabajoEstado, deleteTrabajo } from "@/lib/api/trabajos.functions";
