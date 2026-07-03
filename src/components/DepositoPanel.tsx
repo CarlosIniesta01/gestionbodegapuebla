@@ -227,6 +227,22 @@ function Content({ deposito, existencia, onClose, onEdit, onQuickAction, isMobil
           </div>
         </Section>
 
+        {bodegaId && (
+          <Section icon={FlaskConical} title="Analíticas / Calidad">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Registra parámetros de laboratorio asociados al lote actual del depósito.
+              </p>
+              <RegistrarAnaliticaDialog
+                bodegaId={bodegaId}
+                depositoId={deposito.id}
+                contextoLabel={`Depósito ${deposito.codigo}`}
+              />
+            </div>
+          </Section>
+        )}
+
+
 
         <Section icon={ListTodo} title="Procesos abiertos">
           <div className="text-sm text-muted-foreground">Sin procesos activos en este depósito</div>
