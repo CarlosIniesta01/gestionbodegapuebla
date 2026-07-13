@@ -64,12 +64,11 @@ type SectionKey =
   | "productos"
   | "productos-comerciales"
   | "stock"
-  | "procesos-doc"
-  | "plantillas-analitica"
   | "auditoria"
   | "perfiles-auditoria"
   | "reinicio"
   | "bodega";
+
 
 type NavItem = { key: SectionKey; label: string; icon: typeof Shield };
 type NavGroup = { key: string; label: string; items: NavItem[] };
