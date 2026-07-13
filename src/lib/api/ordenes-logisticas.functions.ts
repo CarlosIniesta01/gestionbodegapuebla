@@ -9,8 +9,12 @@ const EstadoEnum = z.enum([
   "pendiente_laboratorio",
   "autorizada",
   "en_proceso",
+  "pendiente_confirmacion",
   "completada",
+  "cerrada",
+  "rechazada",
   "cancelada",
+  "rectificada",
 ]);
 
 async function assertMember(supabase: any, bodegaId: string, userId: string) {
