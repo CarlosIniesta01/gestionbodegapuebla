@@ -63,7 +63,7 @@ interface Props {
 }
 
 const emptyState = (tipo: OrdenTipo) => ({
-  estado: "borrador" as "borrador" | "programada" | "pendiente_laboratorio" | "autorizada" | "en_proceso" | "completada" | "cancelada",
+  estado: "borrador" as import("@/lib/ordenes-logisticas-meta").OrdenEstado,
   numeroOperacion: "",
   fechaProgramada: "",
   horaProgramada: "",
