@@ -39,6 +39,7 @@ const EventoInput = z.object({
   datos: z.record(z.string(), z.unknown()).default({}),
   observaciones: z.string().max(2000).optional().nullable(),
   trabajadores: z.array(z.string().uuid()).default([]),
+  procesoId: z.string().uuid().optional().nullable(),
 });
 
 async function detectConflicts(supabase: any, bodegaId: string, input: {
@@ -151,6 +152,19 @@ export const createEvento = createServerFn({ method: "POST" })
     if (conflictos.length && !data.ignoreConflicts) {
       return { ok: false, conflictos } as const;
     }
+    let procesoCodigo: string | null = null;
+    let procesoVersion: string | null = null;
+    if (data.procesoId) {
+      const { data: proc } = await supabase
+        .from("procesos_documentales")
+        .select("codigo,version,bodega_id")
+        .eq("id", data.procesoId)
+        .maybeSingle();
+      if (proc && proc.bodega_id === data.bodegaId) {
+        procesoCodigo = proc.codigo;
+        procesoVersion = proc.version;
+      }
+    }
     const payload = {
       bodega_id: data.bodegaId, tipo: data.tipo, titulo: data.titulo,
       descripcion: data.descripcion ?? null, zona_id: data.zonaId ?? null,
@@ -162,6 +176,9 @@ export const createEvento = createServerFn({ method: "POST" })
       fecha_inicio: data.fechaInicio, fecha_fin: data.fechaFin,
       estado: data.estado, prioridad: data.prioridad,
       datos: data.datos, observaciones: data.observaciones ?? null,
+      proceso_id: data.procesoId ?? null,
+      proceso_codigo: procesoCodigo,
+      proceso_version: procesoVersion,
       created_by: userId,
     };
     const { data: row, error } = await supabase.from("calendario_eventos").insert(payload as any).select("*").single();
@@ -195,6 +212,24 @@ export const updateEvento = createServerFn({ method: "POST" })
     };
     for (const [k, col] of Object.entries(map)) {
       if ((data as any)[k] !== undefined) patch[col] = (data as any)[k];
+    }
+    if ((data as any).procesoId !== undefined) {
+      const pid = (data as any).procesoId;
+      patch.proceso_id = pid ?? null;
+      if (pid) {
+        const { data: proc } = await supabase
+          .from("procesos_documentales")
+          .select("codigo,version,bodega_id")
+          .eq("id", pid)
+          .maybeSingle();
+        if (proc && proc.bodega_id === data.bodegaId) {
+          patch.proceso_codigo = proc.codigo;
+          patch.proceso_version = proc.version;
+        }
+      } else {
+        patch.proceso_codigo = null;
+        patch.proceso_version = null;
+      }
     }
     if (data.fechaInicio && data.fechaFin && data.fechaFin <= data.fechaInicio) {
       throw new Error("La fecha de fin debe ser posterior al inicio");

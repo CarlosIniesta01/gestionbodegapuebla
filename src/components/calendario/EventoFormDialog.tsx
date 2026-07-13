@@ -18,6 +18,8 @@ import { listProductosComerciales } from "@/lib/api/productos-comerciales.functi
 import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { AlertTriangle, Save, X } from "lucide-react";
+import { OrdenCargaDescargaSection, type OrdenState, emptyParam } from "./OrdenCargaDescargaSection";
+import { bulkUpsertAnaliticasEvento } from "@/lib/api/analiticas.functions";
 
 type EventoExistente = {
   id: string;
@@ -82,6 +84,16 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
   const [datos, setDatos] = React.useState<Record<string, string>>(
     Object.fromEntries(Object.entries(evento?.datos ?? {}).map(([k, v]) => [k, String(v ?? "")])),
   );
+  const [orden, setOrden] = React.useState<OrdenState>({
+    procesoId: (evento as any)?.proceso_id ?? null,
+    procesoCodigo: (evento as any)?.proceso_codigo ?? null,
+    procesoVersion: (evento as any)?.proceso_version ?? null,
+    loteId: null,
+    plantillaId: null,
+    parametros: [],
+    autorizadoPor: null,
+    motivoAutorizacion: "",
+  });
   const [conflictos, setConflictos] = React.useState<string[]>([]);
   const [ignoreConflicts, setIgnoreConflicts] = React.useState(false);
 
@@ -95,6 +107,11 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
       setTipo(defaults?.tipo ?? "trabajo");
       setFechaInicio(isoLocal(defaults?.fechaInicio ?? new Date().toISOString()));
       setFechaFin(isoLocal(new Date(Date.now() + 3600_000).toISOString()));
+      setOrden({
+        procesoId: null, procesoCodigo: null, procesoVersion: null,
+        loteId: null, plantillaId: null, parametros: [],
+        autorizadoPor: null, motivoAutorizacion: "",
+      });
       setConflictos([]); setIgnoreConflicts(false);
     }
   }, [open, isEdit, defaults?.tipo, defaults?.fechaInicio]);
@@ -120,6 +137,8 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
   const fnCreate = useServerFn(createEvento);
   const fnUpdate = useServerFn(updateEvento);
 
+  const fnUpsertAnalit = useServerFn(bulkUpsertAnaliticasEvento);
+
   const mut = useMutation({
     mutationFn: async () => {
       const payload: any = {
@@ -139,12 +158,46 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
         datos,
         observaciones: observaciones || null,
         trabajadores,
+        procesoId: orden.procesoId ?? null,
         ignoreConflicts,
       };
+      let eventoId: string | null = null;
       if (isEdit && evento) {
-        return fnUpdate({ data: { ...payload, id: evento.id } });
+        await fnUpdate({ data: { ...payload, id: evento.id } });
+        eventoId = evento.id;
+      } else {
+        const res: any = await fnCreate({ data: payload });
+        if (res && res.ok === false && res.conflictos?.length) return res;
+        eventoId = res?.evento?.id ?? null;
       }
-      return fnCreate({ data: payload });
+      // Persistir analíticas de descarga si corresponde
+      if (eventoId && tipo === "descarga" && orden.loteId && orden.parametros.length) {
+        await fnUpsertAnalit({
+          data: {
+            bodegaId,
+            eventoId,
+            loteId: orden.loteId,
+            productoId: productoId || null,
+            depositoId: null,
+            plantillaId: orden.plantillaId,
+            fecha: (fechaInicio || new Date().toISOString()).slice(0, 10),
+            parametros: orden.parametros.map((p, i) => ({
+              parametro: p.parametro,
+              valor: p.valor,
+              valorTexto: null,
+              unidad: p.unidad || null,
+              minimo: p.minimo,
+              maximo: p.maximo,
+              metodo: p.metodo || null,
+              obligatorio: p.obligatorio,
+              resultadoEstado: p.resultadoEstado,
+              observaciones: p.observaciones || null,
+              orden: i,
+            })),
+          },
+        });
+      }
+      return { ok: true } as const;
     },
     onSuccess: (res: any) => {
       if (res && res.ok === false && res.conflictos?.length) {
@@ -155,6 +208,7 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
       toast.success(isEdit ? "Evento actualizado" : "Evento creado");
       qc.invalidateQueries({ queryKey: ["calendario"] });
       qc.invalidateQueries({ queryKey: ["calendario-hoy"] });
+      qc.invalidateQueries({ queryKey: ["analiticas-evento"] });
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -168,6 +222,15 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
     if (!titulo.trim()) return toast.error("Indica un título");
     if (!fechaInicio || !fechaFin) return toast.error("Fechas requeridas");
     if (new Date(fechaFin) <= new Date(fechaInicio)) return toast.error("La fecha de fin debe ser posterior al inicio");
+    if (tipo === "descarga" && (estado === "en_proceso" || estado === "completado")) {
+      const bloq = orden.parametros.filter((p) => p.obligatorio && p.resultadoEstado !== "conforme");
+      if (bloq.length && !orden.motivoAutorizacion.trim()) {
+        return toast.error(`No se puede autorizar: ${bloq.length} parámetro(s) obligatorio(s) sin conformidad. Indica motivo de autorización excepcional.`);
+      }
+    }
+    if (tipo === "descarga" && orden.parametros.length && !orden.loteId) {
+      return toast.error("Selecciona el lote asociado a la descarga para registrar las analíticas.");
+    }
     mut.mutate();
   }
 
@@ -275,6 +338,20 @@ export function EventoFormDialog({ open, onOpenChange, bodegaId, defaults, event
               <Field label="Documentación pendiente"><Input value={datos.documentacion ?? ""} onChange={(e) => setDato("documentacion", e.target.value)} /></Field>
             </div>
           </div>
+        )}
+
+        {isCarga && (
+          <OrdenCargaDescargaSection
+            open={open}
+            bodegaId={bodegaId}
+            tipo={tipo as "carga" | "descarga"}
+            eventoId={evento?.id ?? null}
+            productoId={productoId || null}
+            depositoDestino={destino || null}
+            state={orden}
+            onChange={(patch) => setOrden((s) => ({ ...s, ...patch }))}
+            isEdit={isEdit}
+          />
         )}
 
         <div className="mt-3">

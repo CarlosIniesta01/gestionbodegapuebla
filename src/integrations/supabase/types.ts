@@ -16,15 +16,24 @@ export type Database = {
     Tables: {
       analiticas_lote: {
         Row: {
+          autorizado_por: string | null
           bodega_id: string
           created_at: string
           created_by: string | null
           deposito_id: string | null
+          evento_id: string | null
           fecha: string
           id: string
           lote_id: string
+          maximo: number | null
+          metodo: string | null
+          minimo: number | null
+          motivo_autorizacion: string | null
+          obligatorio: boolean
           observaciones: string | null
+          orden_num: number
           parametro: string
+          plantilla_id: string | null
           producto_id: string | null
           realizado_por: string | null
           resultado_estado: Database["public"]["Enums"]["analitica_estado"]
@@ -35,15 +44,24 @@ export type Database = {
           valor_texto: string | null
         }
         Insert: {
+          autorizado_por?: string | null
           bodega_id: string
           created_at?: string
           created_by?: string | null
           deposito_id?: string | null
+          evento_id?: string | null
           fecha?: string
           id?: string
           lote_id: string
+          maximo?: number | null
+          metodo?: string | null
+          minimo?: number | null
+          motivo_autorizacion?: string | null
+          obligatorio?: boolean
           observaciones?: string | null
+          orden_num?: number
           parametro: string
+          plantilla_id?: string | null
           producto_id?: string | null
           realizado_por?: string | null
           resultado_estado?: Database["public"]["Enums"]["analitica_estado"]
@@ -54,15 +72,24 @@ export type Database = {
           valor_texto?: string | null
         }
         Update: {
+          autorizado_por?: string | null
           bodega_id?: string
           created_at?: string
           created_by?: string | null
           deposito_id?: string | null
+          evento_id?: string | null
           fecha?: string
           id?: string
           lote_id?: string
+          maximo?: number | null
+          metodo?: string | null
+          minimo?: number | null
+          motivo_autorizacion?: string | null
+          obligatorio?: boolean
           observaciones?: string | null
+          orden_num?: number
           parametro?: string
+          plantilla_id?: string | null
           producto_id?: string | null
           realizado_por?: string | null
           resultado_estado?: Database["public"]["Enums"]["analitica_estado"]
@@ -78,6 +105,20 @@ export type Database = {
             columns: ["bodega_id"]
             isOneToOne: false
             referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analiticas_lote_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "calendario_eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analiticas_lote_plantilla_id_fkey"
+            columns: ["plantilla_id"]
+            isOneToOne: false
+            referencedRelation: "plantillas_analitica"
             referencedColumns: ["id"]
           },
         ]
@@ -244,6 +285,9 @@ export type Database = {
           id: string
           observaciones: string | null
           prioridad: Database["public"]["Enums"]["calendario_prioridad"]
+          proceso_codigo: string | null
+          proceso_id: string | null
+          proceso_version: string | null
           producto_id: string | null
           proveedor_id: string | null
           tipo: Database["public"]["Enums"]["calendario_tipo"]
@@ -269,6 +313,9 @@ export type Database = {
           id?: string
           observaciones?: string | null
           prioridad?: Database["public"]["Enums"]["calendario_prioridad"]
+          proceso_codigo?: string | null
+          proceso_id?: string | null
+          proceso_version?: string | null
           producto_id?: string | null
           proveedor_id?: string | null
           tipo: Database["public"]["Enums"]["calendario_tipo"]
@@ -294,6 +341,9 @@ export type Database = {
           id?: string
           observaciones?: string | null
           prioridad?: Database["public"]["Enums"]["calendario_prioridad"]
+          proceso_codigo?: string | null
+          proceso_id?: string | null
+          proceso_version?: string | null
           producto_id?: string | null
           proveedor_id?: string | null
           tipo?: Database["public"]["Enums"]["calendario_tipo"]
@@ -308,6 +358,13 @@ export type Database = {
             columns: ["bodega_id"]
             isOneToOne: false
             referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_eventos_proceso_id_fkey"
+            columns: ["proceso_id"]
+            isOneToOne: false
+            referencedRelation: "procesos_documentales"
             referencedColumns: ["id"]
           },
         ]
@@ -1220,6 +1277,103 @@ export type Database = {
         }
         Relationships: []
       }
+      plantilla_analitica_parametros: {
+        Row: {
+          created_at: string
+          id: string
+          maximo: number | null
+          metodo: string | null
+          minimo: number | null
+          obligatorio: boolean
+          orden: number
+          parametro: string
+          plantilla_id: string
+          unidad: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          maximo?: number | null
+          metodo?: string | null
+          minimo?: number | null
+          obligatorio?: boolean
+          orden?: number
+          parametro: string
+          plantilla_id: string
+          unidad?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          maximo?: number | null
+          metodo?: string | null
+          minimo?: number | null
+          obligatorio?: boolean
+          orden?: number
+          parametro?: string
+          plantilla_id?: string
+          unidad?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plantilla_analitica_parametros_plantilla_id_fkey"
+            columns: ["plantilla_id"]
+            isOneToOne: false
+            referencedRelation: "plantillas_analitica"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plantillas_analitica: {
+        Row: {
+          activo: boolean
+          bodega_id: string
+          categoria_producto: string | null
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          es_default: boolean
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id: string
+          categoria_producto?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          es_default?: boolean
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string
+          categoria_producto?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          es_default?: boolean
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plantillas_analitica_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preparaciones: {
         Row: {
           bodega_id: string
@@ -1264,6 +1418,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bodegas"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      procesos_documentales: {
+        Row: {
+          activo: boolean
+          bodega_id: string
+          categoria_producto: string | null
+          codigo: string
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          es_default: boolean
+          fecha_vigencia: string | null
+          id: string
+          nombre: string
+          producto_id: string | null
+          tipo: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id: string
+          categoria_producto?: string | null
+          codigo: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          es_default?: boolean
+          fecha_vigencia?: string | null
+          id?: string
+          nombre: string
+          producto_id?: string | null
+          tipo: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string
+          categoria_producto?: string | null
+          codigo?: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          es_default?: boolean
+          fecha_vigencia?: string | null
+          id?: string
+          nombre?: string
+          producto_id?: string | null
+          tipo?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procesos_documentales_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procesos_documentales_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procesos_documentales_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
           },
         ]
       }
