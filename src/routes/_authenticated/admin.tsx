@@ -102,14 +102,6 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    key: "operativa",
-    label: "Operativa",
-    items: [
-      { key: "procesos-doc", label: "Procesos documentales", icon: Truck },
-      { key: "plantillas-analitica", label: "Plantillas analíticas", icon: FlaskConical },
-    ],
-  },
-  {
     key: "security",
     label: "Seguridad",
     items: [
