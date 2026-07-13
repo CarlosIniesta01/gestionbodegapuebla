@@ -31,6 +31,7 @@ export type Database = {
           motivo_autorizacion: string | null
           obligatorio: boolean
           observaciones: string | null
+          orden_logistica_id: string | null
           orden_num: number
           parametro: string
           plantilla_id: string | null
@@ -59,6 +60,7 @@ export type Database = {
           motivo_autorizacion?: string | null
           obligatorio?: boolean
           observaciones?: string | null
+          orden_logistica_id?: string | null
           orden_num?: number
           parametro: string
           plantilla_id?: string | null
@@ -87,6 +89,7 @@ export type Database = {
           motivo_autorizacion?: string | null
           obligatorio?: boolean
           observaciones?: string | null
+          orden_logistica_id?: string | null
           orden_num?: number
           parametro?: string
           plantilla_id?: string | null
@@ -112,6 +115,13 @@ export type Database = {
             columns: ["evento_id"]
             isOneToOne: false
             referencedRelation: "calendario_eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analiticas_lote_orden_logistica_id_fkey"
+            columns: ["orden_logistica_id"]
+            isOneToOne: false
+            referencedRelation: "ordenes_logisticas"
             referencedColumns: ["id"]
           },
           {
@@ -1184,6 +1194,333 @@ export type Database = {
           },
           {
             foreignKeyName: "movimientos_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orden_compartimentos: {
+        Row: {
+          created_at: string
+          deposito_id: string | null
+          id: string
+          litros_previstos: number | null
+          litros_reales: number | null
+          lote_id: string | null
+          numero: number
+          observaciones: string | null
+          orden_id: string
+          producto_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deposito_id?: string | null
+          id?: string
+          litros_previstos?: number | null
+          litros_reales?: number | null
+          lote_id?: string | null
+          numero: number
+          observaciones?: string | null
+          orden_id: string
+          producto_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deposito_id?: string | null
+          id?: string
+          litros_previstos?: number | null
+          litros_reales?: number | null
+          lote_id?: string | null
+          numero?: number
+          observaciones?: string | null
+          orden_id?: string
+          producto_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orden_compartimentos_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "producto_lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compartimentos_orden_id_fkey"
+            columns: ["orden_id"]
+            isOneToOne: false
+            referencedRelation: "ordenes_logisticas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compartimentos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compartimentos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
+          },
+        ]
+      }
+      ordenes_logisticas: {
+        Row: {
+          bodega_id: string
+          calendario_evento_id: string | null
+          campana: string | null
+          categoria: string | null
+          cliente_id: string | null
+          comprobaciones: Json
+          conductor_documento: string | null
+          conductor_nombre: string | null
+          conductor_telefono: string | null
+          contrato_compra_id: string | null
+          contrato_venta_id: string | null
+          created_at: string
+          created_by: string
+          declaracion_transportista: Json
+          deposito_destino_id: string | null
+          deposito_origen_id: string | null
+          empresa_transportista: string | null
+          estado: Database["public"]["Enums"]["orden_logistica_estado"]
+          fecha_fin_real: string | null
+          fecha_inicio_real: string | null
+          fecha_programada: string | null
+          grado: number | null
+          hora_programada: string | null
+          id: string
+          instrucciones: Json
+          lab_autorizado_at: string | null
+          lab_autorizado_cargo: string | null
+          lab_autorizado_por: string | null
+          lab_estado: Database["public"]["Enums"]["orden_lab_estado"]
+          lab_observaciones: string | null
+          limpieza_epis: Json
+          litros_previstos: number | null
+          litros_reales: number | null
+          lote_id: string | null
+          matricula: string | null
+          motivo_cancelacion: string | null
+          movimiento_id: string | null
+          numero_operacion: string | null
+          numero_precinto: string | null
+          observaciones: string | null
+          precintos_adicionales: string | null
+          prioridad: string
+          proceso_codigo_snapshot: string | null
+          proceso_documental_id: string | null
+          proceso_nombre_snapshot: string | null
+          proceso_version_snapshot: string | null
+          producto_id: string | null
+          proveedor_id: string | null
+          remolque_matricula: string | null
+          tipo: Database["public"]["Enums"]["orden_logistica_tipo"]
+          trabajo_id: string | null
+          transportista: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bodega_id: string
+          calendario_evento_id?: string | null
+          campana?: string | null
+          categoria?: string | null
+          cliente_id?: string | null
+          comprobaciones?: Json
+          conductor_documento?: string | null
+          conductor_nombre?: string | null
+          conductor_telefono?: string | null
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
+          created_at?: string
+          created_by: string
+          declaracion_transportista?: Json
+          deposito_destino_id?: string | null
+          deposito_origen_id?: string | null
+          empresa_transportista?: string | null
+          estado?: Database["public"]["Enums"]["orden_logistica_estado"]
+          fecha_fin_real?: string | null
+          fecha_inicio_real?: string | null
+          fecha_programada?: string | null
+          grado?: number | null
+          hora_programada?: string | null
+          id?: string
+          instrucciones?: Json
+          lab_autorizado_at?: string | null
+          lab_autorizado_cargo?: string | null
+          lab_autorizado_por?: string | null
+          lab_estado?: Database["public"]["Enums"]["orden_lab_estado"]
+          lab_observaciones?: string | null
+          limpieza_epis?: Json
+          litros_previstos?: number | null
+          litros_reales?: number | null
+          lote_id?: string | null
+          matricula?: string | null
+          motivo_cancelacion?: string | null
+          movimiento_id?: string | null
+          numero_operacion?: string | null
+          numero_precinto?: string | null
+          observaciones?: string | null
+          precintos_adicionales?: string | null
+          prioridad?: string
+          proceso_codigo_snapshot?: string | null
+          proceso_documental_id?: string | null
+          proceso_nombre_snapshot?: string | null
+          proceso_version_snapshot?: string | null
+          producto_id?: string | null
+          proveedor_id?: string | null
+          remolque_matricula?: string | null
+          tipo: Database["public"]["Enums"]["orden_logistica_tipo"]
+          trabajo_id?: string | null
+          transportista?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bodega_id?: string
+          calendario_evento_id?: string | null
+          campana?: string | null
+          categoria?: string | null
+          cliente_id?: string | null
+          comprobaciones?: Json
+          conductor_documento?: string | null
+          conductor_nombre?: string | null
+          conductor_telefono?: string | null
+          contrato_compra_id?: string | null
+          contrato_venta_id?: string | null
+          created_at?: string
+          created_by?: string
+          declaracion_transportista?: Json
+          deposito_destino_id?: string | null
+          deposito_origen_id?: string | null
+          empresa_transportista?: string | null
+          estado?: Database["public"]["Enums"]["orden_logistica_estado"]
+          fecha_fin_real?: string | null
+          fecha_inicio_real?: string | null
+          fecha_programada?: string | null
+          grado?: number | null
+          hora_programada?: string | null
+          id?: string
+          instrucciones?: Json
+          lab_autorizado_at?: string | null
+          lab_autorizado_cargo?: string | null
+          lab_autorizado_por?: string | null
+          lab_estado?: Database["public"]["Enums"]["orden_lab_estado"]
+          lab_observaciones?: string | null
+          limpieza_epis?: Json
+          litros_previstos?: number | null
+          litros_reales?: number | null
+          lote_id?: string | null
+          matricula?: string | null
+          motivo_cancelacion?: string | null
+          movimiento_id?: string | null
+          numero_operacion?: string | null
+          numero_precinto?: string | null
+          observaciones?: string | null
+          precintos_adicionales?: string | null
+          prioridad?: string
+          proceso_codigo_snapshot?: string | null
+          proceso_documental_id?: string | null
+          proceso_nombre_snapshot?: string | null
+          proceso_version_snapshot?: string | null
+          producto_id?: string | null
+          proveedor_id?: string | null
+          remolque_matricula?: string | null
+          tipo?: Database["public"]["Enums"]["orden_logistica_tipo"]
+          trabajo_id?: string | null
+          transportista?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordenes_logisticas_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_calendario_evento_id_fkey"
+            columns: ["calendario_evento_id"]
+            isOneToOne: false
+            referencedRelation: "calendario_eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_contrato_compra_id_fkey"
+            columns: ["contrato_compra_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_contrato_venta_id_fkey"
+            columns: ["contrato_venta_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "producto_lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_movimiento_id_fkey"
+            columns: ["movimiento_id"]
+            isOneToOne: false
+            referencedRelation: "movimientos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_proceso_documental_id_fkey"
+            columns: ["proceso_documental_id"]
+            isOneToOne: false
+            referencedRelation: "procesos_documentales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "stock_por_producto"
+            referencedColumns: ["producto_id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_trabajo_id_fkey"
             columns: ["trabajo_id"]
             isOneToOne: false
             referencedRelation: "trabajos"
@@ -2435,6 +2772,16 @@ export type Database = {
         | "embotellado"
         | "correccion"
         | "ajuste"
+      orden_lab_estado: "pendiente" | "autorizado" | "rechazado"
+      orden_logistica_estado:
+        | "borrador"
+        | "programada"
+        | "pendiente_laboratorio"
+        | "autorizada"
+        | "en_proceso"
+        | "completada"
+        | "cancelada"
+      orden_logistica_tipo: "carga" | "descarga"
       participacion_estado:
         | "asignado"
         | "en_proceso"
@@ -2463,6 +2810,8 @@ export type Database = {
         | "embotellado"
         | "incidencia"
         | "observacion"
+        | "carga"
+        | "descarga"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2628,6 +2977,17 @@ export const Constants = {
         "correccion",
         "ajuste",
       ],
+      orden_lab_estado: ["pendiente", "autorizado", "rechazado"],
+      orden_logistica_estado: [
+        "borrador",
+        "programada",
+        "pendiente_laboratorio",
+        "autorizada",
+        "en_proceso",
+        "completada",
+        "cancelada",
+      ],
+      orden_logistica_tipo: ["carga", "descarga"],
       participacion_estado: [
         "asignado",
         "en_proceso",
@@ -2658,6 +3018,8 @@ export const Constants = {
         "embotellado",
         "incidencia",
         "observacion",
+        "carga",
+        "descarga",
       ],
     },
   },
