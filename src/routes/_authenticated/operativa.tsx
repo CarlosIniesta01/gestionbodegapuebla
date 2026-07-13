@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle, Clock, Hammer, Droplets, CheckCircle2,
-  AlertCircle, Sparkles, Activity, Boxes,
+  AlertCircle, Sparkles, Activity, Boxes, FlaskConical, Truck,
 } from "lucide-react";
+
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { CentroHeader } from "@/components/CentroHeader";
 import { getOperativaCentro } from "@/lib/api/centros.functions";
