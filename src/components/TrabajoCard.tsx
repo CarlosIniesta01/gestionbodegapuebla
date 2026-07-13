@@ -68,6 +68,15 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
   const [trabsOpen, setTrabsOpen] = useState(false);
 
+  const isOrden = t.tipo === "carga" || t.tipo === "descarga";
+  const listOrdFn = useServerFn(listOrdenesLogisticas);
+  const ordenQ = useQuery({
+    queryKey: ["ordenes-log-by-trabajo", t.id],
+    queryFn: () => listOrdFn({ data: { bodegaId: bodegaId!, tipo: t.tipo as any } }),
+    enabled: isOrden && !!bodegaId,
+  });
+  const ordenLinked = ordenQ.data?.find((o: any) => o.trabajo_id === t.id);
+
 
   return (
     <motion.div
