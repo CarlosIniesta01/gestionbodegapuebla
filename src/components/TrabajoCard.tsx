@@ -159,6 +159,13 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
                   <X className="size-3.5" />
                 </Button>
               )}
+              {isOrden && ordenLinked && (
+                <Button size="sm" variant="outline" asChild title="Abrir orden">
+                  <Link to="/ordenes/$id" params={{ id: ordenLinked.id }}>
+                    <ExternalLink className="size-3.5 mr-1" /> Abrir orden
+                  </Link>
+                </Button>
+              )}
               <Button size="sm" variant="ghost" title="Trabajadores" onClick={() => setTrabsOpen(true)}>
                 <Users className="size-3.5" />
               </Button>
