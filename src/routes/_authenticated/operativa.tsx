@@ -90,6 +90,36 @@ function OperativaPage() {
     <div className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-4">
       <CentroHeader />
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Link
+          to="/laboratorio"
+          className="rounded-lg border bg-card p-3.5 flex items-center gap-3 hover:bg-accent/40 transition-colors"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <div className="size-10 rounded-md bg-primary/10 flex items-center justify-center">
+            <Truck className="size-5 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold">Procesos de carga y descarga</div>
+            <div className="text-[11px] text-muted-foreground">Configura DP-10, DP-11, versiones y defaults</div>
+          </div>
+        </Link>
+        <Link
+          to="/laboratorio"
+          className="rounded-lg border bg-card p-3.5 flex items-center gap-3 hover:bg-accent/40 transition-colors"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <div className="size-10 rounded-md bg-primary/10 flex items-center justify-center">
+            <FlaskConical className="size-5 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold">Plantillas analíticas</div>
+            <div className="text-[11px] text-muted-foreground">Parámetros de recepción y control de calidad</div>
+          </div>
+        </Link>
+      </div>
+
+
       {q.isLoading || !d ? (
         <div className="p-6 text-sm text-muted-foreground">Cargando operativa…</div>
       ) : (
