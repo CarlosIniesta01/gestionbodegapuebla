@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network, RotateCcw, LayoutDashboard, Package, ClipboardList, FileSearch, Inbox, Mail, Calendar, ChevronDown, ChevronRight, Download, Settings as SettingsIcon, Activity, Sparkles, AlertCircle, Search } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network, RotateCcw, LayoutDashboard, Package, ClipboardList, FileSearch, Inbox, Mail, Calendar, ChevronDown, ChevronRight, Download, Settings as SettingsIcon, Activity, Sparkles, AlertCircle, Search, Truck, FlaskConical } from "lucide-react";
 import { ReinicioOperativoTab } from "@/components/admin/ReinicioOperativoTab";
+import { ProcesosDocumentalesTab } from "@/components/admin/ProcesosDocumentalesTab";
+import { PlantillasAnaliticaTab } from "@/components/admin/PlantillasAnaliticaTab";
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
@@ -62,6 +64,8 @@ type SectionKey =
   | "productos"
   | "productos-comerciales"
   | "stock"
+  | "procesos-doc"
+  | "plantillas-analitica"
   | "auditoria"
   | "perfiles-auditoria"
   | "reinicio"
@@ -95,6 +99,14 @@ const NAV_GROUPS: NavGroup[] = [
       { key: "productos-comerciales", label: "Productos comerciales", icon: Package },
       { key: "productos", label: "Productos enológicos", icon: Beaker },
       { key: "stock", label: "Stock almacén", icon: ClipboardList },
+    ],
+  },
+  {
+    key: "operativa",
+    label: "Operativa",
+    items: [
+      { key: "procesos-doc", label: "Procesos documentales", icon: Truck },
+      { key: "plantillas-analitica", label: "Plantillas analíticas", icon: FlaskConical },
     ],
   },
   {
@@ -134,7 +146,7 @@ function AdminPage() {
 
   const [section, setSection] = useState<SectionKey>("dashboard");
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    general: true, users: true, products: true, security: true,
+    general: true, users: true, products: true, operativa: true, security: true,
   });
 
   if (bodegasQ.isLoading) {
@@ -245,6 +257,8 @@ function AdminPage() {
               {section === "productos" && <ProductosTab bodegaId={activeBodegaId} />}
               {section === "productos-comerciales" && <ProductosComercialesTab bodegaId={activeBodegaId} />}
               {section === "stock" && <StockTab bodegaId={activeBodegaId} />}
+              {section === "procesos-doc" && <ProcesosDocumentalesTab bodegaId={activeBodegaId} />}
+              {section === "plantillas-analitica" && <PlantillasAnaliticaTab bodegaId={activeBodegaId} />}
               {section === "auditoria" && <AuditoriaTab bodegaId={activeBodegaId} />}
               {section === "perfiles-auditoria" && <PerfilesAuditoriaTab bodegaId={activeBodegaId} />}
               {section === "reinicio" && <ReinicioOperativoTab />}
