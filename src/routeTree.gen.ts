@@ -20,6 +20,7 @@ import { Route as AuthenticatedPosicionComercialRouteImport } from './routes/_au
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedOperativaRouteImport } from './routes/_authenticated/operativa'
 import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
+import { Route as AuthenticatedLaboratorioRouteImport } from './routes/_authenticated/laboratorio'
 import { Route as AuthenticatedInformesRouteImport } from './routes/_authenticated/informes'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
 import { Route as AuthenticatedComparativaRouteImport } from './routes/_authenticated/comparativa'
@@ -84,6 +85,12 @@ const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
   path: '/mensajes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedLaboratorioRoute =
+  AuthenticatedLaboratorioRouteImport.update({
+    id: '/laboratorio',
+    path: '/laboratorio',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedInformesRoute = AuthenticatedInformesRouteImport.update({
   id: '/informes',
   path: '/informes',
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/comparativa': typeof AuthenticatedComparativaRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/informes': typeof AuthenticatedInformesRoute
+  '/laboratorio': typeof AuthenticatedLaboratorioRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
   '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
@@ -157,6 +165,7 @@ export interface FileRoutesByTo {
   '/comparativa': typeof AuthenticatedComparativaRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/informes': typeof AuthenticatedInformesRoute
+  '/laboratorio': typeof AuthenticatedLaboratorioRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
   '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/comparativa': typeof AuthenticatedComparativaRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRoute
   '/_authenticated/informes': typeof AuthenticatedInformesRoute
+  '/_authenticated/laboratorio': typeof AuthenticatedLaboratorioRoute
   '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
   '/_authenticated/operativa': typeof AuthenticatedOperativaRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/comparativa'
     | '/contratos'
     | '/informes'
+    | '/laboratorio'
     | '/mensajes'
     | '/operativa'
     | '/pendientes'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/comparativa'
     | '/contratos'
     | '/informes'
+    | '/laboratorio'
     | '/mensajes'
     | '/operativa'
     | '/pendientes'
@@ -242,6 +254,7 @@ export interface FileRouteTypes {
     | '/_authenticated/comparativa'
     | '/_authenticated/contratos'
     | '/_authenticated/informes'
+    | '/_authenticated/laboratorio'
     | '/_authenticated/mensajes'
     | '/_authenticated/operativa'
     | '/_authenticated/pendientes'
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMensajesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/laboratorio': {
+      id: '/_authenticated/laboratorio'
+      path: '/laboratorio'
+      fullPath: '/laboratorio'
+      preLoaderRoute: typeof AuthenticatedLaboratorioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/informes': {
       id: '/_authenticated/informes'
       path: '/informes'
@@ -405,6 +425,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedComparativaRoute: typeof AuthenticatedComparativaRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRoute
   AuthenticatedInformesRoute: typeof AuthenticatedInformesRoute
+  AuthenticatedLaboratorioRoute: typeof AuthenticatedLaboratorioRoute
   AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
   AuthenticatedOperativaRoute: typeof AuthenticatedOperativaRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
@@ -424,6 +445,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedComparativaRoute: AuthenticatedComparativaRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRoute,
   AuthenticatedInformesRoute: AuthenticatedInformesRoute,
+  AuthenticatedLaboratorioRoute: AuthenticatedLaboratorioRoute,
   AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
   AuthenticatedOperativaRoute: AuthenticatedOperativaRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
@@ -446,13 +468,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
