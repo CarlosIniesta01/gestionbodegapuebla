@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Trash2, ArrowUp, ArrowDown, ClipboardCopy, FileText, AlertTriangle, Printer } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, ClipboardCopy, AlertTriangle, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
