@@ -18,7 +18,7 @@ import { listProductosComerciales } from "@/lib/api/productos-comerciales.functi
 import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { AlertTriangle, Save, X } from "lucide-react";
-import { OrdenCargaDescargaSection, type OrdenState, emptyParam } from "./OrdenCargaDescargaSection";
+import { OrdenCargaDescargaSection, type OrdenState } from "./OrdenCargaDescargaSection";
 import { bulkUpsertAnaliticasEvento } from "@/lib/api/analiticas.functions";
 
 type EventoExistente = {
