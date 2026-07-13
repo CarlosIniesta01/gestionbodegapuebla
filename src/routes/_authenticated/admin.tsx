@@ -248,8 +248,6 @@ function AdminPage() {
               {section === "productos" && <ProductosTab bodegaId={activeBodegaId} />}
               {section === "productos-comerciales" && <ProductosComercialesTab bodegaId={activeBodegaId} />}
               {section === "stock" && <StockTab bodegaId={activeBodegaId} />}
-              {section === "procesos-doc" && <ProcesosDocumentalesTab bodegaId={activeBodegaId} />}
-              {section === "plantillas-analitica" && <PlantillasAnaliticaTab bodegaId={activeBodegaId} />}
               {section === "auditoria" && <AuditoriaTab bodegaId={activeBodegaId} />}
               {section === "perfiles-auditoria" && <PerfilesAuditoriaTab bodegaId={activeBodegaId} />}
               {section === "reinicio" && <ReinicioOperativoTab />}
