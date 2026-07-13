@@ -26,11 +26,33 @@ export const Route = createFileRoute("/_authenticated/ordenes/$id")({
 function OrdenDetailPage() {
   const { id } = Route.useParams();
   const router = useRouter();
+  const qc = useQueryClient();
   const fn = useServerFn(getOrdenLogistica);
+  const iniciar = useServerFn(iniciarOrdenLogistica);
+  const rechazar = useServerFn(rechazarOrdenLogistica);
   const [editing, setEditing] = React.useState(false);
+  const [showResumen, setShowResumen] = React.useState(false);
+  const [showRechazo, setShowRechazo] = React.useState(false);
+  const [motivoRechazo, setMotivoRechazo] = React.useState("");
+
   const q = useQuery({
     queryKey: ["orden-log", id],
     queryFn: () => fn({ data: { id } }),
+  });
+
+  const mIniciar = useMutation({
+    mutationFn: () => iniciar({ data: { id } }),
+    onSuccess: () => { toast.success("Orden iniciada"); qc.invalidateQueries({ queryKey: ["orden-log", id] }); },
+    onError: (e: any) => toast.error(e.message ?? "No se pudo iniciar"),
+  });
+  const mRechazar = useMutation({
+    mutationFn: () => rechazar({ data: { id, motivo: motivoRechazo } }),
+    onSuccess: () => {
+      toast.success("Orden rechazada");
+      setShowRechazo(false); setMotivoRechazo("");
+      qc.invalidateQueries({ queryKey: ["orden-log", id] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "No se pudo rechazar"),
   });
 
   if (q.isLoading) return <div className="p-6 text-muted-foreground">Cargando…</div>;
@@ -43,6 +65,7 @@ function OrdenDetailPage() {
   const estadoMeta = ESTADO_META[o.estado as keyof typeof ESTADO_META];
   const isCarga = o.tipo === "carga";
   const title = isCarga ? "ORDEN DE CARGA" : "ORDEN DE DESCARGA";
+  const isBloqueada = ["completada", "cerrada", "rechazada", "cancelada", "rectificada"].includes(o.estado);
 
   return (
     <div className="max-w-[900px] mx-auto p-4 print:p-0 print:max-w-none">
@@ -51,8 +74,23 @@ function OrdenDetailPage() {
         <Button variant="ghost" size="sm" onClick={() => router.history.back()}>
           <ArrowLeft className="size-3.5 mr-1" /> Volver
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+        <div className="flex gap-2 flex-wrap">
+          {o.estado === "autorizada" && (
+            <Button size="sm" variant="default" onClick={() => mIniciar.mutate()} disabled={mIniciar.isPending}>
+              <Play className="size-3.5 mr-1" /> Iniciar
+            </Button>
+          )}
+          {o.estado === "en_proceso" && (
+            <Button size="sm" variant="default" onClick={() => setShowResumen(true)}>
+              <CheckSquare className="size-3.5 mr-1" /> Finalizar {isCarga ? "carga" : "descarga"}
+            </Button>
+          )}
+          {["autorizada", "en_proceso", "pendiente_confirmacion", "pendiente_laboratorio"].includes(o.estado) && (
+            <Button size="sm" variant="outline" onClick={() => setShowRechazo(true)}>
+              <XCircle className="size-3.5 mr-1" /> Rechazar
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => setEditing(true)} disabled={isBloqueada}>
             <Pencil className="size-3.5 mr-1" /> Editar
           </Button>
           <Button size="sm" onClick={() => window.print()}>
@@ -60,6 +98,18 @@ function OrdenDetailPage() {
           </Button>
         </div>
       </div>
+
+      {showRechazo && (
+        <div className="print:hidden mb-4 border border-destructive/40 bg-destructive/10 rounded-md p-3 space-y-2">
+          <div className="text-sm font-medium">Motivo de rechazo</div>
+          <Textarea value={motivoRechazo} onChange={(e) => setMotivoRechazo(e.target.value)} placeholder="Explica por qué se rechaza esta orden" />
+          <div className="flex gap-2">
+            <Button size="sm" variant="destructive" onClick={() => mRechazar.mutate()} disabled={motivoRechazo.length < 3 || mRechazar.isPending}>Confirmar rechazo</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setShowRechazo(false); setMotivoRechazo(""); }}>Cancelar</Button>
+          </div>
+        </div>
+      )}
+
 
       {/* PAGE 1 */}
       <div className="print-page bg-white text-black p-8 border" style={{ minHeight: "1123px" }}>
