@@ -212,6 +212,7 @@ export type Database = {
           id: string
           nombre: string
           organization_id: string
+          tolerancia_compartimentos_pct: number
           ubicacion: string | null
         }
         Insert: {
@@ -219,6 +220,7 @@ export type Database = {
           id?: string
           nombre: string
           organization_id: string
+          tolerancia_compartimentos_pct?: number
           ubicacion?: string | null
         }
         Update: {
@@ -226,6 +228,7 @@ export type Database = {
           id?: string
           nombre?: string
           organization_id?: string
+          tolerancia_compartimentos_pct?: number
           ubicacion?: string | null
         }
         Relationships: [
@@ -1278,11 +1281,14 @@ export type Database = {
           calendario_evento_id: string | null
           campana: string | null
           categoria: string | null
+          cerrada_at: string | null
           cliente_id: string | null
           comprobaciones: Json
           conductor_documento: string | null
           conductor_nombre: string | null
           conductor_telefono: string | null
+          confirmado_at: string | null
+          confirmado_por: string | null
           contrato_compra_id: string | null
           contrato_venta_id: string | null
           created_at: string
@@ -1298,11 +1304,15 @@ export type Database = {
           grado: number | null
           hora_programada: string | null
           id: string
+          idempotency_key: string
+          iniciado_at: string | null
+          iniciado_por: string | null
           instrucciones: Json
           lab_autorizado_at: string | null
           lab_autorizado_cargo: string | null
           lab_autorizado_por: string | null
           lab_estado: Database["public"]["Enums"]["orden_lab_estado"]
+          lab_excepcion: Json | null
           lab_observaciones: string | null
           limpieza_epis: Json
           litros_previstos: number | null
@@ -1310,10 +1320,14 @@ export type Database = {
           lote_id: string | null
           matricula: string | null
           motivo_cancelacion: string | null
+          motivo_rechazo: string | null
+          motivo_rectificacion: string | null
           movimiento_id: string | null
           numero_operacion: string | null
           numero_precinto: string | null
           observaciones: string | null
+          orden_original_id: string | null
+          pendiente_confirmacion_at: string | null
           precintos_adicionales: string | null
           prioridad: string
           proceso_codigo_snapshot: string | null
@@ -1322,23 +1336,31 @@ export type Database = {
           proceso_version_snapshot: string | null
           producto_id: string | null
           proveedor_id: string | null
+          rechazada_at: string | null
+          rechazada_por: string | null
+          rectificada_at: string | null
+          rectificada_por: string | null
           remolque_matricula: string | null
           tipo: Database["public"]["Enums"]["orden_logistica_tipo"]
           trabajo_id: string | null
           transportista: string | null
           updated_at: string
           updated_by: string | null
+          validation_snapshot: Json | null
         }
         Insert: {
           bodega_id: string
           calendario_evento_id?: string | null
           campana?: string | null
           categoria?: string | null
+          cerrada_at?: string | null
           cliente_id?: string | null
           comprobaciones?: Json
           conductor_documento?: string | null
           conductor_nombre?: string | null
           conductor_telefono?: string | null
+          confirmado_at?: string | null
+          confirmado_por?: string | null
           contrato_compra_id?: string | null
           contrato_venta_id?: string | null
           created_at?: string
@@ -1354,11 +1376,15 @@ export type Database = {
           grado?: number | null
           hora_programada?: string | null
           id?: string
+          idempotency_key?: string
+          iniciado_at?: string | null
+          iniciado_por?: string | null
           instrucciones?: Json
           lab_autorizado_at?: string | null
           lab_autorizado_cargo?: string | null
           lab_autorizado_por?: string | null
           lab_estado?: Database["public"]["Enums"]["orden_lab_estado"]
+          lab_excepcion?: Json | null
           lab_observaciones?: string | null
           limpieza_epis?: Json
           litros_previstos?: number | null
@@ -1366,10 +1392,14 @@ export type Database = {
           lote_id?: string | null
           matricula?: string | null
           motivo_cancelacion?: string | null
+          motivo_rechazo?: string | null
+          motivo_rectificacion?: string | null
           movimiento_id?: string | null
           numero_operacion?: string | null
           numero_precinto?: string | null
           observaciones?: string | null
+          orden_original_id?: string | null
+          pendiente_confirmacion_at?: string | null
           precintos_adicionales?: string | null
           prioridad?: string
           proceso_codigo_snapshot?: string | null
@@ -1378,23 +1408,31 @@ export type Database = {
           proceso_version_snapshot?: string | null
           producto_id?: string | null
           proveedor_id?: string | null
+          rechazada_at?: string | null
+          rechazada_por?: string | null
+          rectificada_at?: string | null
+          rectificada_por?: string | null
           remolque_matricula?: string | null
           tipo: Database["public"]["Enums"]["orden_logistica_tipo"]
           trabajo_id?: string | null
           transportista?: string | null
           updated_at?: string
           updated_by?: string | null
+          validation_snapshot?: Json | null
         }
         Update: {
           bodega_id?: string
           calendario_evento_id?: string | null
           campana?: string | null
           categoria?: string | null
+          cerrada_at?: string | null
           cliente_id?: string | null
           comprobaciones?: Json
           conductor_documento?: string | null
           conductor_nombre?: string | null
           conductor_telefono?: string | null
+          confirmado_at?: string | null
+          confirmado_por?: string | null
           contrato_compra_id?: string | null
           contrato_venta_id?: string | null
           created_at?: string
@@ -1410,11 +1448,15 @@ export type Database = {
           grado?: number | null
           hora_programada?: string | null
           id?: string
+          idempotency_key?: string
+          iniciado_at?: string | null
+          iniciado_por?: string | null
           instrucciones?: Json
           lab_autorizado_at?: string | null
           lab_autorizado_cargo?: string | null
           lab_autorizado_por?: string | null
           lab_estado?: Database["public"]["Enums"]["orden_lab_estado"]
+          lab_excepcion?: Json | null
           lab_observaciones?: string | null
           limpieza_epis?: Json
           litros_previstos?: number | null
@@ -1422,10 +1464,14 @@ export type Database = {
           lote_id?: string | null
           matricula?: string | null
           motivo_cancelacion?: string | null
+          motivo_rechazo?: string | null
+          motivo_rectificacion?: string | null
           movimiento_id?: string | null
           numero_operacion?: string | null
           numero_precinto?: string | null
           observaciones?: string | null
+          orden_original_id?: string | null
+          pendiente_confirmacion_at?: string | null
           precintos_adicionales?: string | null
           prioridad?: string
           proceso_codigo_snapshot?: string | null
@@ -1434,12 +1480,17 @@ export type Database = {
           proceso_version_snapshot?: string | null
           producto_id?: string | null
           proveedor_id?: string | null
+          rechazada_at?: string | null
+          rechazada_por?: string | null
+          rectificada_at?: string | null
+          rectificada_por?: string | null
           remolque_matricula?: string | null
           tipo?: Database["public"]["Enums"]["orden_logistica_tipo"]
           trabajo_id?: string | null
           transportista?: string | null
           updated_at?: string
           updated_by?: string | null
+          validation_snapshot?: Json | null
         }
         Relationships: [
           {
@@ -1489,6 +1540,13 @@ export type Database = {
             columns: ["movimiento_id"]
             isOneToOne: false
             referencedRelation: "movimientos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_logisticas_orden_original_id_fkey"
+            columns: ["orden_original_id"]
+            isOneToOne: false
+            referencedRelation: "ordenes_logisticas"
             referencedColumns: ["id"]
           },
           {
@@ -2781,6 +2839,10 @@ export type Database = {
         | "en_proceso"
         | "completada"
         | "cancelada"
+        | "pendiente_confirmacion"
+        | "cerrada"
+        | "rechazada"
+        | "rectificada"
       orden_logistica_tipo: "carga" | "descarga"
       participacion_estado:
         | "asignado"
@@ -2986,6 +3048,10 @@ export const Constants = {
         "en_proceso",
         "completada",
         "cancelada",
+        "pendiente_confirmacion",
+        "cerrada",
+        "rechazada",
+        "rectificada",
       ],
       orden_logistica_tipo: ["carga", "descarga"],
       participacion_estado: [
