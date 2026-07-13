@@ -11,6 +11,7 @@ import { listTrabajos } from "@/lib/api/trabajos.functions";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { TrabajoFormDialog } from "@/components/TrabajoFormDialog";
 import { EmbotelladoDialog } from "@/components/embotellado/EmbotelladoDialog";
+import { OrdenLogisticaDialog } from "@/components/ordenes/OrdenLogisticaDialog";
 import { TrabajoCard } from "@/components/TrabajoCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +28,7 @@ function Trabajos() {
   const [open, setOpen] = React.useState(false);
   const [embOpen, setEmbOpen] = React.useState(false);
   const [prepOpen, setPrepOpen] = React.useState(false);
+  const [ordenTipo, setOrdenTipo] = React.useState<"carga" | "descarga" | null>(null);
   const [defaultTipo, setDefaultTipo] = React.useState<TrabajoTipo>("trasiego");
   const [filtroTipo, setFiltroTipo] = React.useState<"all" | TrabajoTipo>("all");
 
@@ -56,6 +58,7 @@ function Trabajos() {
 
   const launch = (tipo: TrabajoTipo) => {
     if (tipo === "embotellado") { setEmbOpen(true); return; }
+    if (tipo === "carga" || tipo === "descarga") { setOrdenTipo(tipo); return; }
     setDefaultTipo(tipo); setOpen(true);
   };
   const trabajos = q.data ?? [];
@@ -127,6 +130,14 @@ function Trabajos() {
           <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
           <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} />
           <PreparacionesDialog open={prepOpen} onOpenChange={setPrepOpen} bodegaId={bodegaId} />
+          {ordenTipo && (
+            <OrdenLogisticaDialog
+              open={!!ordenTipo}
+              onOpenChange={(v) => { if (!v) setOrdenTipo(null); }}
+              bodegaId={bodegaId}
+              tipo={ordenTipo}
+            />
+          )}
         </>
       )}
     </div>

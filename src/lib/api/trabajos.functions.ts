@@ -8,6 +8,8 @@ const TipoEnum = z.enum([
   "producto",
   "limpieza",
   "embotellado",
+  "carga",
+  "descarga",
   "incidencia",
   "observacion",
 ]);

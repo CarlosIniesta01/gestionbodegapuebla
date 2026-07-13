@@ -1,4 +1,4 @@
-import { Droplets, Grape, Beaker, Sparkles, Package, AlertTriangle, MessageSquare, type LucideIcon } from "lucide-react";
+import { Droplets, Grape, Beaker, Sparkles, Package, AlertTriangle, MessageSquare, Truck, PackageOpen, type LucideIcon } from "lucide-react";
 
 export const TRABAJO_TIPOS = [
   { id: "trasiego", label: "Trasiego", icon: Droplets, color: "var(--state-trasiego)" },
@@ -6,6 +6,8 @@ export const TRABAJO_TIPOS = [
   { id: "producto", label: "Producto enológico", icon: Beaker, color: "var(--accent)" },
   { id: "limpieza", label: "Limpieza", icon: Sparkles, color: "var(--state-limpieza)" },
   { id: "embotellado", label: "Embotellado", icon: Package, color: "var(--state-vino)" },
+  { id: "carga", label: "Orden de carga", icon: Truck, color: "var(--state-trasiego)" },
+  { id: "descarga", label: "Orden de descarga", icon: PackageOpen, color: "var(--state-fermentacion)" },
   { id: "incidencia", label: "Incidencia", icon: AlertTriangle, color: "var(--state-incidencia)" },
   { id: "observacion", label: "Observación", icon: MessageSquare, color: "var(--muted-foreground)" },
 ] as const;

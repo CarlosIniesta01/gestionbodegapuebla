@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Clock, ArrowRight, Play, Check, X, Trash2, Users, FlaskConical } from "lucide-react";
+import { Clock, ArrowRight, Play, Check, X, Trash2, Users, FlaskConical, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 import { TIPO_META, ESTADO_LABEL, PRIORIDAD_LABEL, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { updateTrabajoEstado, deleteTrabajo } from "@/lib/api/trabajos.functions";
 import { trabajoConsumosCompletos } from "@/lib/api/lotes.functions";
+import { listOrdenesLogisticas } from "@/lib/api/ordenes-logisticas.functions";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +67,15 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
 
   const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
   const [trabsOpen, setTrabsOpen] = useState(false);
+
+  const isOrden = t.tipo === "carga" || t.tipo === "descarga";
+  const listOrdFn = useServerFn(listOrdenesLogisticas);
+  const ordenQ = useQuery({
+    queryKey: ["ordenes-log-by-trabajo", t.id],
+    queryFn: () => listOrdFn({ data: { bodegaId: bodegaId!, tipo: t.tipo as any } }),
+    enabled: isOrden && !!bodegaId,
+  });
+  const ordenLinked = ordenQ.data?.find((o: any) => o.trabajo_id === t.id);
 
 
   return (
@@ -146,6 +157,13 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
               {t.estado !== "cancelado" && t.estado !== "completado" && (
                 <Button size="sm" variant="ghost" onClick={() => upd.mutate({ data: { id: t.id, estado: "cancelado" }})}>
                   <X className="size-3.5" />
+                </Button>
+              )}
+              {isOrden && ordenLinked && (
+                <Button size="sm" variant="outline" asChild title="Abrir orden">
+                  <Link to="/ordenes/$id" params={{ id: ordenLinked.id }}>
+                    <ExternalLink className="size-3.5 mr-1" /> Abrir orden
+                  </Link>
                 </Button>
               )}
               <Button size="sm" variant="ghost" title="Trabajadores" onClick={() => setTrabsOpen(true)}>
