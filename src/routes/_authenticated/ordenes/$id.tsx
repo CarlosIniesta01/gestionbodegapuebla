@@ -1,13 +1,20 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Printer, Pencil } from "lucide-react";
+import { ArrowLeft, Printer, Pencil, Play, CheckSquare, XCircle } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getOrdenLogistica } from "@/lib/api/ordenes-logisticas.functions";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  getOrdenLogistica,
+  iniciarOrdenLogistica,
+  rechazarOrdenLogistica,
+} from "@/lib/api/ordenes-logisticas.functions";
 import { DECLARACION_TRANSPORTISTA_TEXTO, ESTADO_META } from "@/lib/ordenes-logisticas-meta";
 import { OrdenLogisticaDialog } from "@/components/ordenes/OrdenLogisticaDialog";
+import { ResumenConfirmacionDialog } from "@/components/ordenes/ResumenConfirmacionDialog";
 
 export const Route = createFileRoute("/_authenticated/ordenes/$id")({
   head: () => ({ meta: [{ title: "Orden logística · Vinea Control" }] }),
