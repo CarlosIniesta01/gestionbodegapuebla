@@ -29,6 +29,7 @@ import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActividadRouteImport } from './routes/_authenticated/actividad'
+import { Route as AuthenticatedOrdenesIdRouteImport } from './routes/_authenticated/ordenes/$id'
 
 const PendienteRoute = PendienteRouteImport.update({
   id: '/pendiente',
@@ -132,6 +133,11 @@ const AuthenticatedActividadRoute = AuthenticatedActividadRouteImport.update({
   path: '/actividad',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedOrdenesIdRoute = AuthenticatedOrdenesIdRouteImport.update({
+  id: '/ordenes/$id',
+  path: '/ordenes/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/procesos': typeof AuthenticatedProcesosRoute
   '/recetas': typeof AuthenticatedRecetasRoute
   '/trabajos': typeof AuthenticatedTrabajosRoute
+  '/ordenes/$id': typeof AuthenticatedOrdenesIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/recetas': typeof AuthenticatedRecetasRoute
   '/trabajos': typeof AuthenticatedTrabajosRoute
   '/': typeof AuthenticatedIndexRoute
+  '/ordenes/$id': typeof AuthenticatedOrdenesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/_authenticated/recetas': typeof AuthenticatedRecetasRoute
   '/_authenticated/trabajos': typeof AuthenticatedTrabajosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/ordenes/$id': typeof AuthenticatedOrdenesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/procesos'
     | '/recetas'
     | '/trabajos'
+    | '/ordenes/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/recetas'
     | '/trabajos'
     | '/'
+    | '/ordenes/$id'
   id:
     | '__root__'
     | '/_authenticated'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recetas'
     | '/_authenticated/trabajos'
     | '/_authenticated/'
+    | '/_authenticated/ordenes/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -413,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActividadRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/ordenes/$id': {
+      id: '/_authenticated/ordenes/$id'
+      path: '/ordenes/$id'
+      fullPath: '/ordenes/$id'
+      preLoaderRoute: typeof AuthenticatedOrdenesIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -434,6 +453,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedRecetasRoute: typeof AuthenticatedRecetasRoute
   AuthenticatedTrabajosRoute: typeof AuthenticatedTrabajosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedOrdenesIdRoute: typeof AuthenticatedOrdenesIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -454,6 +474,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedRecetasRoute: AuthenticatedRecetasRoute,
   AuthenticatedTrabajosRoute: AuthenticatedTrabajosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedOrdenesIdRoute: AuthenticatedOrdenesIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
