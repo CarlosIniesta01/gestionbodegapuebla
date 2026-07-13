@@ -130,6 +130,14 @@ function Trabajos() {
           <TrabajoFormDialog open={open} onOpenChange={setOpen} bodegaId={bodegaId} defaultTipo={defaultTipo} />
           <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} />
           <PreparacionesDialog open={prepOpen} onOpenChange={setPrepOpen} bodegaId={bodegaId} />
+          {ordenTipo && (
+            <OrdenLogisticaDialog
+              open={!!ordenTipo}
+              onOpenChange={(v) => { if (!v) setOrdenTipo(null); }}
+              bodegaId={bodegaId}
+              tipo={ordenTipo}
+            />
+          )}
         </>
       )}
     </div>
