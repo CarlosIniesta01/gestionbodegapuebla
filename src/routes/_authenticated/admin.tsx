@@ -2,10 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network, RotateCcw, LayoutDashboard, Package, ClipboardList, FileSearch, Inbox, Mail, Calendar, ChevronDown, ChevronRight, Download, Settings as SettingsIcon, Activity, Sparkles, AlertCircle, Search, Truck, FlaskConical } from "lucide-react";
+import { Shield, Users, KeyRound, Building2, Plus, Trash2, Save, Beaker, UserCheck, UserX, Network, RotateCcw, LayoutDashboard, Package, ClipboardList, FileSearch, Inbox, Mail, Calendar, ChevronDown, ChevronRight, Download, Settings as SettingsIcon, Activity, Sparkles, AlertCircle, Search } from "lucide-react";
 import { ReinicioOperativoTab } from "@/components/admin/ReinicioOperativoTab";
-import { ProcesosDocumentalesTab } from "@/components/admin/ProcesosDocumentalesTab";
-import { PlantillasAnaliticaTab } from "@/components/admin/PlantillasAnaliticaTab";
+
 
 import { ProductosTab } from "@/components/admin/ProductosTab";
 import { ProductosComercialesTab } from "@/components/ProductosComercialesTab";
