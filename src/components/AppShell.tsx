@@ -18,6 +18,7 @@ import {
   GitCompare,
   Workflow,
   Calendar,
+  FlaskConical,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,12 +37,14 @@ const NAV = [
   { to: "/recetas", label: "Recetas", icon: BookOpen },
   { to: "/bodega", label: "Bodega", icon: Boxes },
   { to: "/almacen", label: "Almacén enológico", icon: Beaker },
+  { to: "/laboratorio", label: "Laboratorio · Calidad", icon: FlaskConical },
   { to: "/contratos", label: "Contratos", icon: FileText },
   { to: "/posicion-comercial", label: "Posición Comercial", icon: BarChart3 },
   { to: "/informes", label: "Trazabilidad · Informes", icon: FileText },
   { to: "/comparativa", label: "Comparativa", icon: GitCompare },
   { to: "/admin", label: "Admin", icon: Shield },
 ] as const;
+
 
 export function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
