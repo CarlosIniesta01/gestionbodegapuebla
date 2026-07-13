@@ -321,6 +321,10 @@ function OrdenDetailPage() {
         />
       )}
 
+      {showResumen && (
+        <ResumenConfirmacionDialog open={showResumen} onOpenChange={setShowResumen} ordenId={o.id} />
+      )}
+
       <style>{`
         @media print {
           body { background: white !important; }
