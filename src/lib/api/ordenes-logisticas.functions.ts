@@ -681,3 +681,32 @@ export const aplicarExcepcionLaboratorio = createServerFn({ method: "POST" })
     return { ok: true, excepcion };
   });
 
+// ============================================================================
+// FASE 2 · BLOQUE B — Confirmación atómica (crea movimiento, cierra orden)
+// ============================================================================
+
+export const confirmarOrdenLogistica = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      id: z.string().uuid(),
+      idempotencyKey: z.string().uuid().optional().nullable(),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    const supabase: any = context.supabase;
+    // Re-validar antes de invocar la RPC atómica
+    const val = await computeValidation(supabase, data.id);
+    if (!val.ok) {
+      const critics = val.errors.filter((e) => e.critico);
+      throw new Error(`Validaciones bloqueantes: ${critics.map((e) => e.message).join(" · ")}`);
+    }
+    const { data: res, error } = await supabase.rpc("confirmar_orden_logistica", {
+      _orden_id: data.id,
+      _idempotency_key: data.idempotencyKey ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return res as { ok: boolean; idempotent: boolean; movimiento_id: string; estado: string };
+  });
+
+
