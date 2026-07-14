@@ -80,11 +80,13 @@ function OrdenDetailPage() {
               <Play className="size-3.5 mr-1" /> Iniciar
             </Button>
           )}
-          {o.estado === "en_proceso" && (
+          {(o.estado === "en_proceso" || o.estado === "pendiente_confirmacion") && (
             <Button size="sm" variant="default" onClick={() => setShowResumen(true)}>
-              <CheckSquare className="size-3.5 mr-1" /> Finalizar {isCarga ? "carga" : "descarga"}
+              <CheckSquare className="size-3.5 mr-1" />
+              {o.estado === "pendiente_confirmacion" ? "Confirmar" : "Finalizar"} {isCarga ? "carga" : "descarga"}
             </Button>
           )}
+
           {["autorizada", "en_proceso", "pendiente_confirmacion", "pendiente_laboratorio"].includes(o.estado) && (
             <Button size="sm" variant="outline" onClick={() => setShowRechazo(true)}>
               <XCircle className="size-3.5 mr-1" /> Rechazar
