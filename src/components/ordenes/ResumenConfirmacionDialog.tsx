@@ -11,7 +11,9 @@ import {
   getResumenOrden,
   marcarPendienteConfirmacion,
   aplicarExcepcionLaboratorio,
+  confirmarOrdenLogistica,
 } from "@/lib/api/ordenes-logisticas.functions";
+
 
 interface Props {
   open: boolean;
