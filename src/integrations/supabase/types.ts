@@ -2783,6 +2783,10 @@ export type Database = {
     }
     Functions: {
       can_rectify_movimientos: { Args: { _bodega: string }; Returns: boolean }
+      confirmar_orden_logistica: {
+        Args: { _idempotency_key?: string; _orden_id: string }
+        Returns: Json
+      }
       current_user_bodegas: { Args: never; Returns: string[] }
       has_permission: {
         Args: { _bodega: string; _perm: string }
