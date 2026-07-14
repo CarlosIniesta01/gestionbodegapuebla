@@ -25,10 +25,12 @@ export function ResumenConfirmacionDialog({ open, onOpenChange, ordenId }: Props
   const qc = useQueryClient();
   const getResumen = useServerFn(getResumenOrden);
   const marcar = useServerFn(marcarPendienteConfirmacion);
+  const confirmarFn = useServerFn(confirmarOrdenLogistica);
   const excepcion = useServerFn(aplicarExcepcionLaboratorio);
   const [showExcepcion, setShowExcepcion] = React.useState(false);
   const [motivo, setMotivo] = React.useState("");
   const [obs, setObs] = React.useState("");
+  const idemRef = React.useRef<string>(crypto.randomUUID());
 
   const q = useQuery({
     queryKey: ["orden-resumen", ordenId],
@@ -37,15 +39,30 @@ export function ResumenConfirmacionDialog({ open, onOpenChange, ordenId }: Props
   });
 
   const confirmar = useMutation({
-    mutationFn: () => marcar({ data: { id: ordenId } }),
-    onSuccess: () => {
-      toast.success("Orden pasada a pendiente de confirmación. La confirmación final que impacta stock se habilitará en el Bloque B.");
+    mutationFn: async () => {
+      const estado = q.data?.validation?.orden?.estado;
+      // Encadenar: en_proceso -> pendiente_confirmacion -> cerrada (atómico)
+      if (estado === "en_proceso") {
+        await marcar({ data: { id: ordenId } });
+      }
+      return confirmarFn({ data: { id: ordenId, idempotencyKey: idemRef.current } });
+    },
+    onSuccess: (res: any) => {
+      if (res?.idempotent) {
+        toast.info("La orden ya estaba confirmada (operación idempotente).");
+      } else {
+        toast.success("Orden confirmada: movimiento creado y existencias actualizadas.");
+      }
       qc.invalidateQueries({ queryKey: ["orden-log", ordenId] });
       qc.invalidateQueries({ queryKey: ["orden-resumen", ordenId] });
+      qc.invalidateQueries({ queryKey: ["movimientos"] });
+      qc.invalidateQueries({ queryKey: ["existencias"] });
+      qc.invalidateQueries({ queryKey: ["contratos"] });
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e.message ?? "No se pudo cerrar la orden"),
+    onError: (e: any) => toast.error(e.message ?? "No se pudo confirmar la orden"),
   });
+
 
   const aplicarExc = useMutation({
     mutationFn: () => excepcion({ data: { id: ordenId, motivo, observaciones: obs || null } }),
