@@ -94,6 +94,11 @@ function OrdenDetailPage() {
               <XCircle className="size-3.5 mr-1" /> Rechazar
             </Button>
           )}
+          {["cerrada", "rectificada", "completada"].includes(o.estado) && (
+            <Button size="sm" variant="outline" onClick={() => setShowRectificar(true)}>
+              <RotateCcw className="size-3.5 mr-1" /> Rectificar
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => setEditing(true)} disabled={isBloqueada}>
             <Pencil className="size-3.5 mr-1" /> Editar
           </Button>
@@ -114,6 +119,17 @@ function OrdenDetailPage() {
         </div>
       )}
 
+      <RectificarOrdenDialog orden={o} open={showRectificar} onOpenChange={setShowRectificar} />
+
+      {o.estado === "rectificada" && (
+        <div className="print:hidden mb-4 rounded-md border border-violet-500/40 bg-violet-500/10 p-3 text-sm">
+          <div className="font-medium">Orden rectificada</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {o.rectificada_at ? new Date(o.rectificada_at).toLocaleString("es-ES") : "—"} · Motivo:{" "}
+            {o.motivo_rectificacion ?? "—"}
+          </div>
+        </div>
+      )}
 
       {/* PAGE 1 */}
       <div className="print-page bg-white text-black p-8 border" style={{ minHeight: "1123px" }}>
