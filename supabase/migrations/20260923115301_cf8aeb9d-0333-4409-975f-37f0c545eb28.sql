@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.rectificar_orden_logistica(uuid, text, text, jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.rectificar_orden_logistica(uuid, text, text, jsonb) TO authenticated;
