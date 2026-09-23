@@ -710,3 +710,40 @@ export const confirmarOrdenLogistica = createServerFn({ method: "POST" })
   });
 
 
+
+// ============================================================================
+// FASE 2 · BLOQUE C — Rectificación de órdenes cerradas
+// ============================================================================
+
+export const rectificarOrdenLogistica = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      id: z.string().uuid(),
+      modo: z.enum(["informativa", "operativa"]),
+      motivo: z.string().min(10, "El motivo debe tener al menos 10 caracteres"),
+      cambios: z.record(z.string(), z.union([z.string(), z.number(), z.null()])).default({}),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    const supabase: any = context.supabase;
+    const cambios: Record<string, string> = {};
+    for (const [k, v] of Object.entries(data.cambios ?? {})) {
+      if (v === null || v === undefined || v === "") continue;
+      cambios[k] = String(v);
+    }
+    const { data: res, error } = await supabase.rpc("rectificar_orden_logistica", {
+      _orden_id: data.id,
+      _modo: data.modo,
+      _motivo: data.motivo,
+      _cambios: cambios,
+    });
+    if (error) throw new Error(error.message);
+    return res as {
+      ok: boolean;
+      modo: "informativa" | "operativa";
+      movimiento_id: string | null;
+      movimiento_anterior?: string;
+      estado: string;
+    };
+  });
