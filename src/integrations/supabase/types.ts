@@ -2796,6 +2796,15 @@ export type Database = {
       marcar_lotes_caducados: { Args: never; Returns: number }
       recalcular_contrato_compra: { Args: { _id: string }; Returns: undefined }
       recalcular_contrato_venta: { Args: { _id: string }; Returns: undefined }
+      rectificar_orden_logistica: {
+        Args: {
+          _cambios?: Json
+          _modo: string
+          _motivo: string
+          _orden_id: string
+        }
+        Returns: Json
+      }
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }
     Enums: {
