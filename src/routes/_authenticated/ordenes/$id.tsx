@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Printer, Pencil, Play, CheckSquare, XCircle } from "lucide-react";
+import { ArrowLeft, Printer, Pencil, Play, CheckSquare, XCircle, RotateCcw } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 import { DECLARACION_TRANSPORTISTA_TEXTO, ESTADO_META } from "@/lib/ordenes-logisticas-meta";
 import { OrdenLogisticaDialog } from "@/components/ordenes/OrdenLogisticaDialog";
 import { ResumenConfirmacionDialog } from "@/components/ordenes/ResumenConfirmacionDialog";
+import { RectificarOrdenDialog } from "@/components/ordenes/RectificarOrdenDialog";
 
 export const Route = createFileRoute("/_authenticated/ordenes/$id")({
   head: () => ({ meta: [{ title: "Orden logística · Vinea Control" }] }),
@@ -34,6 +35,7 @@ function OrdenDetailPage() {
   const [showResumen, setShowResumen] = React.useState(false);
   const [showRechazo, setShowRechazo] = React.useState(false);
   const [motivoRechazo, setMotivoRechazo] = React.useState("");
+  const [showRectificar, setShowRectificar] = React.useState(false);
 
   const q = useQuery({
     queryKey: ["orden-log", id],
