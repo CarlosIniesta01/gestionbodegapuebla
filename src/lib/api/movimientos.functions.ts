@@ -208,3 +208,58 @@ export const listExistenciasPorProducto = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
+// Importación masiva de existencias reales (Excel). Por cada depósito indicado,
+// se regulariza con movimientos de AJUSTE para que el saldo final coincida exactamente.
+const MOTIVO_IMPORT = "IMPORTACIÓN EXISTENCIAS REALES (EXCEL)";
+export const importarExistencias = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    bodegaId: z.string().uuid(),
+    lineas: z.array(z.object({
+      deposito_id: z.string().min(1).max(80),
+      producto_id: z.string().uuid().nullable(),
+      litros: z.number().min(0),
+      grado: z.number().min(0).max(100).nullable(),
+    })).min(1).max(2000),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMember(supabase, userId, data.bodegaId);
+    await assertCanRectify(supabase, data.bodegaId);
+    const depIds = Array.from(new Set(data.lineas.map((l) => l.deposito_id)));
+    const { data: actuales, error } = await supabase
+      .from("existencias_actuales").select("*")
+      .eq("bodega_id", data.bodegaId).in("deposito_id", depIds);
+    if (error) throw new Error(error.message);
+    const now = new Date();
+    const fecha = now.toISOString().slice(0, 10);
+    const hora = now.toTimeString().slice(0, 8);
+    const base = { bodega_id: data.bodegaId, tipo: "ajuste" as const, fecha, hora, observaciones: MOTIVO_IMPORT, created_by: userId };
+    const inserts: any[] = [];
+    let sinCambios = 0;
+    for (const dep of depIds) {
+      const objetivo = data.lineas.filter((l) => l.deposito_id === dep && l.litros > 0);
+      const act = (actuales ?? []).filter((a: any) => a.deposito_id === dep && Math.abs(Number(a.litros)) > 0.0001);
+      const igual = objetivo.length === act.length && objetivo.every((o) => act.some((a: any) =>
+        (a.producto_id ?? null) === o.producto_id &&
+        Math.abs(Number(a.litros) - o.litros) < 0.01 &&
+        Math.abs(Number(a.grado_medio ?? 0) - (o.grado ?? 0)) < 0.005));
+      if (igual) { sinCambios++; continue; }
+      for (const a of act as any[]) {
+        const l = Number(a.litros);
+        inserts.push({ ...base, producto_id: a.producto_id, litros: Math.abs(l),
+          grado: l > 0 ? Number(a.grado_medio) || null : null,
+          deposito_origen_id: l > 0 ? dep : null, deposito_destino_id: l > 0 ? null : dep });
+      }
+      for (const o of objetivo) {
+        inserts.push({ ...base, producto_id: o.producto_id, litros: o.litros, grado: o.grado,
+          deposito_origen_id: null, deposito_destino_id: dep });
+      }
+    }
+    for (let i = 0; i < inserts.length; i += 200) {
+      const { error: e } = await supabase.from("movimientos").insert(inserts.slice(i, i + 200));
+      if (e) throw new Error(e.message);
+    }
+    return { movimientos: inserts.length, depositos: depIds.length - sinCambios, sinCambios };
+  });
