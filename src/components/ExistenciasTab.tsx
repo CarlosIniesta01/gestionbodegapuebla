@@ -6,6 +6,9 @@ import { listProductosComerciales } from "@/lib/api/productos-comerciales.functi
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { FileSpreadsheet } from "lucide-react";
+import { ImportarExistenciasDialog } from "@/components/ImportarExistenciasDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Props { bodegaId: string }
@@ -39,6 +42,7 @@ export function ExistenciasTab({ bodegaId }: Props) {
   const [filtroProducto, setFiltroProducto] = useState<string>("__todos__");
   const [filtroCampana, setFiltroCampana] = useState<string>("__todos__");
   const [filtroTipoColor, setFiltroTipoColor] = useState<string>("__todos__");
+  const [importOpen, setImportOpen] = useState(false);
 
   const filasPorProducto = useMemo(() => {
     const rows = existenciasPorProducto.map((e: any) => {
@@ -101,6 +105,13 @@ export function ExistenciasTab({ bodegaId }: Props) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <FileSpreadsheet className="size-4 mr-2" />Importar desde Excel
+        </Button>
+      </div>
+      <ImportarExistenciasDialog open={importOpen} onOpenChange={setImportOpen} bodegaId={bodegaId}
+        depositos={depositos} productos={productos} existencias={existencias} />
       <Tabs defaultValue="por-producto">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="por-producto">Por producto</TabsTrigger>
