@@ -9,7 +9,7 @@ export const Route = createFileRoute("/pendiente")({
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: "/login", search: { redirect: "/" } });
     }
     const { data: memberships } = await supabase
       .from("memberships")
@@ -43,7 +43,7 @@ function PendientePage() {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/login", search: { redirect: "/" } });
   };
 
   return (

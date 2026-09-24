@@ -52,7 +52,7 @@ export function AppShell() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/login", search: { redirect: "/" } });
   };
 
   return (
