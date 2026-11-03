@@ -17,7 +17,7 @@ export function ExistenciasTab({ bodegaId }: Props) {
   const listE = useServerFn(listExistencias);
   const listEP = useServerFn(listExistenciasPorProducto);
   const listP = useServerFn(listProductosComerciales);
-  const { depositos } = useBodegaMap(bodegaId);
+  const { depositos, updateDeposito } = useBodegaMap(bodegaId);
 
   const eQ = useQuery({
     queryKey: ["existencias", bodegaId],
@@ -111,7 +111,8 @@ export function ExistenciasTab({ bodegaId }: Props) {
         </Button>
       </div>
       <ImportarExistenciasDialog open={importOpen} onOpenChange={setImportOpen} bodegaId={bodegaId}
-        depositos={depositos} productos={productos} existencias={existencias} />
+        depositos={depositos} productos={productos} existencias={existencias}
+        onAplicado={(cs) => cs.forEach((c) => updateDeposito(c.deposito_id, c.litros > 0 ? { contenido: c.contenido } as any : { estado: "vacio", contenido: "" } as any))} />
       <Tabs defaultValue="por-producto">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="por-producto">Por producto</TabsTrigger>

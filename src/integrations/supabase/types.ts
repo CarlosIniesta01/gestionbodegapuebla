@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -888,6 +888,71 @@ export type Database = {
         }
         Relationships: []
       }
+      importaciones_existencias: {
+        Row: {
+          archivo: string | null
+          bodega_id: string
+          created_at: string
+          depositos_modificados: number
+          depositos_vaciados: number
+          detalle: Json
+          filas_rechazadas: number
+          filas_total: number
+          id: string
+          litros_entrada: number
+          litros_salida: number
+          movimientos_generados: number
+          productos_creados: number
+          productos_nuevos: Json
+          sin_cambios: number
+          user_id: string
+        }
+        Insert: {
+          archivo?: string | null
+          bodega_id: string
+          created_at?: string
+          depositos_modificados?: number
+          depositos_vaciados?: number
+          detalle?: Json
+          filas_rechazadas?: number
+          filas_total?: number
+          id?: string
+          litros_entrada?: number
+          litros_salida?: number
+          movimientos_generados?: number
+          productos_creados?: number
+          productos_nuevos?: Json
+          sin_cambios?: number
+          user_id: string
+        }
+        Update: {
+          archivo?: string | null
+          bodega_id?: string
+          created_at?: string
+          depositos_modificados?: number
+          depositos_vaciados?: number
+          detalle?: Json
+          filas_rechazadas?: number
+          filas_total?: number
+          id?: string
+          litros_entrada?: number
+          litros_salida?: number
+          movimientos_generados?: number
+          productos_creados?: number
+          productos_nuevos?: Json
+          sin_cambios?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "importaciones_existencias_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_zonas: {
         Row: {
           membership_id: string
@@ -1075,6 +1140,7 @@ export type Database = {
           grado: number | null
           hora: string
           id: string
+          import_batch_id: string | null
           incidencia_id: string | null
           litros: number
           lote_id: string | null
@@ -1107,6 +1173,7 @@ export type Database = {
           grado?: number | null
           hora?: string
           id?: string
+          import_batch_id?: string | null
           incidencia_id?: string | null
           litros: number
           lote_id?: string | null
@@ -1139,6 +1206,7 @@ export type Database = {
           grado?: number | null
           hora?: string
           id?: string
+          import_batch_id?: string | null
           incidencia_id?: string | null
           litros?: number
           lote_id?: string | null
@@ -2061,6 +2129,7 @@ export type Database = {
           grado_referencia: number | null
           id: string
           nombre: string
+          origen_creacion: string | null
           tipo: string | null
           updated_at: string
         }
@@ -2075,6 +2144,7 @@ export type Database = {
           grado_referencia?: number | null
           id?: string
           nombre: string
+          origen_creacion?: string | null
           tipo?: string | null
           updated_at?: string
         }
@@ -2089,6 +2159,7 @@ export type Database = {
           grado_referencia?: number | null
           id?: string
           nombre?: string
+          origen_creacion?: string | null
           tipo?: string | null
           updated_at?: string
         }
