@@ -20,7 +20,7 @@ import { RectificarOrdenDialog } from "@/components/ordenes/RectificarOrdenDialo
 export const Route = createFileRoute("/_authenticated/ordenes/$id")({
   head: () => ({ meta: [{ title: "Orden logística · Vinea Control" }] }),
   component: OrdenDetailPage,
-  errorComponent: ({ error }) => <div className="p-6 text-destructive">Error: {error.message}</div>,
+  errorComponent: ({ error }) => <div className="p-6 text-destructive">Error: {(error as Error).message}</div>,
   notFoundComponent: () => <div className="p-6">Orden no encontrada.</div>,
 });
 

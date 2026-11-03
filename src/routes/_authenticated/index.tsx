@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/")({
   component: Inicio,
   errorComponent: ({ error }) => (
     <div className="erp-shell min-h-screen p-6">
-      <div className="text-sm text-[color:var(--erp-danger)]">Error: {error.message}</div>
+      <div className="text-sm text-[color:var(--erp-danger)]">Error: {(error as Error).message}</div>
     </div>
   ),
   notFoundComponent: () => <div className="erp-shell min-h-screen p-6">No encontrado.</div>,
