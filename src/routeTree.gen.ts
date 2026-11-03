@@ -9,31 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PendienteRouteImport } from './routes/pendiente'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PendienteRouteImport } from './routes/pendiente'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticated/trabajos'
-import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticated/recetas'
-import { Route as AuthenticatedProcesosRouteImport } from './routes/_authenticated/procesos'
-import { Route as AuthenticatedPosicionComercialRouteImport } from './routes/_authenticated/posicion-comercial'
-import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
-import { Route as AuthenticatedOperativaRouteImport } from './routes/_authenticated/operativa'
-import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
-import { Route as AuthenticatedLaboratorioRouteImport } from './routes/_authenticated/laboratorio'
-import { Route as AuthenticatedInformesRouteImport } from './routes/_authenticated/informes'
-import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
-import { Route as AuthenticatedComparativaRouteImport } from './routes/_authenticated/comparativa'
-import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
-import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
-import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActividadRouteImport } from './routes/_authenticated/actividad'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
+import { Route as AuthenticatedBodegaRouteImport } from './routes/_authenticated/bodega'
+import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedComparativaRouteImport } from './routes/_authenticated/comparativa'
+import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
+import { Route as AuthenticatedInformesRouteImport } from './routes/_authenticated/informes'
+import { Route as AuthenticatedLaboratorioRouteImport } from './routes/_authenticated/laboratorio'
+import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
+import { Route as AuthenticatedOperativaRouteImport } from './routes/_authenticated/operativa'
+import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
+import { Route as AuthenticatedPosicionComercialRouteImport } from './routes/_authenticated/posicion-comercial'
+import { Route as AuthenticatedProcesosRouteImport } from './routes/_authenticated/procesos'
+import { Route as AuthenticatedRecetasRouteImport } from './routes/_authenticated/recetas'
+import { Route as AuthenticatedTrabajosRouteImport } from './routes/_authenticated/trabajos'
 import { Route as AuthenticatedOrdenesIdRouteImport } from './routes/_authenticated/ordenes/$id'
 
-const PendienteRoute = PendienteRouteImport.update({
-  id: '/pendiente',
-  path: '/pendiente',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -41,8 +40,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const PendienteRoute = PendienteRouteImport.update({
+  id: '/pendiente',
+  path: '/pendiente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -50,56 +50,29 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedTrabajosRoute = AuthenticatedTrabajosRouteImport.update({
-  id: '/trabajos',
-  path: '/trabajos',
+const AuthenticatedActividadRoute = AuthenticatedActividadRouteImport.update({
+  id: '/actividad',
+  path: '/actividad',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedRecetasRoute = AuthenticatedRecetasRouteImport.update({
-  id: '/recetas',
-  path: '/recetas',
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedProcesosRoute = AuthenticatedProcesosRouteImport.update({
-  id: '/procesos',
-  path: '/procesos',
+const AuthenticatedAlmacenRoute = AuthenticatedAlmacenRouteImport.update({
+  id: '/almacen',
+  path: '/almacen',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPosicionComercialRoute =
-  AuthenticatedPosicionComercialRouteImport.update({
-    id: '/posicion-comercial',
-    path: '/posicion-comercial',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
-  id: '/pendientes',
-  path: '/pendientes',
+const AuthenticatedBodegaRoute = AuthenticatedBodegaRouteImport.update({
+  id: '/bodega',
+  path: '/bodega',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedOperativaRoute = AuthenticatedOperativaRouteImport.update({
-  id: '/operativa',
-  path: '/operativa',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
-  id: '/mensajes',
-  path: '/mensajes',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedLaboratorioRoute =
-  AuthenticatedLaboratorioRouteImport.update({
-    id: '/laboratorio',
-    path: '/laboratorio',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedInformesRoute = AuthenticatedInformesRouteImport.update({
-  id: '/informes',
-  path: '/informes',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedContratosRoute = AuthenticatedContratosRouteImport.update({
-  id: '/contratos',
-  path: '/contratos',
+const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedComparativaRoute =
@@ -108,29 +81,56 @@ const AuthenticatedComparativaRoute =
     path: '/comparativa',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
+const AuthenticatedContratosRoute = AuthenticatedContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedBodegaRoute = AuthenticatedBodegaRouteImport.update({
-  id: '/bodega',
-  path: '/bodega',
+const AuthenticatedInformesRoute = AuthenticatedInformesRouteImport.update({
+  id: '/informes',
+  path: '/informes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAlmacenRoute = AuthenticatedAlmacenRouteImport.update({
-  id: '/almacen',
-  path: '/almacen',
+const AuthenticatedLaboratorioRoute =
+  AuthenticatedLaboratorioRouteImport.update({
+    id: '/laboratorio',
+    path: '/laboratorio',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
+  id: '/mensajes',
+  path: '/mensajes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedOperativaRoute = AuthenticatedOperativaRouteImport.update({
+  id: '/operativa',
+  path: '/operativa',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedActividadRoute = AuthenticatedActividadRouteImport.update({
-  id: '/actividad',
-  path: '/actividad',
+const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
+  id: '/pendientes',
+  path: '/pendientes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPosicionComercialRoute =
+  AuthenticatedPosicionComercialRouteImport.update({
+    id: '/posicion-comercial',
+    path: '/posicion-comercial',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedProcesosRoute = AuthenticatedProcesosRouteImport.update({
+  id: '/procesos',
+  path: '/procesos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedRecetasRoute = AuthenticatedRecetasRouteImport.update({
+  id: '/recetas',
+  path: '/recetas',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTrabajosRoute = AuthenticatedTrabajosRouteImport.update({
+  id: '/trabajos',
+  path: '/trabajos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOrdenesIdRoute = AuthenticatedOrdenesIdRouteImport.update({
@@ -285,11 +285,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/pendiente': {
-      id: '/pendiente'
-      path: '/pendiente'
-      fullPath: '/pendiente'
-      preLoaderRoute: typeof PendienteRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -299,11 +299,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+    '/pendiente': {
+      id: '/pendiente'
+      path: '/pendiente'
+      fullPath: '/pendiente'
+      preLoaderRoute: typeof PendienteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -313,102 +313,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/trabajos': {
-      id: '/_authenticated/trabajos'
-      path: '/trabajos'
-      fullPath: '/trabajos'
-      preLoaderRoute: typeof AuthenticatedTrabajosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/recetas': {
-      id: '/_authenticated/recetas'
-      path: '/recetas'
-      fullPath: '/recetas'
-      preLoaderRoute: typeof AuthenticatedRecetasRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/procesos': {
-      id: '/_authenticated/procesos'
-      path: '/procesos'
-      fullPath: '/procesos'
-      preLoaderRoute: typeof AuthenticatedProcesosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/posicion-comercial': {
-      id: '/_authenticated/posicion-comercial'
-      path: '/posicion-comercial'
-      fullPath: '/posicion-comercial'
-      preLoaderRoute: typeof AuthenticatedPosicionComercialRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/pendientes': {
-      id: '/_authenticated/pendientes'
-      path: '/pendientes'
-      fullPath: '/pendientes'
-      preLoaderRoute: typeof AuthenticatedPendientesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/operativa': {
-      id: '/_authenticated/operativa'
-      path: '/operativa'
-      fullPath: '/operativa'
-      preLoaderRoute: typeof AuthenticatedOperativaRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/mensajes': {
-      id: '/_authenticated/mensajes'
-      path: '/mensajes'
-      fullPath: '/mensajes'
-      preLoaderRoute: typeof AuthenticatedMensajesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/laboratorio': {
-      id: '/_authenticated/laboratorio'
-      path: '/laboratorio'
-      fullPath: '/laboratorio'
-      preLoaderRoute: typeof AuthenticatedLaboratorioRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/informes': {
-      id: '/_authenticated/informes'
-      path: '/informes'
-      fullPath: '/informes'
-      preLoaderRoute: typeof AuthenticatedInformesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/contratos': {
-      id: '/_authenticated/contratos'
-      path: '/contratos'
-      fullPath: '/contratos'
-      preLoaderRoute: typeof AuthenticatedContratosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/comparativa': {
-      id: '/_authenticated/comparativa'
-      path: '/comparativa'
-      fullPath: '/comparativa'
-      preLoaderRoute: typeof AuthenticatedComparativaRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/calendario': {
-      id: '/_authenticated/calendario'
-      path: '/calendario'
-      fullPath: '/calendario'
-      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/bodega': {
-      id: '/_authenticated/bodega'
-      path: '/bodega'
-      fullPath: '/bodega'
-      preLoaderRoute: typeof AuthenticatedBodegaRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/almacen': {
-      id: '/_authenticated/almacen'
-      path: '/almacen'
-      fullPath: '/almacen'
-      preLoaderRoute: typeof AuthenticatedAlmacenRouteImport
+    '/_authenticated/actividad': {
+      id: '/_authenticated/actividad'
+      path: '/actividad'
+      fullPath: '/actividad'
+      preLoaderRoute: typeof AuthenticatedActividadRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin': {
@@ -418,11 +327,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/actividad': {
-      id: '/_authenticated/actividad'
-      path: '/actividad'
-      fullPath: '/actividad'
-      preLoaderRoute: typeof AuthenticatedActividadRouteImport
+    '/_authenticated/almacen': {
+      id: '/_authenticated/almacen'
+      path: '/almacen'
+      fullPath: '/almacen'
+      preLoaderRoute: typeof AuthenticatedAlmacenRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/bodega': {
+      id: '/_authenticated/bodega'
+      path: '/bodega'
+      fullPath: '/bodega'
+      preLoaderRoute: typeof AuthenticatedBodegaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/calendario': {
+      id: '/_authenticated/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/comparativa': {
+      id: '/_authenticated/comparativa'
+      path: '/comparativa'
+      fullPath: '/comparativa'
+      preLoaderRoute: typeof AuthenticatedComparativaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contratos': {
+      id: '/_authenticated/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof AuthenticatedContratosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/informes': {
+      id: '/_authenticated/informes'
+      path: '/informes'
+      fullPath: '/informes'
+      preLoaderRoute: typeof AuthenticatedInformesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/laboratorio': {
+      id: '/_authenticated/laboratorio'
+      path: '/laboratorio'
+      fullPath: '/laboratorio'
+      preLoaderRoute: typeof AuthenticatedLaboratorioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mensajes': {
+      id: '/_authenticated/mensajes'
+      path: '/mensajes'
+      fullPath: '/mensajes'
+      preLoaderRoute: typeof AuthenticatedMensajesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/operativa': {
+      id: '/_authenticated/operativa'
+      path: '/operativa'
+      fullPath: '/operativa'
+      preLoaderRoute: typeof AuthenticatedOperativaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/pendientes': {
+      id: '/_authenticated/pendientes'
+      path: '/pendientes'
+      fullPath: '/pendientes'
+      preLoaderRoute: typeof AuthenticatedPendientesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/posicion-comercial': {
+      id: '/_authenticated/posicion-comercial'
+      path: '/posicion-comercial'
+      fullPath: '/posicion-comercial'
+      preLoaderRoute: typeof AuthenticatedPosicionComercialRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/procesos': {
+      id: '/_authenticated/procesos'
+      path: '/procesos'
+      fullPath: '/procesos'
+      preLoaderRoute: typeof AuthenticatedProcesosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/recetas': {
+      id: '/_authenticated/recetas'
+      path: '/recetas'
+      fullPath: '/recetas'
+      preLoaderRoute: typeof AuthenticatedRecetasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/trabajos': {
+      id: '/_authenticated/trabajos'
+      path: '/trabajos'
+      fullPath: '/trabajos'
+      preLoaderRoute: typeof AuthenticatedTrabajosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/ordenes/$id': {
