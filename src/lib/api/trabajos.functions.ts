@@ -97,10 +97,22 @@ export const createTrabajo = createServerFn({ method: "POST" })
     scheduled_at: z.string().datetime().optional(),
     datos: z.record(z.string(), z.unknown()).default({}),
     operacion_catalogo_id: z.string().uuid().optional(),
+    instrucciones: z.string().max(4000).optional(),
+    asignacion: z.object({
+      trabajadores: z.array(z.string().uuid()).max(50),
+      responsableId: z.string().uuid().nullable().optional(),
+    }).optional(),
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMember(supabase, data.bodegaId, userId);
+    const trabs = Array.from(new Set(data.asignacion?.trabajadores ?? []));
+    if (trabs.length) {
+      const { data: ok } = await supabase.rpc("has_permission", { _bodega: data.bodegaId, _perm: "tareas.asignar" });
+      if (!ok) throw new Error("Sin permiso para asignar trabajos en este centro");
+      if (trabs.length > 1 && !data.asignacion?.responsableId) throw new Error("Selecciona el responsable de ejecución");
+      if (data.asignacion?.responsableId && !trabs.includes(data.asignacion.responsableId)) throw new Error("El responsable debe ser uno de los trabajadores asignados");
+    }
     // Centro de destino: acceso, operación habilitada y depósitos del propio centro.
     await validarCentro(supabase, data.bodegaId, [data.deposito_origen, data.deposito_destino].filter(Boolean) as string[]);
     await validarOperacionCentro(supabase, data.bodegaId, data.operacion_catalogo_id);
@@ -117,6 +129,7 @@ export const createTrabajo = createServerFn({ method: "POST" })
       asignado_a: data.asignado_a ?? null,
       scheduled_at: data.scheduled_at ?? null,
       datos: data.datos,
+      instrucciones: data.instrucciones?.trim() || null,
       created_by: userId,
     };
     const { data: row, error } = await supabase
@@ -128,6 +141,14 @@ export const createTrabajo = createServerFn({ method: "POST" })
       tipo: "creado",
       contenido: `Trabajo creado (${data.tipo})`,
     });
+    if (trabs.length) {
+      const resp = trabs.length === 1 ? trabs[0] : data.asignacion!.responsableId!;
+      const { error: ae } = await supabase.from("trabajo_trabajadores").insert(trabs.map((uid) => ({
+        bodega_id: data.bodegaId, trabajo_id: row.id, trabajador_id: uid, created_by: userId,
+        estado_participacion: "asignado", es_responsable: uid === resp, rol_en_trabajo: uid === resp ? "responsable" : "colaborador",
+      })) as any);
+      if (ae) throw new Error(`Trabajo creado, pero la asignación falló: ${ae.message}`);
+    }
     return row;
   });
 

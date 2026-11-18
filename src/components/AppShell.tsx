@@ -19,11 +19,13 @@ import {
   Workflow,
   Calendar,
   FlaskConical,
+  UserCheck,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { BodegaSwitcher } from "@/components/BodegaSwitcher";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { NotificacionesBell } from "@/components/asignacion/NotificacionesBell";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: LayoutDashboard },
@@ -31,6 +33,7 @@ const NAV = [
   { to: "/calendario", label: "Calendario", icon: Calendar },
   { to: "/procesos", label: "Procesos", icon: Workflow },
   { to: "/trabajos", label: "Trabajos", icon: Hammer },
+  { to: "/mis-trabajos", label: "Mis trabajos", icon: UserCheck },
   { to: "/pendientes", label: "Pendientes", icon: ListTodo },
   { to: "/actividad", label: "Actividad", icon: Activity },
   { to: "/mensajes", label: "Mensajes", icon: MessageSquare },
@@ -121,6 +124,7 @@ export function AppShell() {
           <span className="font-display font-semibold tracking-tight text-foreground">Vinea</span>
         </div>
         <div className="flex items-center gap-2">
+          <NotificacionesBell />
           <GlobalSearch />
           <BodegaSwitcher compact />
           <button
@@ -135,6 +139,7 @@ export function AppShell() {
 
       <main className="flex-1 min-w-0 pb-20 md:pb-0">
         <div className="hidden md:flex items-center justify-end gap-2 px-4 pt-3">
+          <NotificacionesBell />
           <GlobalSearch />
         </div>
         <Outlet />

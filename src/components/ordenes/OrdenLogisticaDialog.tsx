@@ -25,6 +25,8 @@ import {
   type OrdenTipo,
 } from "@/lib/ordenes-logisticas-meta";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { AsignacionPicker, ASIGNACION_VACIA, type AsignacionValue } from "@/components/asignacion/AsignacionPicker";
+import { asignarTrabajadores } from "@/lib/api/trabajadores.functions";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Link } from "@tanstack/react-router";
 
@@ -220,9 +222,16 @@ export function OrdenLogisticaDialog({ open, onOpenChange, bodegaId, tipo, orden
     setState((s) => ({ ...s, [k]: v }));
 
   const upsertFn = useServerFn(upsertOrdenLogistica);
+  const [asig, setAsig] = React.useState<AsignacionValue>(ASIGNACION_VACIA);
+  const asignarFn = useServerFn(asignarTrabajadores);
   const upsert = useMutation({
     mutationFn: upsertFn,
-    onSuccess: (r: any) => {
+    onSuccess: async (r: any) => {
+      if (!ordenId && r?.trabajoId && asig.trabajadores.length) {
+        try {
+          await asignarFn({ data: { bodegaId, trabajoId: r.trabajoId, trabajadores: asig.trabajadores, responsableId: asig.responsableId } });
+        } catch (e) { toast.error(`Orden creada, pero la asignación falló: ${(e as Error).message}`); }
+      }
       toast.success(ordenId ? "Orden actualizada" : "Orden creada");
       qc.invalidateQueries({ queryKey: ["ordenes-log"] });
       qc.invalidateQueries({ queryKey: ["trabajos"] });
@@ -569,6 +578,7 @@ export function OrdenLogisticaDialog({ open, onOpenChange, bodegaId, tipo, orden
           </TabsContent>
         </Tabs>
 
+        {!ordenId && <AsignacionPicker bodegaId={bodegaId} value={asig} onChange={setAsig} conInstrucciones={false} />}
         <DialogFooter className="flex flex-wrap gap-2 sm:justify-between">
           <div className="flex gap-2">
             {ordenId && (

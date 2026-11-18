@@ -209,6 +209,7 @@ export const upsertOrdenLogistica = createServerFn({ method: "POST" })
 
     const payload = toDbPayload(data, userId);
     let ordenId = data.id ?? null;
+    let nuevoTrabajoId: string | null = null;
 
     if (ordenId) {
       const { error } = await supabase.from("ordenes_logisticas").update(payload).eq("id", ordenId);
@@ -237,6 +238,7 @@ export const upsertOrdenLogistica = createServerFn({ method: "POST" })
         if (te) throw new Error(te.message);
         insertPayload.trabajo_id = trab.id;
       }
+      nuevoTrabajoId = insertPayload.trabajo_id;
       const { data: row, error } = await supabase
         .from("ordenes_logisticas")
         .insert(insertPayload)
@@ -265,7 +267,7 @@ export const upsertOrdenLogistica = createServerFn({ method: "POST" })
       }
     }
 
-    return { id: ordenId };
+    return { id: ordenId, trabajoId: nuevoTrabajoId };
   });
 
 export const changeOrdenEstado = createServerFn({ method: "POST" })

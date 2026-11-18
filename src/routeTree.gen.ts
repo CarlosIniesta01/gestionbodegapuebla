@@ -23,6 +23,7 @@ import { Route as AuthenticatedContratosRouteImport } from './routes/_authentica
 import { Route as AuthenticatedInformesRouteImport } from './routes/_authenticated/informes'
 import { Route as AuthenticatedLaboratorioRouteImport } from './routes/_authenticated/laboratorio'
 import { Route as AuthenticatedMensajesRouteImport } from './routes/_authenticated/mensajes'
+import { Route as AuthenticatedMisTrabajosRouteImport } from './routes/_authenticated/mis-trabajos'
 import { Route as AuthenticatedOperativaRouteImport } from './routes/_authenticated/operativa'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedPosicionComercialRouteImport } from './routes/_authenticated/posicion-comercial'
@@ -102,6 +103,12 @@ const AuthenticatedMensajesRoute = AuthenticatedMensajesRouteImport.update({
   path: '/mensajes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMisTrabajosRoute =
+  AuthenticatedMisTrabajosRouteImport.update({
+    id: '/mis-trabajos',
+    path: '/mis-trabajos',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOperativaRoute = AuthenticatedOperativaRouteImport.update({
   id: '/operativa',
   path: '/operativa',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/informes': typeof AuthenticatedInformesRoute
   '/laboratorio': typeof AuthenticatedLaboratorioRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
+  '/mis-trabajos': typeof AuthenticatedMisTrabajosRoute
   '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/informes': typeof AuthenticatedInformesRoute
   '/laboratorio': typeof AuthenticatedLaboratorioRoute
   '/mensajes': typeof AuthenticatedMensajesRoute
+  '/mis-trabajos': typeof AuthenticatedMisTrabajosRoute
   '/operativa': typeof AuthenticatedOperativaRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/informes': typeof AuthenticatedInformesRoute
   '/_authenticated/laboratorio': typeof AuthenticatedLaboratorioRoute
   '/_authenticated/mensajes': typeof AuthenticatedMensajesRoute
+  '/_authenticated/mis-trabajos': typeof AuthenticatedMisTrabajosRoute
   '/_authenticated/operativa': typeof AuthenticatedOperativaRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
   '/_authenticated/posicion-comercial': typeof AuthenticatedPosicionComercialRoute
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/informes'
     | '/laboratorio'
     | '/mensajes'
+    | '/mis-trabajos'
     | '/operativa'
     | '/pendientes'
     | '/posicion-comercial'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/informes'
     | '/laboratorio'
     | '/mensajes'
+    | '/mis-trabajos'
     | '/operativa'
     | '/pendientes'
     | '/posicion-comercial'
@@ -267,6 +279,7 @@ export interface FileRouteTypes {
     | '/_authenticated/informes'
     | '/_authenticated/laboratorio'
     | '/_authenticated/mensajes'
+    | '/_authenticated/mis-trabajos'
     | '/_authenticated/operativa'
     | '/_authenticated/pendientes'
     | '/_authenticated/posicion-comercial'
@@ -383,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMensajesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/mis-trabajos': {
+      id: '/_authenticated/mis-trabajos'
+      path: '/mis-trabajos'
+      fullPath: '/mis-trabajos'
+      preLoaderRoute: typeof AuthenticatedMisTrabajosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/operativa': {
       id: '/_authenticated/operativa'
       path: '/operativa'
@@ -446,6 +466,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedInformesRoute: typeof AuthenticatedInformesRoute
   AuthenticatedLaboratorioRoute: typeof AuthenticatedLaboratorioRoute
   AuthenticatedMensajesRoute: typeof AuthenticatedMensajesRoute
+  AuthenticatedMisTrabajosRoute: typeof AuthenticatedMisTrabajosRoute
   AuthenticatedOperativaRoute: typeof AuthenticatedOperativaRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
   AuthenticatedPosicionComercialRoute: typeof AuthenticatedPosicionComercialRoute
@@ -467,6 +488,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedInformesRoute: AuthenticatedInformesRoute,
   AuthenticatedLaboratorioRoute: AuthenticatedLaboratorioRoute,
   AuthenticatedMensajesRoute: AuthenticatedMensajesRoute,
+  AuthenticatedMisTrabajosRoute: AuthenticatedMisTrabajosRoute,
   AuthenticatedOperativaRoute: AuthenticatedOperativaRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
   AuthenticatedPosicionComercialRoute: AuthenticatedPosicionComercialRoute,

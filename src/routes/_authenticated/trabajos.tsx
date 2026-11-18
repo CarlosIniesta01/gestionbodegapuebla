@@ -20,6 +20,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { SelectorOperacionDialog } from "@/components/operaciones/SelectorOperacionDialog";
 import { useCatalogoOperaciones } from "@/components/operaciones/use-catalogo";
+import { DistribucionPanel } from "@/components/asignacion/DistribucionPanel";
+import { puedeAsignar } from "@/lib/api/trabajadores.functions";
 import type { Operacion, Familia } from "@/lib/operaciones-meta";
 
 export const Route = createFileRoute("/_authenticated/trabajos")({
@@ -48,6 +50,9 @@ function Trabajos() {
   const [filtroTipo, setFiltroTipo] = React.useState<"all" | TrabajoTipo>("all");
 
   const fn = useServerFn(listTrabajos);
+  const permFn = useServerFn(puedeAsignar);
+  const [vista, setVista] = React.useState<"registro" | "distribucion">("registro");
+  const permQ = useQuery({ queryKey: ["puede-asignar", bodegaId], queryFn: () => permFn({ data: { bodegaId: bodegaId! } }), enabled: !!bodegaId });
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["trabajos", isGlobal ? "global" : bodegaId, filtroTipo, bodegas.length],
@@ -110,6 +115,12 @@ function Trabajos() {
         <Button onClick={() => { setQuickTipo(null); setSelOpen(true); }}><Plus className="size-4 mr-1" />Nuevo trabajo</Button>
       </div>
 
+      {permQ.data && (
+        <Tabs value={vista} onValueChange={(v) => setVista(v as any)} className="mb-4">
+          <TabsList><TabsTrigger value="registro">Registro</TabsTrigger><TabsTrigger value="distribucion">Distribución</TabsTrigger></TabsList>
+        </Tabs>
+      )}
+      {vista === "distribucion" && permQ.data ? <DistribucionPanel /> : (<>
       <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-2">Acceso rápido</div>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3 mb-6">
         {TRABAJO_TIPOS.map((t, i) => {
@@ -161,6 +172,7 @@ function Trabajos() {
           {trabajos.map((t: any) => <TrabajoCard key={t.id} t={t} />)}
         </div>
       )}
+      </>)}
 
       {bodegaId && (
         <>

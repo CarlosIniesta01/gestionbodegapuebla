@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { createTrabajo } from "@/lib/api/trabajos.functions";
+import { AsignacionPicker, ASIGNACION_VACIA, type AsignacionValue } from "@/components/asignacion/AsignacionPicker";
 import { TRABAJO_TIPOS, TIPO_META, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import type { Operacion } from "@/lib/operaciones-meta";
@@ -44,6 +45,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const [origen, setOrigen] = React.useState<string>("");
   const [destino, setDestino] = React.useState<string>("");
   const [datos, setDatos] = React.useState<Record<string, string>>({});
+  const [asig, setAsig] = React.useState<AsignacionValue>(ASIGNACION_VACIA);
   type ProdRow = { producto: string; dosis: string; lote: string };
   const [productos, setProductos] = React.useState<ProdRow[]>([{ producto: "", dosis: "", lote: "" }]);
 
@@ -54,7 +56,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       setProductos([{ producto: "", dosis: "", lote: "" }]);
     } else {
       setTitulo(""); setDescripcion(""); setPrioridad("normal");
-      setScheduledAt(""); setOrigen(""); setDestino(""); setDatos({});
+      setScheduledAt(""); setOrigen(""); setDestino(""); setDatos({}); setAsig(ASIGNACION_VACIA);
       setProductos([{ producto: "", dosis: "", lote: "" }]);
     }
   }, [open, defaultOrigen, defaultDestino]);
@@ -112,6 +114,8 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       datos: operacion ? { ...datosNum, operacion_codigo: operacion.codigo } : datosNum,
       estado: "pendiente",
       operacion_catalogo_id: operacion?.id,
+      instrucciones: asig.instrucciones.trim() || undefined,
+      asignacion: asig.trabajadores.length ? { trabajadores: asig.trabajadores, responsableId: asig.responsableId } : undefined,
     }});
   }
 
@@ -269,11 +273,13 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
             <Label>Notas</Label>
             <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={3} maxLength={2000} />
           </div>
+
+          <AsignacionPicker bodegaId={bodegaId} value={asig} onChange={setAsig} />
         </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={m.isPending}>{m.isPending ? "Guardando…" : "Crear trabajo"}</Button>
+          <Button onClick={submit} disabled={m.isPending || (asig.trabajadores.length > 1 && !asig.responsableId)}>{m.isPending ? "Guardando…" : "Crear trabajo"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

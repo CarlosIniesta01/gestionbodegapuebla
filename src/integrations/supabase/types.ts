@@ -1373,6 +1373,60 @@ export type Database = {
           },
         ]
       }
+      notificaciones: {
+        Row: {
+          bodega_id: string
+          created_at: string
+          cuerpo: string | null
+          dedupe_key: string
+          id: string
+          leida: boolean
+          tipo: string
+          titulo: string
+          trabajo_id: string | null
+          user_id: string
+        }
+        Insert: {
+          bodega_id: string
+          created_at?: string
+          cuerpo?: string | null
+          dedupe_key: string
+          id?: string
+          leida?: boolean
+          tipo: string
+          titulo: string
+          trabajo_id?: string | null
+          user_id: string
+        }
+        Update: {
+          bodega_id?: string
+          created_at?: string
+          cuerpo?: string | null
+          dedupe_key?: string
+          id?: string
+          leida?: boolean
+          tipo?: string
+          titulo?: string
+          trabajo_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificaciones_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificaciones_trabajo_id_fkey"
+            columns: ["trabajo_id"]
+            isOneToOne: false
+            referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operaciones_catalogo: {
         Row: {
           activo: boolean
@@ -2793,54 +2847,75 @@ export type Database = {
       }
       trabajo_trabajadores: {
         Row: {
+          activa: boolean
           bodega_id: string
           confirmado_por_trabajador: boolean
           created_at: string
           created_by: string | null
+          es_responsable: boolean
           estado_participacion: Database["public"]["Enums"]["participacion_estado"]
           fecha_confirmacion: string | null
           hora_fin: string | null
           hora_inicio: string | null
           id: string
+          motivo_rechazo: string | null
+          motivo_retiro: string | null
           movimiento_id: string | null
           observaciones: string | null
           proceso_id: string | null
+          respondido_at: string | null
+          retirado_at: string | null
+          retirado_por: string | null
           rol_en_trabajo: string | null
           trabajador_id: string
           trabajo_id: string
           updated_at: string
         }
         Insert: {
+          activa?: boolean
           bodega_id: string
           confirmado_por_trabajador?: boolean
           created_at?: string
           created_by?: string | null
+          es_responsable?: boolean
           estado_participacion?: Database["public"]["Enums"]["participacion_estado"]
           fecha_confirmacion?: string | null
           hora_fin?: string | null
           hora_inicio?: string | null
           id?: string
+          motivo_rechazo?: string | null
+          motivo_retiro?: string | null
           movimiento_id?: string | null
           observaciones?: string | null
           proceso_id?: string | null
+          respondido_at?: string | null
+          retirado_at?: string | null
+          retirado_por?: string | null
           rol_en_trabajo?: string | null
           trabajador_id: string
           trabajo_id: string
           updated_at?: string
         }
         Update: {
+          activa?: boolean
           bodega_id?: string
           confirmado_por_trabajador?: boolean
           created_at?: string
           created_by?: string | null
+          es_responsable?: boolean
           estado_participacion?: Database["public"]["Enums"]["participacion_estado"]
           fecha_confirmacion?: string | null
           hora_fin?: string | null
           hora_inicio?: string | null
           id?: string
+          motivo_rechazo?: string | null
+          motivo_retiro?: string | null
           movimiento_id?: string | null
           observaciones?: string | null
           proceso_id?: string | null
+          respondido_at?: string | null
+          retirado_at?: string | null
+          retirado_por?: string | null
           rol_en_trabajo?: string | null
           trabajador_id?: string
           trabajo_id?: string
@@ -2883,6 +2958,7 @@ export type Database = {
           descripcion: string | null
           estado: Database["public"]["Enums"]["trabajo_estado"]
           id: string
+          instrucciones: string | null
           operacion_catalogo_id: string | null
           prioridad: Database["public"]["Enums"]["trabajo_prioridad"]
           scheduled_at: string | null
@@ -2903,6 +2979,7 @@ export type Database = {
           descripcion?: string | null
           estado?: Database["public"]["Enums"]["trabajo_estado"]
           id?: string
+          instrucciones?: string | null
           operacion_catalogo_id?: string | null
           prioridad?: Database["public"]["Enums"]["trabajo_prioridad"]
           scheduled_at?: string | null
@@ -2923,6 +3000,7 @@ export type Database = {
           descripcion?: string | null
           estado?: Database["public"]["Enums"]["trabajo_estado"]
           id?: string
+          instrucciones?: string | null
           operacion_catalogo_id?: string | null
           prioridad?: Database["public"]["Enums"]["trabajo_prioridad"]
           scheduled_at?: string | null
@@ -3057,6 +3135,28 @@ export type Database = {
       }
     }
     Functions: {
+      _notificar: {
+        Args: {
+          _bodega: string
+          _cuerpo: string
+          _key: string
+          _tipo: string
+          _titulo: string
+          _trabajo: string
+          _user: string
+        }
+        Returns: undefined
+      }
+      actualizar_programacion_trabajo: {
+        Args: {
+          _instrucciones: string
+          _motivo: string
+          _prioridad: string
+          _scheduled_at: string
+          _trabajo: string
+        }
+        Returns: undefined
+      }
       can_rectify_movimientos: { Args: { _bodega: string }; Returns: boolean }
       confirmar_orden_logistica: {
         Args: { _idempotency_key?: string; _orden_id: string }
@@ -3139,6 +3239,8 @@ export type Database = {
         | "finalizado"
         | "ausente"
         | "rechazado"
+        | "aceptado"
+        | "retirado"
       producto_categoria:
         | "levaduras"
         | "nutrientes"
@@ -3350,6 +3452,8 @@ export const Constants = {
         "finalizado",
         "ausente",
         "rechazado",
+        "aceptado",
+        "retirado",
       ],
       producto_categoria: [
         "levaduras",
