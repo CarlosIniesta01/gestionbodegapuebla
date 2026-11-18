@@ -1,4 +1,4 @@
-import { Droplets, Grape, Beaker, Sparkles, Package, AlertTriangle, MessageSquare, Truck, PackageOpen, type LucideIcon } from "lucide-react";
+import { Layers, Droplets, Grape, Beaker, Sparkles, Package, AlertTriangle, MessageSquare, Truck, PackageOpen, type LucideIcon } from "lucide-react";
 
 export const TRABAJO_TIPOS = [
   { id: "trasiego", label: "Trasiego", icon: Droplets, color: "var(--state-trasiego)" },
@@ -12,10 +12,13 @@ export const TRABAJO_TIPOS = [
   { id: "observacion", label: "Observación", icon: MessageSquare, color: "var(--muted-foreground)" },
 ] as const;
 
-export type TrabajoTipo = typeof TRABAJO_TIPOS[number]["id"];
+/** "operacion" = orden genérica creada desde el catálogo de operaciones (no aparece como acceso rápido). */
+export type TrabajoTipo = typeof TRABAJO_TIPOS[number]["id"] | "operacion";
 
-export const TIPO_META: Record<TrabajoTipo, { label: string; icon: LucideIcon; color: string }> =
-  Object.fromEntries(TRABAJO_TIPOS.map((t) => [t.id, t])) as any;
+export const TIPO_META: Record<TrabajoTipo, { label: string; icon: LucideIcon; color: string }> = {
+  ...(Object.fromEntries(TRABAJO_TIPOS.map((t) => [t.id, t])) as any),
+  operacion: { label: "Operación", icon: Layers, color: "var(--primary)" },
+};
 
 export const ESTADO_LABEL: Record<string, { label: string; tone: string }> = {
   pendiente: { label: "Pendiente", tone: "bg-state-trasiego/20 text-state-trasiego border-state-trasiego/40" },

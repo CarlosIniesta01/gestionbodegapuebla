@@ -12,6 +12,7 @@ const TipoEnum = z.enum([
   "descarga",
   "incidencia",
   "observacion",
+  "operacion",
 ]);
 const EstadoEnum = z.enum(["pendiente", "en_curso", "completado", "cancelado"]);
 const PrioridadEnum = z.enum(["baja", "normal", "alta", "urgente"]);
@@ -94,11 +95,13 @@ export const createTrabajo = createServerFn({ method: "POST" })
     asignado_a: z.string().uuid().optional(),
     scheduled_at: z.string().datetime().optional(),
     datos: z.record(z.string(), z.unknown()).default({}),
+    operacion_catalogo_id: z.string().uuid().optional(),
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMember(supabase, data.bodegaId, userId);
     const payload = {
+      operacion_catalogo_id: data.operacion_catalogo_id ?? null,
       bodega_id: data.bodegaId,
       tipo: data.tipo,
       titulo: data.titulo,

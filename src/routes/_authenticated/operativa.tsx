@@ -10,6 +10,7 @@ import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { CentroHeader } from "@/components/CentroHeader";
 import { getOperativaCentro } from "@/lib/api/centros.functions";
 import { centroIdentity } from "@/lib/centro-identity";
+import { CatalogoOperacionesPanel } from "@/components/operaciones/CatalogoOperacionesPanel";
 
 export const Route = createFileRoute("/_authenticated/operativa")({
   head: () => ({
@@ -70,6 +71,7 @@ function OperativaPage() {
             Selecciona un centro para ver su operativa diaria, o consulta la <Link to="/comparativa" className="text-primary underline">comparativa de centros</Link>.
           </div>
         </div>
+        <CatalogoOperacionesPanel />
       </div>
     );
   }
@@ -244,6 +246,8 @@ function OperativaPage() {
           </div>
         </>
       )}
+
+      <CatalogoOperacionesPanel />
     </div>
   );
 }

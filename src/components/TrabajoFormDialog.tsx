@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { createTrabajo } from "@/lib/api/trabajos.functions";
 import { TRABAJO_TIPOS, TIPO_META, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import type { Operacion } from "@/lib/operaciones-meta";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,12 @@ interface Props {
   defaultTipo?: TrabajoTipo;
   defaultOrigen?: string;
   defaultDestino?: string;
+  /** Operación del catálogo seleccionada (Familia → Operación). */
+  operacion?: Operacion | null;
+  familiaNombre?: string;
 }
 
-export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, defaultOrigen, defaultDestino }: Props) {
+export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, defaultOrigen, defaultDestino, operacion, familiaNombre }: Props) {
   const [tipo, setTipo] = React.useState<TrabajoTipo>(defaultTipo ?? "trasiego");
   React.useEffect(() => { if (defaultTipo) setTipo(defaultTipo); }, [defaultTipo, open]);
 
@@ -92,7 +96,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       delete (datosNum as any).lote;
     }
     // Autotítulo si no se ha escrito
-    const autoBits = [meta.label, origen, destino].filter(Boolean).join(" · ");
+    const autoBits = [operacion?.nombre ?? meta.label, origen, destino].filter(Boolean).join(" · ");
     const finalTitulo = titulo.trim() || autoBits || meta.label;
     m.mutate({ data: {
       bodegaId,
@@ -103,8 +107,9 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
       deposito_origen: origen || undefined,
       deposito_destino: destino || undefined,
-      datos: datosNum,
+      datos: operacion ? { ...datosNum, operacion_codigo: operacion.codigo } : datosNum,
       estado: "pendiente",
+      operacion_catalogo_id: operacion?.id,
     }});
   }
 
@@ -193,6 +198,19 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
             <TxtField label="Severidad (leve/media/alta)" value={datos.severidad ?? ""} onChange={(v) => setD("severidad", v)} />
           </>
         );
+      case "operacion":
+        return (
+          <>
+            {operacion?.requiere_deposito_origen && <DepSelect label="Depósito origen" value={origen} onChange={setOrigen} depositos={depositos} zonas={zonas} />}
+            {(operacion?.requiere_deposito_destino || !operacion?.requiere_deposito_origen) && (
+              <DepSelect label={operacion?.requiere_deposito_origen ? "Depósito destino" : "Depósito / equipo (opcional)"} value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />
+            )}
+            {operacion?.requiere_producto && <TxtField label="Producto" value={datos.producto ?? ""} onChange={(v) => setD("producto", v)} />}
+            {operacion?.requiere_lote && <TxtField label="Lote" value={datos.lote ?? ""} onChange={(v) => setD("lote", v)} />}
+            {operacion?.admite_movimientos && <NumField label="Litros previstos" value={datos.litros ?? ""} onChange={(v) => setD("litros", v)} />}
+            <p className="text-[11px] text-muted-foreground">El formulario específico de esta operación llegará en el siguiente bloque. Por ahora no se modifican existencias ni se descuentan productos.</p>
+          </>
+        );
       case "observacion":
         return <DepSelect label="Depósito (opcional)" value={destino} onChange={setDestino} depositos={depositos} zonas={zonas} />;
     }
@@ -207,7 +225,10 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
               style={{ background: `color-mix(in oklab, ${meta.color} 18%, transparent)`, border: `1px solid color-mix(in oklab, ${meta.color} 40%, transparent)` }}>
               <Icon className="size-5" style={{ color: meta.color }} />
             </div>
-            Nuevo trabajo · {meta.label}
+            <span className="min-w-0">
+              Nuevo trabajo · {operacion?.nombre ?? meta.label}
+              {operacion && <span className="block text-[11px] font-normal text-muted-foreground">{operacion.codigo}{familiaNombre ? ` · ${familiaNombre}` : ""}</span>}
+            </span>
           </DialogTitle>
         </DialogHeader>
 
@@ -229,7 +250,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
             </div>
             <div>
               <Label className="flex items-center gap-1.5">
-                <CalendarIcon className="size-3.5 text-white" />
+                <CalendarIcon className="size-3.5 text-muted-foreground" />
                 Programar
               </Label>
               <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />

@@ -19,6 +19,7 @@ import { RegistrarAnaliticaDialog } from "@/components/analiticas/RegistrarAnali
 interface Trabajo {
   id: string;
   tipo: TrabajoTipo;
+  operacion_catalogo_id?: string | null;
   titulo: string;
   descripcion?: string | null;
   estado: string;
@@ -93,7 +94,7 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="font-medium truncate">{t.titulo}</div>
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{meta.label}</div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{meta.label}{(t.datos as any)?.operacion_codigo ? ` · ${(t.datos as any).operacion_codigo}` : ""}{!t.operacion_catalogo_id && <span className="ml-1.5 normal-case tracking-normal text-[10px] px-1.5 py-0.5 rounded border border-border">Pendiente de clasificación</span>}</div>
             </div>
             <Badge variant="outline" className={`shrink-0 ${estado.tone}`}>{estado.label}</Badge>
           </div>
