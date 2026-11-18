@@ -19,3 +19,17 @@ export async function validarCentro(supabase: any, bodegaId: string, depositos: 
   }
 }
 
+
+// La operación del catálogo debe estar activa y habilitada en el centro elegido.
+export async function validarOperacionCentro(supabase: any, bodegaId: string, operacionId?: string | null) {
+  if (!operacionId) return;
+  const { data: op, error } = await supabase.from("operaciones_catalogo")
+    .select("id,activo,bodega_id,familia_id").eq("id", operacionId).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!op || !op.activo || (op.bodega_id && op.bodega_id !== bodegaId)) throw new Error("La operación no está disponible en el centro seleccionado");
+  const { data: fam } = await supabase.from("familias_operativas").select("activo").eq("id", op.familia_id).maybeSingle();
+  if (!fam?.activo) throw new Error("La familia de la operación está inactiva");
+  const { data: cfg } = await supabase.from("centro_operaciones").select("habilitada")
+    .eq("bodega_id", bodegaId).eq("operacion_id", operacionId).maybeSingle();
+  if (cfg && cfg.habilitada === false) throw new Error("La operación está deshabilitada en el centro seleccionado");
+}

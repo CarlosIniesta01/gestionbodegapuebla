@@ -35,6 +35,9 @@ function Trabajos() {
   const [selOpen, setSelOpen] = React.useState(false);
   const [operacion, setOperacion] = React.useState<Operacion | null>(null);
   const [familiaNombre, setFamiliaNombre] = React.useState<string>("");
+  // Centro de destino elegido en «Nuevo trabajo»; por defecto el activo.
+  const [centroDestino, setCentroDestino] = React.useState<string | undefined>(undefined);
+  const centroForm = centroDestino ?? bodegaId;
   const cat = useCatalogoOperaciones(bodegaId ? [bodegaId] : []);
   const [open, setOpen] = React.useState(false);
   const [embOpen, setEmbOpen] = React.useState(false);
@@ -69,7 +72,7 @@ function Trabajos() {
     if (!search.op || !cat.data) return;
     const op = cat.data.operaciones.find((o) => o.id === search.op);
     navigate({ search: {}, replace: true });
-    if (op) continuarOperacion(op, cat.data.familias.find((f) => f.id === op.familia_id));
+    if (op && bodegaId) continuarOperacion(op, cat.data.familias.find((f) => f.id === op.familia_id), bodegaId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.op, cat.data]);
 
@@ -77,14 +80,16 @@ function Trabajos() {
   if (!bodegaId) return <div className="p-6 text-muted-foreground">No tienes acceso a ninguna bodega.</div>;
 
   const launch = (tipo: TrabajoTipo) => {
+    setCentroDestino(undefined);
     if (tipo === "embotellado") { setOperacion(null); setEmbOpen(true); return; }
     if (tipo === "carga" || tipo === "descarga") { setOrdenTipo(tipo); return; }
     setOperacion(null); setDefaultTipo(tipo); setOpen(true);
   };
   const trabajos = q.data ?? [];
 
-  const continuarOperacion = (op: Operacion, fam?: Familia) => {
+  const continuarOperacion = (op: Operacion, fam: Familia | undefined, centroId: string) => {
     setSelOpen(false);
+    setCentroDestino(centroId);
     setOperacion(op);
     setFamiliaNombre(fam?.nombre ?? "");
     const tf = op.tipo_formulario;
@@ -158,15 +163,15 @@ function Trabajos() {
 
       {bodegaId && (
         <>
-          <TrabajoFormDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setOperacion(null); }} bodegaId={bodegaId} defaultTipo={defaultTipo} operacion={operacion} familiaNombre={familiaNombre} />
-          <SelectorOperacionDialog open={selOpen} onOpenChange={setSelOpen} bodegaId={bodegaId} centroNombre={bodega?.nombre} onContinue={continuarOperacion} />
-          <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} operacionId={operacion?.id} operacionCodigo={operacion?.codigo} />
+          <TrabajoFormDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setOperacion(null); }} bodegaId={centroForm!} defaultTipo={defaultTipo} operacion={operacion} familiaNombre={familiaNombre} />
+          <SelectorOperacionDialog open={selOpen} onOpenChange={setSelOpen} bodegaId={bodegaId} onContinue={continuarOperacion} />
+          <EmbotelladoDialog key={centroForm} open={embOpen} onOpenChange={setEmbOpen} bodegaId={centroForm!} operacionId={operacion?.id} operacionCodigo={operacion?.codigo} />
           <PreparacionesDialog open={prepOpen} onOpenChange={setPrepOpen} bodegaId={bodegaId} />
           {ordenTipo && (
             <OrdenLogisticaDialog
               open={!!ordenTipo}
               onOpenChange={(v) => { if (!v) setOrdenTipo(null); }}
-              bodegaId={bodegaId}
+              bodegaId={centroForm!}
               tipo={ordenTipo}
             />
           )}

@@ -8,6 +8,7 @@ import { useBodegaMap } from "@/lib/use-bodega-map";
 import type { Operacion } from "@/lib/operaciones-meta";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +34,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   React.useEffect(() => { if (defaultTipo) setTipo(defaultTipo); }, [defaultTipo, open]);
 
   const { depositos, zonas } = useBodegaMap(bodegaId);
+  const centroNombre = useActiveBodega().bodegas.find((b) => b.bodega_id === bodegaId)?.bodega.nombre;
 
 
   const [titulo, setTitulo] = React.useState("");
@@ -230,6 +232,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
               {operacion && <span className="block text-[11px] font-normal text-muted-foreground">{operacion.codigo}{familiaNombre ? ` · ${familiaNombre}` : ""}</span>}
             </span>
           </DialogTitle>
+          {centroNombre && <div className="text-[12px] text-muted-foreground">Centro de destino: <span className="font-medium text-foreground">{centroNombre}</span></div>}
         </DialogHeader>
 
         <div className="space-y-3">

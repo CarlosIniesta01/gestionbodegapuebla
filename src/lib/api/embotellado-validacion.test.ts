@@ -32,3 +32,22 @@ describe("embotellado: validación de centro", () => {
     await expect(validarCentro(mock(), A, ["D-01"], ["p-b"])).rejects.toThrow("productos que no pertenecen");
   });
 });
+
+import { validarOperacionCentro } from "./embotellado-validacion";
+function mockOp(op: any, fam: any, cfg: any) {
+  const res: Record<string, any> = { operaciones_catalogo: op, familias_operativas: fam, centro_operaciones: cfg };
+  const chain = (t: string): any => ({ select: () => chain(t), eq: () => chain(t), maybeSingle: async () => ({ data: res[t], error: null }) });
+  return { from: chain };
+}
+describe("trabajos: operación habilitada en el centro", () => {
+  const op = { id: "o", activo: true, bodega_id: null, familia_id: "f" };
+  it("acepta operación global activa sin configuración (habilitada por defecto)", async () => {
+    await expect(validarOperacionCentro(mockOp(op, { activo: true }, null), A, "o")).resolves.toBeUndefined();
+  });
+  it("rechaza operación deshabilitada en el centro", async () => {
+    await expect(validarOperacionCentro(mockOp(op, { activo: true }, { habilitada: false }), A, "o")).rejects.toThrow("deshabilitada");
+  });
+  it("rechaza operación propia de otro centro", async () => {
+    await expect(validarOperacionCentro(mockOp({ ...op, bodega_id: B }, { activo: true }, null), A, "o")).rejects.toThrow("no está disponible");
+  });
+});

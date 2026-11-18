@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { validarCentro } from "./embotellado-validacion";
+import { validarCentro, validarOperacionCentro } from "./embotellado-validacion";
 
 const AsignadoSchema = z.object({
   user_id: z.string().uuid(),
@@ -36,6 +36,7 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await validarCentro(supabase, data.bodegaId, [data.deposito]);
+    await validarOperacionCentro(supabase, data.bodegaId, data.operacionCatalogoId);
     const titulo = `Embotellado ${data.deposito} · ${data.lote}`;
     const datos: any = {
       modo: "directo",
@@ -109,6 +110,7 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
       }
     }
     await validarCentro(supabase, data.bodegaId, data.depositos.map((d) => d.deposito_codigo), data.productos.map((p) => p.producto_id));
+    await validarOperacionCentro(supabase, data.bodegaId, data.operacionCatalogoId);
     const totalLitros = data.depositos.reduce((s, d) => s + d.litros, 0);
     const titulo = `Elaboración · ${data.nombre} · ${data.lote_embotellado}`;
     const datos = {

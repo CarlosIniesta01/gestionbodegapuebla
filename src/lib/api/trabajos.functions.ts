@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { validarCentro, validarOperacionCentro } from "./embotellado-validacion";
 
 const TipoEnum = z.enum([
   "trasiego",
@@ -100,6 +101,9 @@ export const createTrabajo = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMember(supabase, data.bodegaId, userId);
+    // Centro de destino: acceso, operación habilitada y depósitos del propio centro.
+    await validarCentro(supabase, data.bodegaId, [data.deposito_origen, data.deposito_destino].filter(Boolean) as string[]);
+    await validarOperacionCentro(supabase, data.bodegaId, data.operacion_catalogo_id);
     const payload = {
       operacion_catalogo_id: data.operacion_catalogo_id ?? null,
       bodega_id: data.bodegaId,

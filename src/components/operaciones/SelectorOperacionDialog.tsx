@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useCatalogoOperaciones } from "./use-catalogo";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { CAPACIDADES, TIPO_FORMULARIO_LABEL, iconoFamilia, operacionesDisponibles, type Familia, type Operacion } from "@/lib/operaciones-meta";
 
 interface Props {
@@ -12,21 +15,25 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   bodegaId: string;
   centroNombre?: string;
-  onContinue: (op: Operacion, familia: Familia) => void;
+  onContinue: (op: Operacion, familia: Familia, centroId: string) => void;
 }
 
-export function SelectorOperacionDialog({ open, onOpenChange, bodegaId, centroNombre, onContinue }: Props) {
+export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroInicial, onContinue }: Props) {
+  // Centro de destino del trabajo: independiente del centro activo general.
+  const { bodegas } = useActiveBodega();
+  const [bodegaId, setCentro] = React.useState(centroInicial);
   const q = useCatalogoOperaciones([bodegaId]);
   const [famId, setFamId] = React.useState<string | null>(null);
   const [opId, setOpId] = React.useState<string | null>(null);
   const [busca, setBusca] = React.useState("");
-  React.useEffect(() => { if (!open) { setFamId(null); setOpId(null); setBusca(""); } }, [open]);
+  React.useEffect(() => { if (!open) { setFamId(null); setOpId(null); setBusca(""); setCentro(centroInicial); } }, [open, centroInicial]);
+  const centroNombre = bodegas.find((b) => b.bodega_id === bodegaId)?.bodega.nombre;
 
   const disponibles = React.useMemo(
     () => q.data ? operacionesDisponibles(q.data.familias, q.data.operaciones, q.data.centro, bodegaId) : [],
     [q.data, bodegaId],
   );
-  const familias = (q.data?.familias ?? []).filter((f) => disponibles.some((o) => o.familia_id === f.id));
+  const familias = (q.data?.familias ?? []).filter((f) => f.activo && (!f.bodega_id || f.bodega_id === bodegaId));
   const familia = familias.find((f) => f.id === famId) ?? null;
   const term = busca.trim().toLowerCase();
   const ops = term
@@ -44,6 +51,16 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId, centroNo
           </DialogDescription>
         </DialogHeader>
 
+        <div>
+          <Label>Centro de destino del trabajo *</Label>
+          <Select value={bodegaId} onValueChange={(v) => { setCentro(v); setOpId(null); }}>
+            <SelectTrigger aria-label="Centro de destino del trabajo"><SelectValue placeholder="Selecciona centro" /></SelectTrigger>
+            <SelectContent>
+              {bodegas.map((b) => <SelectItem key={b.bodega_id} value={b.bodega_id}>{b.bodega.nombre}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="relative">
           <Search className="size-4 absolute left-2.5 top-2.5 text-muted-foreground" />
           <Input className="pl-8" placeholder="Buscar operación en todas las familias…" value={busca}
@@ -58,8 +75,8 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId, centroNo
               const Icon = iconoFamilia(f.icono);
               const n = disponibles.filter((o) => o.familia_id === f.id).length;
               return (
-                <button key={f.id} type="button" onClick={() => setFamId(f.id)}
-                  className="rounded-lg border bg-card p-3 text-left hover:bg-accent/40 transition-colors flex gap-3 items-start">
+                <button key={f.id} type="button" onClick={() => setFamId(f.id)} disabled={n === 0}
+                  className="rounded-lg border bg-card p-3 text-left hover:bg-accent/40 transition-colors flex gap-3 items-start disabled:opacity-50 disabled:cursor-not-allowed">
                   <div className="size-9 shrink-0 rounded-md flex items-center justify-center"
                     style={{ background: `color-mix(in oklab, ${f.color} 15%, transparent)` }}>
                     <Icon className="size-5" style={{ color: f.color }} />
@@ -67,7 +84,7 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId, centroNo
                   <div className="min-w-0">
                     <div className="text-[10px] font-mono text-muted-foreground">{f.codigo}</div>
                     <div className="text-[13px] font-medium leading-tight">{f.nombre}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">{n} operaciones</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{n === 0 ? "Sin operaciones en este centro" : `${n} operaciones`}</div>
                   </div>
                 </button>
               );
@@ -104,7 +121,7 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId, centroNo
             </div>
             <Button onClick={() => {
               const f = (q.data?.familias ?? []).find((x) => x.id === op.familia_id)!;
-              onContinue(op, f);
+              onContinue(op, f, bodegaId);
             }}>
               Continuar con la orden <ChevronRight className="size-4 ml-1" />
             </Button>
