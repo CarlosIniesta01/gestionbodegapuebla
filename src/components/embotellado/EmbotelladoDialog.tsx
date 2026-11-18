@@ -16,6 +16,18 @@ import { useBodegaMap } from "@/lib/use-bodega-map";
 import { useActiveBodega } from "@/lib/active-bodega-context";
 import { useQuery } from "@tanstack/react-query";
 import { listProductos } from "@/lib/api/productos.functions";
+import { listExistencias } from "@/lib/api/movimientos.functions";
+
+// Litros físicos oficiales por depósito (existencias_actuales), nunca los del dibujo del mapa.
+function useLitrosOficiales(bodegaId: string) {
+  const fn = useServerFn(listExistencias);
+  const q = useQuery({ queryKey: ["existencias", bodegaId, "embotellado"], queryFn: () => fn({ data: { bodegaId } }), enabled: !!bodegaId });
+  return React.useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const r of ((q.data ?? []) as any[])) if (r?.deposito_id) m[r.deposito_id] = (m[r.deposito_id] ?? 0) + (Number(r.litros) || 0);
+    return (id: string) => Math.max(0, m[id] ?? 0);
+  }, [q.data]);
+}
 import { crearEmbotelladoDirecto, crearElaboracionPropia } from "@/lib/api/embotellado.functions";
 import { ProgramarYAsignar, combineDateTime, type AsignadoSel } from "./ProgramarYAsignar";
 
@@ -117,7 +129,8 @@ function SelectMode({ onPick }: { onPick: (m: Modo) => void }) {
 
 // ============ MODO DIRECTO ============
 function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodegaId: string; operacionId?: string; operacionCodigo?: string; onDone: () => void }) {
-  const { zonas, depositos, updateDeposito } = useBodegaMap(bodegaId);
+  const { zonas, depositos } = useBodegaMap(bodegaId);
+  const litrosDe = useLitrosOficiales(bodegaId);
   const [zonaId, setZonaId] = React.useState<string>("");
   const [depositoId, setDepositoId] = React.useState<string>("");
   const [litros, setLitros] = React.useState("");
@@ -146,12 +159,7 @@ function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodeg
     mutationFn: fn,
     onSuccess: () => {
       toast.success("Embotellado registrado");
-      // Restar litros al depósito local
-      if (dep) {
-        const L = parseFloat(litros.replace(",", "."));
-        const nuevos = Math.max(0, dep.litros - L);
-        updateDeposito(dep.id, { litros: nuevos });
-      }
+      // Guardar/programar no modifica litros: el mapa refleja solo existencias oficiales.
       qc.invalidateQueries({ queryKey: ["trabajos"] });
       qc.invalidateQueries({ queryKey: ["actividad"] });
       onDone();
@@ -199,7 +207,7 @@ function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodeg
             <SelectContent className="max-h-72">
               {depsZona.map((d) => (
                 <SelectItem key={d.id} value={d.id}>
-                  {d.codigo} · {d.litros.toLocaleString()}/{d.capacidad.toLocaleString()} L
+                  {d.codigo} · {litrosDe(d.id).toLocaleString()}/{d.capacidad.toLocaleString()} L
                 </SelectItem>
               ))}
             </SelectContent>
@@ -253,7 +261,8 @@ interface DepRow { uid: string; deposito_id: string; litros: string; variedad: s
 interface ProdRow { uid: string; producto_id: string; lote: string; cantidad: string; unidad: string; obs: string }
 
 function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodegaId: string; operacionId?: string; operacionCodigo?: string; onDone: () => void }) {
-  const { zonas, depositos, updateDeposito } = useBodegaMap(bodegaId);
+  const { zonas, depositos } = useBodegaMap(bodegaId);
+  const litrosDe = useLitrosOficiales(bodegaId);
   const fnProd = useServerFn(listProductos);
   const productosQ = useQuery({
     queryKey: ["productos", bodegaId, "activos"],
@@ -292,14 +301,7 @@ function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { b
     mutationFn: fn,
     onSuccess: () => {
       toast.success("Elaboración registrada");
-      // Restar litros de cada depósito utilizado
-      for (const row of deps) {
-        const dep = depositos.find((d) => d.id === row.deposito_id);
-        const L = parseFloat(row.litros.replace(",", "."));
-        if (dep && L > 0) {
-          updateDeposito(dep.id, { litros: Math.max(0, dep.litros - L) });
-        }
-      }
+      // Guardar/programar no modifica litros: el mapa refleja solo existencias oficiales.
       qc.invalidateQueries({ queryKey: ["trabajos"] });
       qc.invalidateQueries({ queryKey: ["actividad"] });
       onDone();
@@ -389,7 +391,7 @@ function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { b
                         const z = zonas.find((z) => z.id === d.zona_id);
                         return (
                           <SelectItem key={d.id} value={d.id}>
-                            {z?.corto ?? ""} · {d.codigo} ({d.litros.toLocaleString()} L)
+                            {z?.corto ?? ""} · {d.codigo} ({litrosDe(d.id).toLocaleString()} L)
                           </SelectItem>
                         );
                       })}
