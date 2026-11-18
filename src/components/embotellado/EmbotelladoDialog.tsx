@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { useActiveBodega } from "@/lib/active-bodega-context";
 import { useQuery } from "@tanstack/react-query";
 import { listProductos } from "@/lib/api/productos.functions";
 import { crearEmbotelladoDirecto, crearElaboracionPropia } from "@/lib/api/embotellado.functions";
@@ -34,7 +35,26 @@ const UNIDADES = ["g", "kg", "ml", "L", "sobres", "otro"];
 
 export function EmbotelladoDialog({ open, onOpenChange, bodegaId, operacionId, operacionCodigo }: Props) {
   const [modo, setModo] = React.useState<Modo>("select");
-  React.useEffect(() => { if (!open) setModo("select"); }, [open]);
+  const { bodegas } = useActiveBodega();
+  // Centro de embotellado: obligatorio, por defecto el centro activo.
+  const [centroId, setCentroId] = React.useState<string>(bodegaId);
+  React.useEffect(() => { if (!open) { setModo("select"); setCentroId(bodegaId); } }, [open, bodegaId]);
+  const cambiarCentro = (v: string) => {
+    if (v === centroId) return;
+    setCentroId(v);
+    toast.info("Centro cambiado: vuelve a seleccionar depósitos y productos de este centro");
+  };
+  const centroSel = (
+    <div className="mb-3 rounded-md border border-border p-3 bg-muted/40">
+      <Label>Centro de origen / Centro de embotellado *</Label>
+      <Select value={centroId} onValueChange={cambiarCentro}>
+        <SelectTrigger aria-label="Centro de embotellado"><SelectValue placeholder="Selecciona centro" /></SelectTrigger>
+        <SelectContent>
+          {bodegas.map((b) => <SelectItem key={b.bodega_id} value={b.bodega_id}>{b.bodega.nombre}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,8 +74,9 @@ export function EmbotelladoDialog({ open, onOpenChange, bodegaId, operacionId, o
         </DialogHeader>
 
         {modo === "select" && <SelectMode onPick={setModo} />}
-        {modo === "directo" && <DirectoForm bodegaId={bodegaId} operacionId={operacionId} operacionCodigo={operacionCodigo} onDone={() => onOpenChange(false)} />}
-        {modo === "elaboracion" && <ElaboracionForm bodegaId={bodegaId} operacionId={operacionId} operacionCodigo={operacionCodigo} onDone={() => onOpenChange(false)} />}
+        {modo !== "select" && centroSel}
+        {modo === "directo" && <DirectoForm key={centroId} bodegaId={centroId} operacionId={operacionId} operacionCodigo={operacionCodigo} onDone={() => onOpenChange(false)} />}
+        {modo === "elaboracion" && <ElaboracionForm key={centroId} bodegaId={centroId} operacionId={operacionId} operacionCodigo={operacionCodigo} onDone={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
   );
@@ -96,7 +117,7 @@ function SelectMode({ onPick }: { onPick: (m: Modo) => void }) {
 
 // ============ MODO DIRECTO ============
 function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodegaId: string; operacionId?: string; operacionCodigo?: string; onDone: () => void }) {
-  const { zonas, depositos, updateDeposito } = useBodegaMap();
+  const { zonas, depositos, updateDeposito } = useBodegaMap(bodegaId);
   const [zonaId, setZonaId] = React.useState<string>("");
   const [depositoId, setDepositoId] = React.useState<string>("");
   const [litros, setLitros] = React.useState("");
@@ -232,7 +253,7 @@ interface DepRow { uid: string; deposito_id: string; litros: string; variedad: s
 interface ProdRow { uid: string; producto_id: string; lote: string; cantidad: string; unidad: string; obs: string }
 
 function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodegaId: string; operacionId?: string; operacionCodigo?: string; onDone: () => void }) {
-  const { zonas, depositos, updateDeposito } = useBodegaMap();
+  const { zonas, depositos, updateDeposito } = useBodegaMap(bodegaId);
   const fnProd = useServerFn(listProductos);
   const productosQ = useQuery({
     queryKey: ["productos", bodegaId, "activos"],
