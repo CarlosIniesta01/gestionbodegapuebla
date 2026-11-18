@@ -1,20 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { validarAsignacionInicial, insertarAsignacionInicial } from "./asignacion-inicial";
 import { validarCentro, validarOperacionCentro } from "./embotellado-validacion";
 
-const AsignadoSchema = z.object({
-  user_id: z.string().uuid(),
-  rol: z.string().default("operario"),
-});
-
-async function setAsignados(supabase: any, trabajoId: string, asignados: Array<{ user_id: string; rol: string }>) {
-  if (!asignados.length) return;
-  await supabase.from("trabajo_asignados").delete().eq("trabajo_id", trabajoId);
-  await supabase.from("trabajo_asignados").insert(
-    asignados.map((a) => ({ trabajo_id: trabajoId, user_id: a.user_id, rol: a.rol })),
-  );
-}
+const AsignacionSchema = z.object({
+  trabajadores: z.array(z.string().uuid()).max(50),
+  responsableId: z.string().uuid().nullable().optional(),
+}).optional();
+const PrioridadEnum = z.enum(["baja", "normal", "alta", "urgente"]).default("normal");
 
 // ============ Embotellado directo ============
 export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
@@ -29,13 +23,16 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
     lote: z.string().min(1, "Lote obligatorio").max(120),
     observaciones: z.string().max(2000).optional(),
     scheduledAt: z.string().datetime().optional(),
-    asignados: z.array(AsignadoSchema).default([]),
+    asignacion: AsignacionSchema,
+    prioridad: PrioridadEnum,
+    instrucciones: z.string().max(4000).optional(),
     operacionCatalogoId: z.string().uuid().optional(),
     operacionCodigo: z.string().max(20).optional(),
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await validarCentro(supabase, data.bodegaId, [data.deposito]);
+    const trabs = await validarAsignacionInicial(supabase, data.bodegaId, data.asignacion);
     await validarOperacionCentro(supabase, data.bodegaId, data.operacionCatalogoId);
     const titulo = `Embotellado ${data.deposito} · ${data.lote}`;
     const datos: any = {
@@ -53,7 +50,8 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
         titulo,
         descripcion: data.observaciones ?? null,
         estado: "pendiente",
-        prioridad: "normal",
+        prioridad: data.prioridad,
+        instrucciones: data.instrucciones?.trim() || null,
         deposito_origen: data.deposito,
         scheduled_at: data.scheduledAt ?? null,
         datos: data.operacionCodigo ? { ...datos, operacion_codigo: data.operacionCodigo } : datos,
@@ -63,7 +61,7 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
       .select("*").single();
     if (error) throw new Error(error.message);
 
-    await setAsignados(supabase, trabajo.id, data.asignados);
+    await insertarAsignacionInicial(supabase, data.bodegaId, trabajo.id, userId, trabs, data.asignacion?.responsableId);
     await supabase.from("trabajo_eventos").insert({
       trabajo_id: trabajo.id,
       user_id: userId,
@@ -84,7 +82,9 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
     lote_embotellado: z.string().min(1, "Lote obligatorio").max(120),
     observaciones: z.string().max(2000).optional(),
     scheduledAt: z.string().datetime().optional(),
-    asignados: z.array(AsignadoSchema).default([]),
+    asignacion: AsignacionSchema,
+    prioridad: PrioridadEnum,
+    instrucciones: z.string().max(4000).optional(),
     operacionCatalogoId: z.string().uuid().optional(),
     operacionCodigo: z.string().max(20).optional(),
     depositos: z.array(z.object({
@@ -109,6 +109,7 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
         throw new Error("Debes indicar el lote del producto para continuar.");
       }
     }
+    const trabs = await validarAsignacionInicial(supabase, data.bodegaId, data.asignacion);
     await validarCentro(supabase, data.bodegaId, data.depositos.map((d) => d.deposito_codigo), data.productos.map((p) => p.producto_id));
     await validarOperacionCentro(supabase, data.bodegaId, data.operacionCatalogoId);
     const totalLitros = data.depositos.reduce((s, d) => s + d.litros, 0);
@@ -129,7 +130,8 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
         titulo,
         descripcion: data.observaciones ?? null,
         estado: "pendiente",
-        prioridad: "normal",
+        prioridad: data.prioridad,
+        instrucciones: data.instrucciones?.trim() || null,
         scheduled_at: data.scheduledAt ?? null,
         datos: data.operacionCodigo ? { ...datos, operacion_codigo: data.operacionCodigo } : datos,
         operacion_catalogo_id: data.operacionCatalogoId ?? null,
@@ -176,7 +178,7 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
       if (e4) throw new Error(e4.message);
     }
 
-    await setAsignados(supabase, trabajo.id, data.asignados);
+    await insertarAsignacionInicial(supabase, data.bodegaId, trabajo.id, userId, trabs, data.asignacion?.responsableId);
     await supabase.from("trabajo_eventos").insert({
       trabajo_id: trabajo.id,
       user_id: userId,

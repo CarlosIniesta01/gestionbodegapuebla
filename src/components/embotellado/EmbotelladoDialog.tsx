@@ -29,7 +29,8 @@ function useLitrosOficiales(bodegaId: string) {
   }, [q.data]);
 }
 import { crearEmbotelladoDirecto, crearElaboracionPropia } from "@/lib/api/embotellado.functions";
-import { ProgramarYAsignar, combineDateTime, type AsignadoSel } from "./ProgramarYAsignar";
+import { ProgramarYAsignar, combineDateTime, type Prioridad } from "./ProgramarYAsignar";
+import { ASIGNACION_VACIA, type AsignacionValue } from "@/components/asignacion/AsignacionPicker";
 
 interface Props {
   open: boolean;
@@ -140,7 +141,8 @@ function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodeg
   const [obs, setObs] = React.useState("");
   const [fecha, setFecha] = React.useState<Date | undefined>();
   const [hora, setHora] = React.useState("");
-  const [asign, setAsign] = React.useState<AsignadoSel[]>([]);
+  const [asign, setAsign] = React.useState<AsignacionValue>(ASIGNACION_VACIA);
+  const [prioridad, setPrioridad] = React.useState<Prioridad>("normal");
 
   const depsZona = depositos.filter((d) => !zonaId || d.zona_id === zonaId);
   const dep = depositos.find((d) => d.id === depositoId);
@@ -184,7 +186,9 @@ function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodeg
       lote: lote.trim(),
       observaciones: obs.trim() || undefined,
       scheduledAt: combineDateTime(fecha, hora),
-      asignados: asign,
+      prioridad,
+      instrucciones: asign.instrucciones.trim() || undefined,
+      asignacion: asign.trabajadores.length ? { trabajadores: asign.trabajadores, responsableId: asign.responsableId } : undefined,
     }});
   };
 
@@ -246,11 +250,12 @@ function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodeg
       </div>
 
       <ProgramarYAsignar bodegaId={bodegaId} scheduledAt={fecha} onScheduledAtChange={setFecha}
-        hora={hora} onHoraChange={setHora} asignados={asign} onAsignadosChange={setAsign} />
+        hora={hora} onHoraChange={setHora} prioridad={prioridad} onPrioridadChange={setPrioridad}
+        asignacion={asign} onAsignacionChange={setAsign} />
 
       <DialogFooter className="pt-3">
         <Button variant="ghost" onClick={onDone}>Cancelar</Button>
-        <Button onClick={submit} disabled={m.isPending}>{m.isPending ? "Guardando…" : "Registrar embotellado"}</Button>
+        <Button onClick={submit} disabled={m.isPending || (asign.trabajadores.length > 1 && !asign.responsableId)}>{m.isPending ? "Guardando…" : "Registrar embotellado"}</Button>
       </DialogFooter>
     </div>
   );
@@ -274,7 +279,8 @@ function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { b
   const [obs, setObs] = React.useState("");
   const [fecha, setFecha] = React.useState<Date | undefined>();
   const [hora, setHora] = React.useState("");
-  const [asign, setAsign] = React.useState<AsignadoSel[]>([]);
+  const [asign, setAsign] = React.useState<AsignacionValue>(ASIGNACION_VACIA);
+  const [prioridad, setPrioridad] = React.useState<Prioridad>("normal");
 
   const [deps, setDeps] = React.useState<DepRow[]>([
     { uid: crypto.randomUUID(), deposito_id: "", litros: "", variedad: "" },
@@ -340,7 +346,9 @@ function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { b
       lote_embotellado: lote.trim(),
       observaciones: obs.trim() || undefined,
       scheduledAt: combineDateTime(fecha, hora),
-      asignados: asign,
+      prioridad,
+      instrucciones: asign.instrucciones.trim() || undefined,
+      asignacion: asign.trabajadores.length ? { trabajadores: asign.trabajadores, responsableId: asign.responsableId } : undefined,
       depositos: depsPayload,
       productos: prods.map((p) => ({
         producto_id: p.producto_id,
@@ -469,11 +477,12 @@ function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { b
       </div>
 
       <ProgramarYAsignar bodegaId={bodegaId} scheduledAt={fecha} onScheduledAtChange={setFecha}
-        hora={hora} onHoraChange={setHora} asignados={asign} onAsignadosChange={setAsign} />
+        hora={hora} onHoraChange={setHora} prioridad={prioridad} onPrioridadChange={setPrioridad}
+        asignacion={asign} onAsignacionChange={setAsign} />
 
       <DialogFooter className="pt-3">
         <Button variant="ghost" onClick={onDone}>Cancelar</Button>
-        <Button onClick={submit} disabled={m.isPending}>{m.isPending ? "Guardando…" : "Registrar elaboración"}</Button>
+        <Button onClick={submit} disabled={m.isPending || (asign.trabajadores.length > 1 && !asign.responsableId)}>{m.isPending ? "Guardando…" : "Registrar elaboración"}</Button>
       </DialogFooter>
     </div>
   );

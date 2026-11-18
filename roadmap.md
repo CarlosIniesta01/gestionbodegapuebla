@@ -10,3 +10,11 @@ Base definitiva (no modificar sin autorización): 18 familias y 197 operaciones;
 - [ ] Corregir aviso del Calendario en Visión Global (texto distinto servidor/cliente).
 - [ ] Validación con usuarios con acceso limitado a algunos centros.
 - [ ] Comprobar visualización de órdenes por operario y centro (requiere sesión de un operario).
+
+
+## B1 — pruebas (18/11/2026)
+- [x] Embotellado (directo y elaboración) usa la sección común «Asignar trabajo» + fecha y prioridad.
+- [x] Prueba controlada en Finca la Blanca (trabajo cancelado, motivo PRUEBA SISTEMA — BLOQUE B1).
+- [ ] Aceptar/rechazar con sesión real de operario (falta sesión de operario).
+- [ ] Comprobación visual de Distribución/Mis trabajos con la prueba (navegador automático no respondió).
+- [ ] Cierre de B1: espera aprobación expresa.
