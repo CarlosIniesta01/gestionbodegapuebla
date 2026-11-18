@@ -8,6 +8,13 @@
       "when": 1793777605989,
       "tag": "0000_restringir_permisos_funciones_internas",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794998965469,
+      "tag": "0001_catalogo_maestro_operaciones",
+      "breakpoints": true
     }
   ]
 }

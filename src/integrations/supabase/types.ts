@@ -382,6 +382,54 @@ export type Database = {
           },
         ]
       }
+      centro_operaciones: {
+        Row: {
+          bodega_id: string
+          configuracion: Json
+          created_at: string
+          habilitada: boolean
+          id: string
+          operacion_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bodega_id: string
+          configuracion?: Json
+          created_at?: string
+          habilitada?: boolean
+          id?: string
+          operacion_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bodega_id?: string
+          configuracion?: Json
+          created_at?: string
+          habilitada?: boolean
+          id?: string
+          operacion_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "centro_operaciones_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "centro_operaciones_operacion_id_fkey"
+            columns: ["operacion_id"]
+            isOneToOne: false
+            referencedRelation: "operaciones_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           activo: boolean
@@ -864,6 +912,59 @@ export type Database = {
           },
         ]
       }
+      familias_operativas: {
+        Row: {
+          activo: boolean
+          bodega_id: string | null
+          codigo: string
+          color: string
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          icono: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          bodega_id?: string | null
+          codigo: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          icono?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          bodega_id?: string | null
+          codigo?: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          icono?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "familias_operativas_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       familias_recetas: {
         Row: {
           bodega_id: string
@@ -1268,6 +1369,99 @@ export type Database = {
             columns: ["trabajo_id"]
             isOneToOne: false
             referencedRelation: "trabajos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operaciones_catalogo: {
+        Row: {
+          activo: boolean
+          admite_consumos: boolean
+          admite_ejecucion_parcial: boolean
+          admite_movimientos: boolean
+          admite_productos_enologicos: boolean
+          bodega_id: string | null
+          codigo: string
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          familia_id: string
+          id: string
+          nombre: string
+          orden: number
+          requiere_autorizacion: boolean
+          requiere_deposito_destino: boolean
+          requiere_deposito_origen: boolean
+          requiere_laboratorio: boolean
+          requiere_lote: boolean
+          requiere_operarios: boolean
+          requiere_producto: boolean
+          tipo_formulario: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          admite_consumos?: boolean
+          admite_ejecucion_parcial?: boolean
+          admite_movimientos?: boolean
+          admite_productos_enologicos?: boolean
+          bodega_id?: string | null
+          codigo: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          familia_id: string
+          id?: string
+          nombre: string
+          orden?: number
+          requiere_autorizacion?: boolean
+          requiere_deposito_destino?: boolean
+          requiere_deposito_origen?: boolean
+          requiere_laboratorio?: boolean
+          requiere_lote?: boolean
+          requiere_operarios?: boolean
+          requiere_producto?: boolean
+          tipo_formulario?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          admite_consumos?: boolean
+          admite_ejecucion_parcial?: boolean
+          admite_movimientos?: boolean
+          admite_productos_enologicos?: boolean
+          bodega_id?: string | null
+          codigo?: string
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          familia_id?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          requiere_autorizacion?: boolean
+          requiere_deposito_destino?: boolean
+          requiere_deposito_origen?: boolean
+          requiere_laboratorio?: boolean
+          requiere_lote?: boolean
+          requiere_operarios?: boolean
+          requiere_producto?: boolean
+          tipo_formulario?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operaciones_catalogo_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operaciones_catalogo_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias_operativas"
             referencedColumns: ["id"]
           },
         ]
@@ -2689,6 +2883,7 @@ export type Database = {
           descripcion: string | null
           estado: Database["public"]["Enums"]["trabajo_estado"]
           id: string
+          operacion_catalogo_id: string | null
           prioridad: Database["public"]["Enums"]["trabajo_prioridad"]
           scheduled_at: string | null
           started_at: string | null
@@ -2708,6 +2903,7 @@ export type Database = {
           descripcion?: string | null
           estado?: Database["public"]["Enums"]["trabajo_estado"]
           id?: string
+          operacion_catalogo_id?: string | null
           prioridad?: Database["public"]["Enums"]["trabajo_prioridad"]
           scheduled_at?: string | null
           started_at?: string | null
@@ -2727,6 +2923,7 @@ export type Database = {
           descripcion?: string | null
           estado?: Database["public"]["Enums"]["trabajo_estado"]
           id?: string
+          operacion_catalogo_id?: string | null
           prioridad?: Database["public"]["Enums"]["trabajo_prioridad"]
           scheduled_at?: string | null
           started_at?: string | null
@@ -2740,6 +2937,13 @@ export type Database = {
             columns: ["bodega_id"]
             isOneToOne: false
             referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trabajos_operacion_catalogo_id_fkey"
+            columns: ["operacion_catalogo_id"]
+            isOneToOne: false
+            referencedRelation: "operaciones_catalogo"
             referencedColumns: ["id"]
           },
         ]
@@ -2863,6 +3067,7 @@ export type Database = {
         Args: { _bodega: string; _perm: string }
         Returns: boolean
       }
+      has_permission_any: { Args: { _perm: string }; Returns: boolean }
       is_bodega_admin: { Args: { _bodega: string }; Returns: boolean }
       marcar_lotes_caducados: { Args: never; Returns: number }
       recalcular_contrato_compra: { Args: { _id: string }; Returns: undefined }
@@ -2958,6 +3163,7 @@ export type Database = {
         | "observacion"
         | "carga"
         | "descarga"
+        | "operacion"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3170,6 +3376,7 @@ export const Constants = {
         "observacion",
         "carga",
         "descarga",
+        "operacion",
       ],
     },
   },
