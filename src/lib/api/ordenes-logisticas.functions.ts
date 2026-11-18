@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { validarCentro } from "./embotellado-validacion";
 
 const TipoEnum = z.enum(["carga", "descarga"]);
 const EstadoEnum = z.enum([
@@ -196,6 +197,15 @@ export const upsertOrdenLogistica = createServerFn({ method: "POST" })
     const supabase: any = context.supabase;
     const userId = context.userId;
     await assertMember(supabase, data.bodegaId, userId);
+    // Centro operativo: acceso del usuario y depósitos de ese centro.
+    const deps = [data.depositoOrigenId, data.depositoDestinoId, ...data.compartimentos.map((c) => c.depositoId)]
+      .filter((x): x is string => !!x);
+    await validarCentro(supabase, data.bodegaId, Array.from(new Set(deps)));
+    if (data.id) {
+      const { data: prev } = await supabase.from("ordenes_logisticas").select("bodega_id").eq("id", data.id).maybeSingle();
+      if (!prev) throw new Error("Orden no encontrada");
+      if (prev.bodega_id !== data.bodegaId) throw new Error("No se puede cambiar el centro operativo de una orden existente");
+    }
 
     const payload = toDbPayload(data, userId);
     let ordenId = data.id ?? null;

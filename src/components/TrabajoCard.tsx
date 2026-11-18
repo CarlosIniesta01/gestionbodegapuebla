@@ -18,6 +18,7 @@ import { RegistrarAnaliticaDialog } from "@/components/analiticas/RegistrarAnali
 
 interface Trabajo {
   id: string;
+  bodega_id?: string | null;
   tipo: TrabajoTipo;
   operacion_catalogo_id?: string | null;
   titulo: string;
@@ -41,7 +42,10 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   const updFn = useServerFn(updateTrabajoEstado);
   const delFn = useServerFn(deleteTrabajo);
   const checkFn = useServerFn(trabajoConsumosCompletos);
-  const { bodegaId } = useActiveBodega();
+  const { bodegaId: activo, bodegas } = useActiveBodega();
+  // Centro real del trabajo, nunca el centro activo de la sesión.
+  const bodegaId = t.bodega_id ?? activo;
+  const centroNombre = bodegas.find((b) => b.bodega_id === t.bodega_id)?.bodega.nombre;
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["trabajos"] });
     qc.invalidateQueries({ queryKey: ["actividad"] });
@@ -96,7 +100,10 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
               <div className="font-medium truncate">{t.titulo}</div>
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{meta.label}{(t.datos as any)?.operacion_codigo ? ` · ${(t.datos as any).operacion_codigo}` : ""}{!t.operacion_catalogo_id && <span className="ml-1.5 normal-case tracking-normal text-[10px] px-1.5 py-0.5 rounded border border-border">Pendiente de clasificación</span>}</div>
             </div>
-            <Badge variant="outline" className={`shrink-0 ${estado.tone}`}>{estado.label}</Badge>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <Badge variant="outline" className={estado.tone}>{estado.label}</Badge>
+              {centroNombre && <span className="text-[10px] px-1.5 py-0.5 rounded border border-border bg-muted text-muted-foreground" title="Centro del trabajo">{centroNombre}</span>}
+            </div>
           </div>
 
           {(t.deposito_origen || t.deposito_destino) && (
@@ -189,7 +196,7 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
           </div>
         </div>
       </div>
-      <TrabajoDetailDialog open={trabsOpen} onOpenChange={setTrabsOpen} trabajoId={t.id} trabajoTitulo={t.titulo} />
+      <TrabajoDetailDialog open={trabsOpen} onOpenChange={setTrabsOpen} trabajoId={t.id} trabajoTitulo={t.titulo} bodegaId={bodegaId} />
     </motion.div>
   );
 }

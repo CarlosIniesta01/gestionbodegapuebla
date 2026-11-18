@@ -25,6 +25,7 @@ import {
   type OrdenTipo,
 } from "@/lib/ordenes-logisticas-meta";
 import { useBodegaMap } from "@/lib/use-bodega-map";
+import { useActiveBodega } from "@/hooks/use-active-bodega";
 import { Link } from "@tanstack/react-router";
 
 type Compartimento = {
@@ -123,6 +124,8 @@ export function OrdenLogisticaDialog({ open, onOpenChange, bodegaId, tipo, orden
   const [state, setState] = React.useState(emptyState(tipo));
   const [tab, setTab] = React.useState("cabecera");
   const { depositos } = useBodegaMap(bodegaId);
+  const { bodegas } = useActiveBodega();
+  const centroNombre = bodegas.find((b) => b.bodega_id === bodegaId)?.bodega.nombre ?? "—";
   const qc = useQueryClient();
 
   const procesosFn = useServerFn(listProcesosDoc);
@@ -317,6 +320,9 @@ export function OrdenLogisticaDialog({ open, onOpenChange, bodegaId, tipo, orden
             </div>
             <Badge variant="outline" className={estadoMeta.tone}>{estadoMeta.label}</Badge>
           </DialogTitle>
+          <div className="text-xs rounded-md border bg-muted px-2.5 py-1.5" aria-label="Centro operativo">
+            {tipo === "carga" ? "Centro que expide" : "Centro receptor"}: <b>{centroNombre}</b>
+          </div>
         </DialogHeader>
 
         <Tabs value={tab} onValueChange={setTab}>

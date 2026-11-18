@@ -1,0 +1,3 @@
+ALTER TABLE public.operaciones_catalogo DROP CONSTRAINT operaciones_catalogo_tipo_formulario_check;
+ALTER TABLE public.operaciones_catalogo ADD CONSTRAINT operaciones_catalogo_tipo_formulario_check CHECK (tipo_formulario = ANY (ARRAY['operacion','trasiego','vendimia','producto','limpieza','embotellado','carga','descarga','incidencia','observacion','traslado_intercentros']));
+UPDATE public.operaciones_catalogo SET tipo_formulario = 'traslado_intercentros', requiere_deposito_origen = true, requiere_deposito_destino = true WHERE codigo = 'F06-08' AND bodega_id IS NULL;

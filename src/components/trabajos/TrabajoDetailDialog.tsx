@@ -5,14 +5,17 @@ import { ConsumosTab } from "./ConsumosTab";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 
 export function TrabajoDetailDialog({
-  open, onOpenChange, trabajoId, trabajoTitulo,
+  open, onOpenChange, trabajoId, trabajoTitulo, bodegaId: centroTrabajo,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   trabajoId: string;
   trabajoTitulo: string;
+  /** Centro guardado en el trabajo (no el centro activo). */
+  bodegaId?: string | null;
 }) {
-  const { bodegaId } = useActiveBodega();
+  const { bodegaId: activo } = useActiveBodega();
+  const bodegaId = centroTrabajo ?? activo;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-border max-w-2xl max-h-[90vh] overflow-y-auto">

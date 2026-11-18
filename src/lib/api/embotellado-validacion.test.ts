@@ -51,3 +51,14 @@ describe("trabajos: operación habilitada en el centro", () => {
     await expect(validarOperacionCentro(mockOp({ ...op, bodega_id: B }, { activo: true }, null), A, "o")).rejects.toThrow("no está disponible");
   });
 });
+
+describe("traslado entre centros", () => {
+  it("rechaza guardar F06-08 (traslado intercentros) como trasiego ordinario", async () => {
+    const op = { id: "o", activo: true, bodega_id: null, familia_id: "f", tipo_formulario: "traslado_intercentros" };
+    await expect(validarOperacionCentro(mockOp(op, { activo: true }, null), A, "o")).rejects.toThrow("pendiente de configuración");
+  });
+  it("no bloquea un trasiego normal dentro del centro", async () => {
+    const op = { id: "o", activo: true, bodega_id: null, familia_id: "f", tipo_formulario: "trasiego" };
+    await expect(validarOperacionCentro(mockOp(op, { activo: true }, null), A, "o")).resolves.toBeUndefined();
+  });
+});

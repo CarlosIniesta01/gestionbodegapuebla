@@ -41,7 +41,11 @@ export const TIPO_FORMULARIO_LABEL: Record<string, string> = {
   operacion: "Orden genérica", trasiego: "Trasiego", vendimia: "Vendimia", producto: "Producto enológico",
   limpieza: "Limpieza", embotellado: "Embotellado", carga: "Orden de carga", descarga: "Orden de descarga",
   incidencia: "Incidencia", observacion: "Observación",
+  traslado_intercentros: "Traslado entre centros",
 };
+
+/** Operaciones sin formulario propio todavía: no se pueden guardar como otro tipo. */
+export const TIPOS_PENDIENTES_CONFIG = new Set(["traslado_intercentros"]);
 
 /** Sin fila de configuración = habilitada por defecto. */
 export function habilitadaEnCentro(cfg: CentroCfg[], bodegaId: string, opId: string) {

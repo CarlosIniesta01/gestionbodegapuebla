@@ -8,17 +8,20 @@ import { useCatalogoOperaciones } from "./use-catalogo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
-import { CAPACIDADES, TIPO_FORMULARIO_LABEL, iconoFamilia, operacionesDisponibles, type Familia, type Operacion } from "@/lib/operaciones-meta";
+import { TIPOS_PENDIENTES_CONFIG, CAPACIDADES, TIPO_FORMULARIO_LABEL, iconoFamilia, operacionesDisponibles, type Familia, type Operacion } from "@/lib/operaciones-meta";
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   bodegaId: string;
   centroNombre?: string;
-  onContinue: (op: Operacion, familia: Familia, centroId: string) => void;
+  onContinue: (op: Operacion | null, familia: Familia | undefined, centroId: string) => void;
+  /** Acceso rápido: limita las operaciones a un tipo de formulario. */
+  tipoFormulario?: string | null;
+  tipoLabel?: string;
 }
 
-export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroInicial, onContinue }: Props) {
+export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroInicial, onContinue, tipoFormulario, tipoLabel }: Props) {
   // Centro de destino del trabajo: independiente del centro activo general.
   const { bodegas } = useActiveBodega();
   const [bodegaId, setCentro] = React.useState(centroInicial);
@@ -36,16 +39,18 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroIn
   const familias = (q.data?.familias ?? []).filter((f) => f.activo && (!f.bodega_id || f.bodega_id === bodegaId));
   const familia = familias.find((f) => f.id === famId) ?? null;
   const term = busca.trim().toLowerCase();
+  const porTipo = tipoFormulario ? disponibles.filter((o) => o.tipo_formulario === tipoFormulario) : null;
   const ops = term
-    ? disponibles.filter((o) => o.nombre.toLowerCase().includes(term) || o.codigo.toLowerCase().includes(term))
-    : disponibles.filter((o) => o.familia_id === famId);
+    ? (porTipo ?? disponibles).filter((o) => o.nombre.toLowerCase().includes(term) || o.codigo.toLowerCase().includes(term))
+    : porTipo ?? disponibles.filter((o) => o.familia_id === famId);
   const op = disponibles.find((o) => o.id === opId) ?? null;
+  const pendienteConfig = !!op && TIPOS_PENDIENTES_CONFIG.has(op.tipo_formulario);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{familia || term ? "Seleccionar operación" : "Seleccionar familia operativa"}</DialogTitle>
+          <DialogTitle>{tipoFormulario ? `Nuevo · ${tipoLabel ?? tipoFormulario}` : familia || term ? "Seleccionar operación" : "Seleccionar familia operativa"}</DialogTitle>
           <DialogDescription>
             {centroNombre ?? "Centro activo"}{familia ? ` → ${familia.nombre}` : ""}{op ? ` → ${op.nombre}` : ""}
           </DialogDescription>
@@ -69,7 +74,7 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroIn
 
         {q.isLoading ? <div className="p-6 text-sm text-muted-foreground">Cargando catálogo…</div>
         : q.error ? <div className="p-6 text-sm text-destructive">{(q.error as Error).message}</div>
-        : !familia && !term ? (
+        : !familia && !term && !porTipo ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {familias.map((f) => {
               const Icon = iconoFamilia(f.icono);
@@ -93,7 +98,13 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroIn
           </div>
         ) : (
           <div className="space-y-2">
-            {familia && !term && (
+            {porTipo && porTipo.length === 0 && !term && (
+              <div className="rounded-lg border p-3 text-sm text-muted-foreground flex items-center justify-between gap-3">
+                <span>No hay operaciones del catálogo de este tipo en {centroNombre ?? "el centro"}.</span>
+                <Button size="sm" onClick={() => onContinue(null, undefined, bodegaId)}>Continuar <ChevronRight className="size-4 ml-1" /></Button>
+              </div>
+            )}
+            {familia && !term && !porTipo && (
               <Button variant="ghost" size="sm" onClick={() => { setFamId(null); setOpId(null); }}>
                 <ArrowLeft className="size-4 mr-1" />Familias
               </Button>
@@ -119,8 +130,11 @@ export function SelectorOperacionDialog({ open, onOpenChange, bodegaId: centroIn
             <div className="flex flex-wrap gap-1">
               {CAPACIDADES.filter((c) => op[c.key]).map((c) => <Badge key={c.key} variant="secondary" className="text-[10px]">{c.label}</Badge>)}
             </div>
-            <Button onClick={() => {
-              const f = (q.data?.familias ?? []).find((x) => x.id === op.familia_id)!;
+            {pendienteConfig && (
+              <div className="text-xs rounded border border-border bg-muted px-2 py-1">Operación pendiente de configuración específica (requiere centro y depósito de origen y destino).</div>
+            )}
+            <Button disabled={pendienteConfig} onClick={() => {
+              const f = (q.data?.familias ?? []).find((x) => x.id === op.familia_id);
               onContinue(op, f, bodegaId);
             }}>
               Continuar con la orden <ChevronRight className="size-4 ml-1" />

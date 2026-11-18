@@ -24,9 +24,10 @@ export async function validarCentro(supabase: any, bodegaId: string, depositos: 
 export async function validarOperacionCentro(supabase: any, bodegaId: string, operacionId?: string | null) {
   if (!operacionId) return;
   const { data: op, error } = await supabase.from("operaciones_catalogo")
-    .select("id,activo,bodega_id,familia_id").eq("id", operacionId).maybeSingle();
+    .select("id,activo,bodega_id,familia_id,tipo_formulario").eq("id", operacionId).maybeSingle();
   if (error) throw new Error(error.message);
   if (!op || !op.activo || (op.bodega_id && op.bodega_id !== bodegaId)) throw new Error("La operación no está disponible en el centro seleccionado");
+  if (op.tipo_formulario === "traslado_intercentros") throw new Error("Operación pendiente de configuración específica: los traslados entre centros no pueden guardarse como trasiego ordinario");
   const { data: fam } = await supabase.from("familias_operativas").select("activo").eq("id", op.familia_id).maybeSingle();
   if (!fam?.activo) throw new Error("La familia de la operación está inactiva");
   const { data: cfg } = await supabase.from("centro_operaciones").select("habilitada")

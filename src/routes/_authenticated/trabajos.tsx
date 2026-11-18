@@ -29,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/trabajos")({
 });
 
 function Trabajos() {
-  const { bodegaId, bodega, isLoading } = useActiveBodega();
+  const { bodegaId, bodegas, isGlobal, isLoading } = useActiveBodega();
+  const [quickTipo, setQuickTipo] = React.useState<TrabajoTipo | null>(null);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const [selOpen, setSelOpen] = React.useState(false);
@@ -49,11 +50,15 @@ function Trabajos() {
   const fn = useServerFn(listTrabajos);
   const qc = useQueryClient();
   const q = useQuery({
-    queryKey: ["trabajos", bodegaId, filtroTipo],
-    queryFn: () => fn({ data: {
-      bodegaId: bodegaId!,
-      tipo: filtroTipo === "all" ? undefined : filtroTipo,
-    } }),
+    queryKey: ["trabajos", isGlobal ? "global" : bodegaId, filtroTipo, bodegas.length],
+    queryFn: async () => {
+      const tipo = filtroTipo === "all" ? undefined : filtroTipo;
+      if (!isGlobal) return fn({ data: { bodegaId: bodegaId!, tipo } });
+      // Visión Global: trabajos de todos los centros autorizados.
+      const all = await Promise.all(bodegas.map((b) => fn({ data: { bodegaId: b.bodega_id, tipo } })));
+      return all.flat().sort((a: any, b: any) =>
+        String(b.scheduled_at ?? b.created_at).localeCompare(String(a.scheduled_at ?? a.created_at)));
+    },
     enabled: !!bodegaId,
   });
 
@@ -79,20 +84,16 @@ function Trabajos() {
   if (isLoading) return <div className="p-6 text-muted-foreground">Cargando…</div>;
   if (!bodegaId) return <div className="p-6 text-muted-foreground">No tienes acceso a ninguna bodega.</div>;
 
-  const launch = (tipo: TrabajoTipo) => {
-    setCentroDestino(undefined);
-    if (tipo === "embotellado") { setOperacion(null); setEmbOpen(true); return; }
-    if (tipo === "carga" || tipo === "descarga") { setOrdenTipo(tipo); return; }
-    setOperacion(null); setDefaultTipo(tipo); setOpen(true);
-  };
+  // Accesos rápidos: reutilizan el selector multicentro filtrado por tipo.
+  const launch = (tipo: TrabajoTipo) => { setQuickTipo(tipo); setSelOpen(true); };
   const trabajos = q.data ?? [];
 
-  const continuarOperacion = (op: Operacion, fam: Familia | undefined, centroId: string) => {
+  const continuarOperacion = (op: Operacion | null, fam: Familia | undefined, centroId: string) => {
     setSelOpen(false);
     setCentroDestino(centroId);
     setOperacion(op);
     setFamiliaNombre(fam?.nombre ?? "");
-    const tf = op.tipo_formulario;
+    const tf = op?.tipo_formulario ?? quickTipo ?? "observacion";
     if (tf === "carga" || tf === "descarga") { setOrdenTipo(tf); return; }
     if (tf === "embotellado") { setEmbOpen(true); return; }
     setDefaultTipo(tf as TrabajoTipo);
@@ -106,7 +107,7 @@ function Trabajos() {
           <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-1">Trabajos</div>
           <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">Registrar y consultar</h1>
         </div>
-        <Button onClick={() => setSelOpen(true)}><Plus className="size-4 mr-1" />Nuevo trabajo</Button>
+        <Button onClick={() => { setQuickTipo(null); setSelOpen(true); }}><Plus className="size-4 mr-1" />Nuevo trabajo</Button>
       </div>
 
       <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-2">Acceso rápido</div>
@@ -164,7 +165,8 @@ function Trabajos() {
       {bodegaId && (
         <>
           <TrabajoFormDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setOperacion(null); }} bodegaId={centroForm!} defaultTipo={defaultTipo} operacion={operacion} familiaNombre={familiaNombre} />
-          <SelectorOperacionDialog open={selOpen} onOpenChange={setSelOpen} bodegaId={bodegaId} onContinue={continuarOperacion} />
+          <SelectorOperacionDialog open={selOpen} onOpenChange={setSelOpen} bodegaId={bodegaId} onContinue={continuarOperacion}
+            tipoFormulario={quickTipo} tipoLabel={TRABAJO_TIPOS.find((x) => x.id === quickTipo)?.label} />
           <EmbotelladoDialog key={centroForm} open={embOpen} onOpenChange={setEmbOpen} bodegaId={centroForm!} operacionId={operacion?.id} operacionCodigo={operacion?.codigo} />
           <PreparacionesDialog open={prepOpen} onOpenChange={setPrepOpen} bodegaId={bodegaId} />
           {ordenTipo && (

@@ -15,12 +15,17 @@ export const Route = createFileRoute("/_authenticated/pendientes")({
 });
 
 function Pendientes() {
-  const { bodegaId, isLoading } = useActiveBodega();
+  const { bodegaId, bodegas, isGlobal, isLoading } = useActiveBodega();
   const qc = useQueryClient();
   const fn = useServerFn(listTrabajos);
   const q = useQuery({
-    queryKey: ["trabajos", bodegaId, "pendientes"],
-    queryFn: () => fn({ data: { bodegaId: bodegaId!, estado: ["pendiente", "en_curso"] } }),
+    queryKey: ["trabajos", isGlobal ? "global" : bodegaId, "pendientes", bodegas.length],
+    queryFn: async () => {
+      const estado: ("pendiente" | "en_curso")[] = ["pendiente", "en_curso"];
+      if (!isGlobal) return fn({ data: { bodegaId: bodegaId!, estado } });
+      const all = await Promise.all(bodegas.map((b) => fn({ data: { bodegaId: b.bodega_id, estado } })));
+      return all.flat();
+    },
     enabled: !!bodegaId,
   });
 
