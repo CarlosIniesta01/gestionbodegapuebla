@@ -29,6 +29,8 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
     observaciones: z.string().max(2000).optional(),
     scheduledAt: z.string().datetime().optional(),
     asignados: z.array(AsignadoSchema).default([]),
+    operacionCatalogoId: z.string().uuid().optional(),
+    operacionCodigo: z.string().max(20).optional(),
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -51,7 +53,8 @@ export const crearEmbotelladoDirecto = createServerFn({ method: "POST" })
         prioridad: "normal",
         deposito_origen: data.deposito,
         scheduled_at: data.scheduledAt ?? null,
-        datos,
+        datos: data.operacionCodigo ? { ...datos, operacion_codigo: data.operacionCodigo } : datos,
+        operacion_catalogo_id: data.operacionCatalogoId ?? null,
         created_by: userId,
       }) as any)
       .select("*").single();
@@ -79,6 +82,8 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
     observaciones: z.string().max(2000).optional(),
     scheduledAt: z.string().datetime().optional(),
     asignados: z.array(AsignadoSchema).default([]),
+    operacionCatalogoId: z.string().uuid().optional(),
+    operacionCodigo: z.string().max(20).optional(),
     depositos: z.array(z.object({
       deposito_codigo: z.string().min(1),
       zona: z.string().optional(),
@@ -121,7 +126,8 @@ export const crearElaboracionPropia = createServerFn({ method: "POST" })
         estado: "pendiente",
         prioridad: "normal",
         scheduled_at: data.scheduledAt ?? null,
-        datos,
+        datos: data.operacionCodigo ? { ...datos, operacion_codigo: data.operacionCodigo } : datos,
+        operacion_catalogo_id: data.operacionCatalogoId ?? null,
         created_by: userId,
       }) as any)
       .select("*").single();

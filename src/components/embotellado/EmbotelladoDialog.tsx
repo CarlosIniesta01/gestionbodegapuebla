@@ -22,6 +22,9 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   bodegaId: string;
+  /** Operación del catálogo maestro (p. ej. F13) desde la que se lanza. */
+  operacionId?: string;
+  operacionCodigo?: string;
 }
 
 type Modo = "select" | "directo" | "elaboracion";
@@ -29,7 +32,7 @@ type Modo = "select" | "directo" | "elaboracion";
 const FORMATOS = ["0,75 L", "1,5 L", "3 L", "Otro"];
 const UNIDADES = ["g", "kg", "ml", "L", "sobres", "otro"];
 
-export function EmbotelladoDialog({ open, onOpenChange, bodegaId }: Props) {
+export function EmbotelladoDialog({ open, onOpenChange, bodegaId, operacionId, operacionCodigo }: Props) {
   const [modo, setModo] = React.useState<Modo>("select");
   React.useEffect(() => { if (!open) setModo("select"); }, [open]);
 
@@ -51,8 +54,8 @@ export function EmbotelladoDialog({ open, onOpenChange, bodegaId }: Props) {
         </DialogHeader>
 
         {modo === "select" && <SelectMode onPick={setModo} />}
-        {modo === "directo" && <DirectoForm bodegaId={bodegaId} onDone={() => onOpenChange(false)} />}
-        {modo === "elaboracion" && <ElaboracionForm bodegaId={bodegaId} onDone={() => onOpenChange(false)} />}
+        {modo === "directo" && <DirectoForm bodegaId={bodegaId} operacionId={operacionId} operacionCodigo={operacionCodigo} onDone={() => onOpenChange(false)} />}
+        {modo === "elaboracion" && <ElaboracionForm bodegaId={bodegaId} operacionId={operacionId} operacionCodigo={operacionCodigo} onDone={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
   );
@@ -92,7 +95,7 @@ function SelectMode({ onPick }: { onPick: (m: Modo) => void }) {
 }
 
 // ============ MODO DIRECTO ============
-function DirectoForm({ bodegaId, onDone }: { bodegaId: string; onDone: () => void }) {
+function DirectoForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodegaId: string; operacionId?: string; operacionCodigo?: string; onDone: () => void }) {
   const { zonas, depositos, updateDeposito } = useBodegaMap();
   const [zonaId, setZonaId] = React.useState<string>("");
   const [depositoId, setDepositoId] = React.useState<string>("");
@@ -142,6 +145,8 @@ function DirectoForm({ bodegaId, onDone }: { bodegaId: string; onDone: () => voi
     if (!lote.trim()) return toast.error("Indica el lote de embotellado");
     m.mutate({ data: {
       bodegaId,
+      operacionCatalogoId: operacionId,
+      operacionCodigo,
       deposito: dep.codigo,
       zona: zona?.nombre,
       litros: L,
@@ -226,7 +231,7 @@ function DirectoForm({ bodegaId, onDone }: { bodegaId: string; onDone: () => voi
 interface DepRow { uid: string; deposito_id: string; litros: string; variedad: string }
 interface ProdRow { uid: string; producto_id: string; lote: string; cantidad: string; unidad: string; obs: string }
 
-function ElaboracionForm({ bodegaId, onDone }: { bodegaId: string; onDone: () => void }) {
+function ElaboracionForm({ bodegaId, operacionId, operacionCodigo, onDone }: { bodegaId: string; operacionId?: string; operacionCodigo?: string; onDone: () => void }) {
   const { zonas, depositos, updateDeposito } = useBodegaMap();
   const fnProd = useServerFn(listProductos);
   const productosQ = useQuery({
@@ -305,6 +310,8 @@ function ElaboracionForm({ bodegaId, onDone }: { bodegaId: string; onDone: () =>
 
     m.mutate({ data: {
       bodegaId,
+      operacionCatalogoId: operacionId,
+      operacionCodigo,
       nombre: nombre.trim(),
       fecha: fecha ? combineDateTime(fecha, hora) : undefined,
       lote_embotellado: lote.trim(),

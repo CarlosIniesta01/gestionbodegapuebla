@@ -77,7 +77,7 @@ function Trabajos() {
   if (!bodegaId) return <div className="p-6 text-muted-foreground">No tienes acceso a ninguna bodega.</div>;
 
   const launch = (tipo: TrabajoTipo) => {
-    if (tipo === "embotellado") { setEmbOpen(true); return; }
+    if (tipo === "embotellado") { setOperacion(null); setEmbOpen(true); return; }
     if (tipo === "carga" || tipo === "descarga") { setOrdenTipo(tipo); return; }
     setOperacion(null); setDefaultTipo(tipo); setOpen(true);
   };
@@ -160,7 +160,7 @@ function Trabajos() {
         <>
           <TrabajoFormDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setOperacion(null); }} bodegaId={bodegaId} defaultTipo={defaultTipo} operacion={operacion} familiaNombre={familiaNombre} />
           <SelectorOperacionDialog open={selOpen} onOpenChange={setSelOpen} bodegaId={bodegaId} centroNombre={bodega?.nombre} onContinue={continuarOperacion} />
-          <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} />
+          <EmbotelladoDialog open={embOpen} onOpenChange={setEmbOpen} bodegaId={bodegaId} operacionId={operacion?.id} operacionCodigo={operacion?.codigo} />
           <PreparacionesDialog open={prepOpen} onOpenChange={setPrepOpen} bodegaId={bodegaId} />
           {ordenTipo && (
             <OrdenLogisticaDialog

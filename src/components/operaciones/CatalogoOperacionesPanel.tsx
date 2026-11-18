@@ -48,7 +48,12 @@ export function CatalogoOperacionesPanel() {
   if (q.isLoading || !q.data) return <div className="p-4 text-sm text-muted-foreground">Cargando catálogo de operaciones…</div>;
   const { familias, operaciones, centro: cfg, permisos } = q.data;
   const p = permisos[centro] ?? {};
-  const puedeConfig = !!(p["operaciones.catalogo.create"] || p["operaciones.catalogo.edit"] || p["operaciones.catalogo.disable"] || p["operaciones.centros.configure"]);
+  const puedeConfig = !!(p["operaciones.catalogo.global"] || p["operaciones.catalogo.create"] || p["operaciones.catalogo.edit"] || p["operaciones.catalogo.disable"] || p["operaciones.centros.configure"]);
+  // Global (bodega_id NULL) solo Administración/Enología; propias del centro según permisos del centro.
+  const G = !!p["operaciones.catalogo.global"];
+  const canEdit = (r: { bodega_id: string | null }) => (r.bodega_id ? !!p["operaciones.catalogo.edit"] : G);
+  const canDisable = (r: { bodega_id: string | null }) => (r.bodega_id ? !!p["operaciones.catalogo.disable"] : G);
+  const canCreate = G || !!p["operaciones.catalogo.create"];
   const nombreCentro = (id: string) => bodegas.find((b) => b.bodega_id === id)?.bodega.nombre ?? "";
 
   const famVisibles = familias.filter((f) => (!f.bodega_id || f.bodega_id === centro) && (verInactivas || f.activo));
@@ -98,8 +103,8 @@ export function CatalogoOperacionesPanel() {
           </label>
           {config && (
             <div className="ml-auto flex gap-2">
-              {p["operaciones.catalogo.create"] && <Button size="sm" variant="outline" onClick={() => setEditFam({ icono: "Layers", color: "#475569", orden: (familias.length + 1) * 10 })}><Plus className="size-4 mr-1" />Familia</Button>}
-              {p["operaciones.catalogo.create"] && <Button size="sm" variant="outline" onClick={() => setEditOp({ familia_id: famFiltro !== "all" ? famFiltro : famVisibles[0]?.id, tipo_formulario: "operacion", requiere_operarios: true, orden: 0 })}><Plus className="size-4 mr-1" />Operación</Button>}
+              {canCreate && <Button size="sm" variant="outline" onClick={() => setEditFam({ icono: "Layers", color: "#475569", orden: (familias.length + 1) * 10 })}><Plus className="size-4 mr-1" />Familia</Button>}
+              {canCreate && <Button size="sm" variant="outline" onClick={() => setEditOp({ familia_id: famFiltro !== "all" ? famFiltro : famVisibles[0]?.id, tipo_formulario: "operacion", requiere_operarios: true, orden: 0 })}><Plus className="size-4 mr-1" />Operación</Button>}
             </div>
           )}
         </div>
@@ -117,8 +122,8 @@ export function CatalogoOperacionesPanel() {
                 {!f.activo && <Badge variant="outline" className="text-[10px]">Inactiva</Badge>}
                 {f.bodega_id && <Badge variant="secondary" className="text-[10px]">Propia de {nombreCentro(f.bodega_id)}</Badge>}
                 <span className="ml-auto text-[11px] text-muted-foreground">{ops.length} op.</span>
-                {config && p["operaciones.catalogo.edit"] && <Button size="icon" variant="ghost" className="size-7" aria-label="Editar familia" onClick={() => setEditFam(f)}><Pencil className="size-3.5" /></Button>}
-                {config && p["operaciones.catalogo.disable"] && (
+                {config && canEdit(f) && <Button size="icon" variant="ghost" className="size-7" aria-label="Editar familia" onClick={() => setEditFam(f)}><Pencil className="size-3.5" /></Button>}
+                {config && canDisable(f) && (
                   <Switch aria-label="Familia activa" checked={f.activo}
                     onCheckedChange={(v) => act.mutate({ data: { bodegaId: centro, tabla: "familia", id: f.id, activo: v } })} />
                 )}
@@ -144,12 +149,12 @@ export function CatalogoOperacionesPanel() {
                                 <Switch checked={hab} onCheckedChange={(v) => cen.mutate({ data: { bodegaId: centro, operacionIds: [o.id], habilitada: v } })} />En centro
                               </label>
                             )}
-                            {p["operaciones.catalogo.disable"] && (
+                            {canDisable(o) && (
                               <label className="flex items-center gap-1 text-[11px]">
                                 <Switch checked={o.activo} onCheckedChange={(v) => act.mutate({ data: { bodegaId: centro, tabla: "operacion", id: o.id, activo: v } })} />Activa
                               </label>
                             )}
-                            {p["operaciones.catalogo.edit"] && <Button size="icon" variant="ghost" className="size-7" aria-label="Editar operación" onClick={() => setEditOp(o)}><Pencil className="size-3.5" /></Button>}
+                            {canEdit(o) && <Button size="icon" variant="ghost" className="size-7" aria-label="Editar operación" onClick={() => setEditOp(o)}><Pencil className="size-3.5" /></Button>}
                           </>
                         ) : puedeCrearTrabajo && o.activo && hab ? (
                           <Button asChild size="sm" variant="outline" className="h-7 text-[11px]">
@@ -170,8 +175,8 @@ export function CatalogoOperacionesPanel() {
         )}
       </div>
 
-      {editFam && <FamiliaDialog value={editFam} bodegaId={centro} onClose={() => setEditFam(null)} onSaved={refresh} />}
-      {editOp && <OperacionDialog value={editOp} familias={famVisibles} bodegaId={centro} onClose={() => setEditOp(null)} onSaved={refresh} />}
+      {editFam && <FamiliaDialog value={editFam} bodegaId={centro} global={G} onClose={() => setEditFam(null)} onSaved={refresh} />}
+      {editOp && <OperacionDialog value={editOp} familias={famVisibles} bodegaId={centro} global={G} onClose={() => setEditOp(null)} onSaved={refresh} />}
     </div>
   );
 }
@@ -180,7 +185,7 @@ function o_desc(f: Familia) {
   return f.descripcion ? <div className="px-3 py-1.5 text-[11px] text-muted-foreground border-t">{f.descripcion}</div> : null;
 }
 
-function FamiliaDialog({ value, bodegaId, onClose, onSaved }: { value: Partial<Familia>; bodegaId: string; onClose: () => void; onSaved: () => void }) {
+function FamiliaDialog({ value, bodegaId, global, onClose, onSaved }: { value: Partial<Familia>; bodegaId: string; global: boolean; onClose: () => void; onSaved: () => void }) {
   const [v, setV] = React.useState<Partial<Familia>>(value);
   const fn = useServerFn(guardarFamilia);
   const m = useMutation({ mutationFn: fn, onSuccess: () => { toast.success("Familia guardada"); onSaved(); onClose(); }, onError: (e: Error) => toast.error(e.message) });
@@ -204,7 +209,7 @@ function FamiliaDialog({ value, bodegaId, onClose, onSaved }: { value: Partial<F
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button disabled={m.isPending || !v.codigo || !v.nombre} onClick={() => m.mutate({ data: {
-            bodegaId, id: v.id, codigo: v.codigo!, nombre: v.nombre!, descripcion: v.descripcion ?? null,
+            bodegaId, id: v.id, global: !v.id && global, codigo: v.codigo!, nombre: v.nombre!, descripcion: v.descripcion ?? null,
             icono: v.icono ?? "Layers", color: v.color ?? "#475569", orden: v.orden ?? 0,
           } })}>Guardar</Button>
         </DialogFooter>
@@ -213,7 +218,7 @@ function FamiliaDialog({ value, bodegaId, onClose, onSaved }: { value: Partial<F
   );
 }
 
-function OperacionDialog({ value, familias, bodegaId, onClose, onSaved }: { value: Partial<Operacion>; familias: Familia[]; bodegaId: string; onClose: () => void; onSaved: () => void }) {
+function OperacionDialog({ value, familias, bodegaId, global, onClose, onSaved }: { value: Partial<Operacion>; familias: Familia[]; bodegaId: string; global: boolean; onClose: () => void; onSaved: () => void }) {
   const [v, setV] = React.useState<Partial<Operacion>>(value);
   const fn = useServerFn(guardarOperacion);
   const m = useMutation({ mutationFn: fn, onSuccess: () => { toast.success("Operación guardada"); onSaved(); onClose(); }, onError: (e: Error) => toast.error(e.message) });
@@ -253,7 +258,7 @@ function OperacionDialog({ value, familias, bodegaId, onClose, onSaved }: { valu
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button disabled={m.isPending || !v.codigo || !v.nombre || !v.familia_id} onClick={() => m.mutate({ data: {
-            bodegaId, id: v.id, familia_id: v.familia_id!, codigo: v.codigo!, nombre: v.nombre!,
+            bodegaId, id: v.id, global: !v.id && global, familia_id: v.familia_id!, codigo: v.codigo!, nombre: v.nombre!,
             descripcion: v.descripcion ?? null, orden: v.orden ?? 0, tipo_formulario: (v.tipo_formulario ?? "operacion") as any,
             ...(caps as any),
           } })}>Guardar</Button>

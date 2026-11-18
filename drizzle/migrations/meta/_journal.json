@@ -15,6 +15,13 @@
       "when": 1794998965469,
       "tag": "0001_catalogo_maestro_operaciones",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795002009306,
+      "tag": "0002_catalogo_global_permiso",
+      "breakpoints": true
     }
   ]
 }
