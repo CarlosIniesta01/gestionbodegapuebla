@@ -3,7 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { validarCentro, validarOperacionCentro } from "./embotellado-validacion";
-import { obtenerContextoPlanificacion, prepararPlanificacion } from "./planificacion-trabajo";
+import { obtenerContextoPlanificacion, prepararPlanificacion, prepararMultioperacion } from "./planificacion-trabajo";
+import { UsoPreliminarSchema } from "@/lib/multioperacion";
 
 export const getContextoPlanificacion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -120,7 +121,8 @@ export const createTrabajo = createServerFn({ method: "POST" })
     // Centro de destino: acceso, operación habilitada y depósitos del propio centro.
     await validarCentro(supabase, data.bodegaId, [data.deposito_origen, data.deposito_destino].filter(Boolean) as string[]);
     await validarOperacionCentro(supabase, data.bodegaId, data.operacion_catalogo_id);
-    const planificacion = await prepararPlanificacion(supabase, data.bodegaId, data.operacion_catalogo_id, data.datos.planificacion, data.deposito_origen, data.deposito_destino);
+    const multioperacion = await prepararMultioperacion(supabase, data.bodegaId, data.operacion_catalogo_id, data.datos.multioperacion, data.deposito_origen, data.deposito_destino);
+    const planificacion = multioperacion?.operaciones[0]?.planificacion ?? await prepararPlanificacion(supabase, data.bodegaId, data.operacion_catalogo_id, data.datos.planificacion, data.deposito_origen, data.deposito_destino);
     if (planificacion) {
       const { data: permitido, error: permisoError } = await supabase.rpc("has_permission", { _bodega: data.bodegaId, _perm: "tareas.crear" });
       if (permisoError) throw new Error(permisoError.message);
@@ -139,7 +141,7 @@ export const createTrabajo = createServerFn({ method: "POST" })
       deposito_destino: data.deposito_destino ?? null,
       asignado_a: data.asignado_a ?? null,
       scheduled_at: data.scheduled_at ?? null,
-      datos: planificacion ? { ...data.datos, litros_previstos: planificacion.litros_previstos, planificacion } : data.datos,
+      datos: planificacion ? { ...data.datos, litros_previstos: planificacion.litros_previstos, planificacion, ...(multioperacion ? { multioperacion } : {}) } : data.datos,
       instrucciones: data.instrucciones?.trim() || null,
       created_by: userId,
     };
@@ -151,8 +153,31 @@ export const createTrabajo = createServerFn({ method: "POST" })
       user_id: userId,
       tipo: "creado",
       contenido: planificacion ? `Trabajo creado (${data.tipo}); plantilla ${planificacion.plantilla_id} v${planificacion.plantilla_version}; ${planificacion.litros_previstos} L previstos` : `Trabajo creado (${data.tipo})`,
+      meta: multioperacion ? { naturaleza: "planificacion_multioperacion", multioperacion } : {},
     });
     await insertarAsignacionInicial(supabase, data.bodegaId, row.id, userId, trabs, data.asignacion?.responsableId);
+    return row;
+  });
+
+export const registrarUsoPreliminar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(UsoPreliminarSchema)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    // Trigger validates assignment, centre, immutable plan, lots and cumulative availability.
+    // This append-only event never calls stock/consumption/movement functions.
+    const { data: previo, error: lecturaError } = await supabase.from("trabajo_eventos").select("id,user_id,meta")
+      .eq("trabajo_id", data.trabajoId).eq("tipo", "b2_uso_preliminar").contains("meta", { registro_id: data.registroId }).maybeSingle();
+    if (lecturaError) throw new Error(lecturaError.message);
+    if (previo) {
+      if (previo.user_id !== userId || JSON.stringify((previo.meta as any).usos) !== JSON.stringify(data.usos)) throw new Error("La referencia ya pertenece a otro registro");
+      return { id: previo.id };
+    }
+    const { data: row, error } = await supabase.from("trabajo_eventos").insert({
+      trabajo_id: data.trabajoId, user_id: userId, tipo: "b2_uso_preliminar",
+      contenido: "Registro preliminar sin consumo", meta: { registro_id: data.registroId, usos: data.usos },
+    }).select("id").single();
+    if (error) throw new Error(error.code === "23505" ? "Este registro ya se ha guardado; actualiza la orden" : error.message);
     return row;
   });
 

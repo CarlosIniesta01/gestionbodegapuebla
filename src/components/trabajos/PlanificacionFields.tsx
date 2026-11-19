@@ -39,10 +39,11 @@ export function errorPlanificacion(plantilla: PlantillaId, value: PlanificacionV
   }
 }
 
-export function PlanificacionFields({ plantilla, contexto, origen, destino, onOrigenChange, onDestinoChange, value, onChange }: {
+export function PlanificacionFields({ plantilla, contexto, origen, destino, onOrigenChange, onDestinoChange, value, onChange, ocultarProductos = false }: {
   plantilla: PlantillaId; contexto: ContextoPlanificacion; origen: string; destino: string;
   onOrigenChange: (v: string) => void; onDestinoChange: (v: string) => void;
   value: PlanificacionValue; onChange: (v: PlanificacionValue) => void;
+  ocultarProductos?: boolean;
 }) {
   const p = PLANTILLAS_TRABAJO[plantilla];
   const dep = contexto.depositos.find((d) => d.codigo === (plantilla === "trasiego" ? origen : destino));
@@ -73,7 +74,7 @@ export function PlanificacionFields({ plantilla, contexto, origen, destino, onOr
       {plantilla === "trasiego" && target && <div><dt className="text-muted-foreground">Capacidad disponible en destino</dt><dd>{Math.max(0, target.capacidad - target.litros).toLocaleString("es-ES")} L</dd></div>}
     </dl>}
     {analiticas.length > 0 && <details className="border-b pb-3 text-xs"><summary className="cursor-pointer">Analíticas disponibles ({analiticas.length})</summary><ul className="mt-2 space-y-1">{analiticas.map((a) => <li key={a.id}>{a.fecha} · {a.parametro}: {a.valor ?? a.valor_texto ?? "—"} {a.unidad}</li>)}</ul></details>}
-    {plantilla !== "trasiego" && <section className="space-y-3">
+    {plantilla !== "trasiego" && !ocultarProductos && <section className="space-y-3">
       <div className="flex justify-between items-center"><Label>Productos enológicos previstos</Label><Button type="button" size="sm" variant="outline" onClick={() => onChange({ ...value, productos: [...value.productos, { id: crypto.randomUUID(), producto_id: "", lote_id: "", dosis: "", unidad_dosis: "g/hL", unidad_cantidad: "kg", densidad: "" }] })}><Plus className="size-4 mr-1" />Añadir producto</Button></div>
       {value.productos.map((r, i) => {
         let cantidad: string = "—";

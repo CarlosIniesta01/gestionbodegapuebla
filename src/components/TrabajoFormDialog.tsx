@@ -9,6 +9,9 @@ import { AsignacionPicker, ASIGNACION_VACIA, type AsignacionValue } from "@/comp
 import { TRABAJO_TIPOS, TIPO_META, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { useBodegaMap } from "@/lib/use-bodega-map";
 import type { Operacion } from "@/lib/operaciones-meta";
+import { operacionesDisponibles } from "@/lib/operaciones-meta";
+import { getCatalogoOperaciones } from "@/lib/api/operaciones-catalogo.functions";
+import { MultioperacionFields, inicialMulti, construirMulti, errorMulti, type MultiValue } from "@/components/trabajos/MultioperacionFields";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
@@ -49,11 +52,15 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const [datos, setDatos] = React.useState<Record<string, string>>({});
   const [asig, setAsig] = React.useState<AsignacionValue>(ASIGNACION_VACIA);
   const [planValue, setPlanValue] = React.useState<PlanificacionValue>(PLANIFICACION_VACIA);
+  const [multi, setMulti] = React.useState<MultiValue | null>(null);
   const plantilla = plantillaParaOperacion(operacion);
+  const catalogoFn = useServerFn(getCatalogoOperaciones);
+  const catalogoQ = useQuery({ queryKey: ["catalogo-multi", bodegaId], queryFn: () => catalogoFn({ data: { bodegaIds: [bodegaId] } }), enabled: open && plantilla !== null });
+  const disponibles = catalogoQ.data ? operacionesDisponibles(catalogoQ.data.familias, catalogoQ.data.operaciones, catalogoQ.data.centro, bodegaId) : [];
   const contextoFn = useServerFn(getContextoPlanificacion);
   const contextoQ = useQuery({ queryKey: ["contexto-planificacion", bodegaId], queryFn: () => contextoFn({ data: { bodegaId } }), enabled: open && plantilla !== null, staleTime: 0 });
-  React.useEffect(() => { setPlanValue(PLANIFICACION_VACIA); setOrigen(defaultOrigen ?? ""); setDestino(defaultDestino ?? ""); }, [open, bodegaId, operacion?.id, defaultOrigen, defaultDestino]);
-  const errorPlan = plantilla && contextoQ.data ? errorPlanificacion(plantilla, planValue, contextoQ.data, origen, destino) : null;
+  React.useEffect(() => { setMulti(operacion && plantilla ? inicialMulti(operacion) : null); setPlanValue(PLANIFICACION_VACIA); setOrigen(defaultOrigen ?? ""); setDestino(defaultDestino ?? ""); }, [open, bodegaId, operacion?.id, defaultOrigen, defaultDestino]);
+  const errorPlan = plantilla && contextoQ.data ? (multi ? errorMulti(multi, contextoQ.data, origen, destino) : errorPlanificacion(plantilla, planValue, contextoQ.data, origen, destino)) : null;
   type ProdRow = { producto: string; dosis: string; lote: string };
   const [productos, setProductos] = React.useState<ProdRow[]>([{ producto: "", dosis: "", lote: "" }]);
 
@@ -108,7 +115,8 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       delete (datosNum as any).dosis;
       delete (datosNum as any).lote;
     }
-    if (plantilla) datosNum.planificacion = construirPlanificacion(plantilla, planValue);
+    if (plantilla && multi) datosNum.multioperacion = construirMulti(multi);
+    else if (plantilla) datosNum.planificacion = construirPlanificacion(plantilla, planValue);
     // Autotítulo si no se ha escrito
     const autoBits = [operacion?.nombre ?? meta.label, origen, destino].filter(Boolean).join(" · ");
     const finalTitulo = titulo.trim() || autoBits || meta.label;
@@ -278,10 +286,10 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
           <div className="border-t border-border pt-3 space-y-3">
             {plantilla ? (
               contextoQ.isError ? <div role="alert" className="text-sm text-destructive">{contextoQ.error.message}</div>
-              : contextoQ.data ? <PlanificacionFields plantilla={plantilla} contexto={contextoQ.data} origen={origen} destino={destino} onOrigenChange={setOrigen} onDestinoChange={setDestino} value={planValue} onChange={setPlanValue} />
+              : contextoQ.data ? (multi ? <MultioperacionFields value={multi} onChange={setMulti} contexto={contextoQ.data} disponibles={disponibles} origen={origen} destino={destino} onOrigenChange={setOrigen} onDestinoChange={setDestino} /> : <PlanificacionFields plantilla={plantilla} contexto={contextoQ.data} origen={origen} destino={destino} onOrigenChange={setOrigen} onDestinoChange={setDestino} value={planValue} onChange={setPlanValue} />)
               : <div className="text-sm text-muted-foreground">Cargando datos del centro…</div>
             ) : renderSpecificFields()}
-            {errorPlan && planValue.litros && <div role="alert" className="text-sm text-destructive">{errorPlan}</div>}
+            {errorPlan && (multi?.operaciones[0]?.value.litros || planValue.litros) && <div role="alert" className="text-sm text-destructive">{errorPlan}</div>}
           </div>
 
           <div>

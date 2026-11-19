@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrabajadoresTab } from "./TrabajadoresTab";
 import { ConsumosTab } from "./ConsumosTab";
 import { ProgramacionTab } from "./ProgramacionTab";
+import { ProductosOrden } from "./ProductosOrden";
 import { useActiveBodega } from "@/hooks/use-active-bodega";
 
 export function TrabajoDetailDialog({
@@ -25,10 +26,11 @@ export function TrabajoDetailDialog({
         </DialogHeader>
         {bodegaId && (
           <Tabs defaultValue="trabajadores">
-            <TabsList className="grid grid-cols-3 w-full">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto">
               <TabsTrigger value="trabajadores">Trabajadores</TabsTrigger>
               <TabsTrigger value="programacion">Programación</TabsTrigger>
               <TabsTrigger value="consumos">Consumos</TabsTrigger>
+              <TabsTrigger value="productos">Productos</TabsTrigger>
             </TabsList>
             <TabsContent value="trabajadores" className="mt-3">
               <TrabajadoresTab bodegaId={bodegaId} trabajoId={trabajoId} />
@@ -39,6 +41,7 @@ export function TrabajoDetailDialog({
             <TabsContent value="consumos" className="mt-3">
               <ConsumosTab bodegaId={bodegaId} trabajoId={trabajoId} />
             </TabsContent>
+            <TabsContent value="productos" className="mt-3"><ProductosOrden trabajoId={trabajoId} /></TabsContent>
           </Tabs>
         )}
       </DialogContent>

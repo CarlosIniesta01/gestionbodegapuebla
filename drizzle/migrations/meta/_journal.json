@@ -36,6 +36,13 @@
       "when": 1795020087444,
       "tag": "0004_b1_asignacion_operarios",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795074498671,
+      "tag": "0005_b2_usos_preliminares_trazables",
+      "breakpoints": true
     }
   ]
 }

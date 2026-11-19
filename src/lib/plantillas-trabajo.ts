@@ -69,8 +69,8 @@ export function validarPlanificacion(input: unknown, plantillaId: PlantillaId): 
 
 export type ContextoPlanificacion = {
   depositos: { id: string; codigo: string; capacidad: number; litros: number; contenidos: { producto_id: string; nombre: string; litros: number; grado: number | null }[] }[];
-  productos: { id: string; nombre: string; tipo: string; unidad: string }[];
-  lotes: { id: string; producto_id: string; numero_lote: string; estado: string; fecha_caducidad: string | null }[];
+  productos: { id: string; nombre: string; tipo: string; unidad: string; proveedor?: string | null }[];
+  lotes: { id: string; producto_id: string; numero_lote: string; estado: string; fecha_caducidad: string | null; unidad?: string; cantidad_disponible?: number }[];
   analiticas: { id: string; deposito_id: string | null; lote_id: string; parametro: string; valor: number | null; valor_texto: string | null; unidad: string | null; fecha: string }[];
 };
 

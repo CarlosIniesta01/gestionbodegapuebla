@@ -70,7 +70,8 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
   }
 
 
-  const dataEntries = Object.entries(t.datos ?? {}).filter(([, v]) => v !== "" && v != null);
+  const multi = (t.datos as any)?.multioperacion;
+  const dataEntries = Object.entries(t.datos ?? {}).filter(([k, v]) => v !== "" && v != null && !["planificacion", "multioperacion"].includes(k));
   const [trabsOpen, setTrabsOpen] = useState(false);
 
   const isOrden = t.tipo === "carga" || t.tipo === "descarga";
@@ -121,6 +122,7 @@ export function TrabajoCard({ t, compact }: { t: Trabajo; compact?: boolean }) {
               ))}
             </div>
           )}
+          {multi?.version === 1 && <div className="mt-2 text-xs text-muted-foreground">#{t.id.slice(0, 8)} · {multi.operaciones.length} operaciones · {multi.productos.length} productos ordenados</div>}
 
           {t.descripcion && !compact && (
             <div className="mt-2 text-sm text-muted-foreground line-clamp-2">{t.descripcion}</div>
