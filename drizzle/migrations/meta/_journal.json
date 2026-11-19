@@ -50,6 +50,13 @@
       "when": 1795075742327,
       "tag": "0006_permissions_read_active_members",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795083124747,
+      "tag": "0007_worker_email_invitations",
+      "breakpoints": true
     }
   ]
 }

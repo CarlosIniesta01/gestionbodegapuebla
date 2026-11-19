@@ -1,5 +1,11 @@
 # Vinea Control — Roadmap
 
+## Alta de usuarios — solicitud actual
+- [x] Invitaciones por correo desde Usuarios con centro y rol; reutiliza cuentas, no exige cuenta de Lovable ni altera perfiles o contraseñas existentes. Enlace de correo para acceso posterior.
+- [x] Pendientes sin membership hasta sesión propia y correo verificado; RPC atómica, roles por centro, RLS para administradores y auditoría. Accesos existentes conservados, sin reactivar revocados por invitación.
+- [x] Ocho pruebas de reglas pasan; navegador autenticado verifica cuenta existente sin duplicados/cambio de rol, activación y entrada; sin sesión, activación bloqueada. No se han enviado correos ni creado trabajadores de prueba.
+- [ ] Recepción y activación completa de una invitación nueva: requiere destinatario real autorizado y publicar la pantalla de activación. El envío real y la configuración de redirecciones alojada no están verificados.
+
 ## Bloque A — FINALIZADO (aprobado por Carlos Iniesta, 18/11/2026)
 Base definitiva (no modificar sin autorización): 18 familias y 197 operaciones; selección de centro antes de crear cualquier trabajo; accesos rápidos multicentro; configuración independiente por centro; centro visible en órdenes y Visión Global; permisos del catálogo maestro; vínculo trabajo–operación; separación programación / ejecución física; guardar órdenes pendientes no modifica existencias; bloqueo temporal de F06-08 (traslado entre centros).
 

@@ -1054,6 +1054,63 @@ export type Database = {
           },
         ]
       }
+      invitaciones_trabajadores: {
+        Row: {
+          activated_at: string | null
+          bodega_id: string
+          created_at: string
+          email: string
+          estado: string
+          id: string
+          invited_by: string
+          role_id: string
+          send_error: string | null
+          sent_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          bodega_id: string
+          created_at?: string
+          email: string
+          estado?: string
+          id?: string
+          invited_by: string
+          role_id: string
+          send_error?: string | null
+          sent_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          bodega_id?: string
+          created_at?: string
+          email?: string
+          estado?: string
+          id?: string
+          invited_by?: string
+          role_id?: string
+          send_error?: string | null
+          sent_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitaciones_trabajadores_bodega_id_fkey"
+            columns: ["bodega_id"]
+            isOneToOne: false
+            referencedRelation: "bodegas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitaciones_trabajadores_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_zonas: {
         Row: {
           membership_id: string
@@ -3147,6 +3204,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      activar_invitaciones_trabajador: { Args: never; Returns: number }
       actualizar_programacion_trabajo: {
         Args: {
           _instrucciones: string
@@ -3180,6 +3238,10 @@ export type Database = {
           _orden_id: string
         }
         Returns: Json
+      }
+      registrar_invitacion_trabajador: {
+        Args: { _bodega: string; _email: string; _rol: string; _user?: string }
+        Returns: string
       }
       user_bodegas: { Args: { _user: string }; Returns: string[] }
     }

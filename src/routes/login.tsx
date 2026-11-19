@@ -8,12 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
+  head: () => ({ meta: [
+    { title: "Acceso · Vinea Control" }, { name: "description", content: "Accede a Vinea Control con tu cuenta de trabajador." },
+    { property: "og:title", content: "Acceso · Vinea Control" }, { property: "og:description", content: "Acceso seguro a los centros autorizados." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: (s: Record<string, unknown>) => ({
-    redirect: (s.redirect as string) || "/",
+    redirect: typeof s.redirect === "string" && s.redirect.startsWith("/") && !s.redirect.startsWith("//") && !s.redirect.includes("\\") ? s.redirect : "/",
   }),
   beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: search.redirect || "/" });
+    if (data.user) {
+      const result = await supabase.rpc("activar_invitaciones_trabajador");
+      if (result.error) throw new Error(result.error.message);
+      throw redirect({ to: search.redirect || "/" });
+    }
   },
   component: LoginPage,
 });
@@ -28,6 +38,7 @@ function LoginPage() {
   const [bodega, setBodega] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -38,13 +49,16 @@ function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { nombre, bodega, organization: bodega } },
+          options: { data: { nombre, bodega, organization: bodega }, emailRedirectTo: `${window.location.origin}/activar-acceso` },
         });
         if (error) throw error;
+        if (!data.session) { setNotice("Revisa tu correo para confirmar tu cuenta antes de entrar."); return; }
       }
+      const result = await supabase.rpc("activar_invitaciones_trabajador");
+      if (result.error) throw new Error(result.error.message);
       navigate({ to: search.redirect || "/" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
@@ -56,10 +70,22 @@ function LoginPage() {
   const onGoogle = async () => {
     setError(null);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + (search.redirect || "/"),
+      redirect_uri: `${window.location.origin}/activar-acceso`,
     });
     if (res.error) setError(res.error.message);
-    else if (!res.redirected) navigate({ to: search.redirect || "/" });
+    else if (!res.redirected) navigate({ to: "/activar-acceso" });
+  };
+
+  const onEmailLink = async () => {
+    setLoading(true);
+    setError(null);
+    setNotice(null);
+    const { error } = await supabase.auth.signInWithOtp({ email, options: {
+      shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/activar-acceso`,
+    } });
+    if (error) setError(error.message);
+    else setNotice("Revisa tu correo y abre el enlace para entrar.");
+    setLoading(false);
   };
 
   return (
@@ -106,9 +132,11 @@ function LoginPage() {
             <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
           </div>
           {error && <div className="text-sm text-destructive">{error}</div>}
+          {notice && <div className="text-sm text-muted-foreground" role="status">{notice}</div>}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "..." : mode === "login" ? "Entrar" : "Crear cuenta"}
           </Button>
+          {mode === "login" && <Button type="button" variant="outline" className="w-full" disabled={loading || !email} onClick={onEmailLink}>Entrar con enlace por correo</Button>}
         </form>
 
         <button

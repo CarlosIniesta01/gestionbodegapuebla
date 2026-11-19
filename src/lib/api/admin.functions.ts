@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // ============ Helpers ============
 async function assertAdmin(supabase: any, userId: string, bodegaId: string) {
@@ -74,45 +73,22 @@ export const addMemberByEmail = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Find user by email — first via profiles (fast), fallback to paginated auth admin
-    const emailLower = data.email.toLowerCase();
-    let target: { id: string; email?: string | null; user_metadata?: any } | undefined;
+    const { crearInvitacion } = await import("./invitaciones-trabajadores");
+    return crearInvitacion(supabase, supabaseAdmin, data);
+  });
 
-    const { data: prof } = await supabaseAdmin
-      .from("profiles")
-      .select("user_id, email, nombre")
-      .ilike("email", emailLower)
-      .maybeSingle();
-
-    if (prof) {
-      target = { id: prof.user_id, email: prof.email, user_metadata: { nombre: prof.nombre } };
-    } else {
-      for (let page = 1; page <= 50; page++) {
-        const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
-        if (listErr) throw new Error(listErr.message);
-        target = list.users.find((u) => (u.email ?? "").toLowerCase() === emailLower);
-        if (target) break;
-        if (list.users.length < 1000) break;
-      }
-    }
-    if (!target) throw new Error("Usuario no encontrado. Pídele que cree una cuenta primero.");
-
-    // Ensure profile exists
-    await supabaseAdmin.from("profiles").upsert({
-      user_id: target.id,
-      email: target.email,
-      nombre: target.user_metadata?.nombre ?? target.email?.split("@")[0],
-    }, { onConflict: "user_id" });
-
-    const { error } = await supabaseAdmin.from("memberships").insert({
-      user_id: target.id,
-      bodega_id: data.bodegaId,
-      role_id: data.roleId,
-      estado: "activo",
-    });
+export const listWorkerInvitations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bodegaId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId, data.bodegaId);
+    const { data: rows, error } = await context.supabase.from("invitaciones_trabajadores")
+      .select("id, email, role_id, estado, created_at, sent_at, send_error, roles(nombre)")
+      .eq("bodega_id", data.bodegaId).order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return rows ?? [];
   });
 
 // ============ Pending users (registrados sin membership en esta bodega) ============
@@ -122,6 +98,7 @@ export const listPendingUsers = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Existing members of this bodega
     const { data: members, error: mErr } = await supabaseAdmin
@@ -152,6 +129,7 @@ export const approvePendingUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let roleId = data.roleId;
     if (!roleId) {
@@ -185,6 +163,7 @@ export const rejectPendingUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Find the operario role just to satisfy the NOT NULL role_id
     const { data: role, error: rErr } = await supabaseAdmin
@@ -220,7 +199,7 @@ export const updateMembership = createServerFn({ method: "POST" })
     const patch: any = {};
     if (data.roleId) patch.role_id = data.roleId;
     if (data.estado) patch.estado = data.estado;
-    const { error } = await supabase.from("memberships").update(patch).eq("id", data.membershipId);
+    const { error } = await supabase.from("memberships").update(patch).eq("id", data.membershipId).eq("bodega_id", data.bodegaId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -231,12 +210,13 @@ export const removeMembership = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Soft delete: marcamos como rechazado para que NO reaparezca como
     // solicitud pendiente y la decisión sea permanente.
     const { error } = await supabaseAdmin
       .from("memberships")
       .update({ estado: "rechazado" })
-      .eq("id", data.membershipId);
+      .eq("id", data.membershipId).eq("bodega_id", data.bodegaId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -250,6 +230,7 @@ export const listUserBodegaAccess = createServerFn({ method: "POST" })
   .inputValidator(z.object({ targetUserId: z.string().uuid() }))
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Bodegas donde el admin actual es admin
     const { data: myAdmin, error: aErr } = await supabaseAdmin
       .from("memberships")
@@ -296,6 +277,7 @@ export const setUserBodegaAccess = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     if (data.enabled) {
       // Asignar rol "operario" por defecto si no existe el membership o si está revocado
@@ -471,6 +453,7 @@ export const createBodega = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // 1) Reutilizar la primera organización del usuario si ya pertenece a alguna;
     //    si no, crear una nueva.
@@ -578,6 +561,7 @@ export const deleteBodega = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId, data.bodegaId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const bId = data.bodegaId;
 
     // Borrado en cascada manual (no hay FKs declaradas).

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as ActivarAccesoRouteImport } from './routes/activar-acceso'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PendienteRouteImport } from './routes/pendiente'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
@@ -34,6 +35,11 @@ import { Route as AuthenticatedOrdenesIdRouteImport } from './routes/_authentica
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivarAccesoRoute = ActivarAccesoRouteImport.update({
+  id: '/activar-acceso',
+  path: '/activar-acceso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -148,6 +154,7 @@ const AuthenticatedOrdenesIdRoute = AuthenticatedOrdenesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/activar-acceso': typeof ActivarAccesoRoute
   '/login': typeof LoginRoute
   '/pendiente': typeof PendienteRoute
   '/actividad': typeof AuthenticatedActividadRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/ordenes/$id': typeof AuthenticatedOrdenesIdRoute
 }
 export interface FileRoutesByTo {
+  '/activar-acceso': typeof ActivarAccesoRoute
   '/login': typeof LoginRoute
   '/pendiente': typeof PendienteRoute
   '/actividad': typeof AuthenticatedActividadRoute
@@ -195,6 +203,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/activar-acceso': typeof ActivarAccesoRoute
   '/login': typeof LoginRoute
   '/pendiente': typeof PendienteRoute
   '/_authenticated/actividad': typeof AuthenticatedActividadRoute
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activar-acceso'
     | '/login'
     | '/pendiente'
     | '/actividad'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/ordenes/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/activar-acceso'
     | '/login'
     | '/pendiente'
     | '/actividad'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/activar-acceso'
     | '/login'
     | '/pendiente'
     | '/_authenticated/actividad'
@@ -292,6 +304,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ActivarAccesoRoute: typeof ActivarAccesoRoute
   LoginRoute: typeof LoginRoute
   PendienteRoute: typeof PendienteRoute
 }
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activar-acceso': {
+      id: '/activar-acceso'
+      path: '/activar-acceso'
+      fullPath: '/activar-acceso'
+      preLoaderRoute: typeof ActivarAccesoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -505,6 +525,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ActivarAccesoRoute: ActivarAccesoRoute,
   LoginRoute: LoginRoute,
   PendienteRoute: PendienteRoute,
 }

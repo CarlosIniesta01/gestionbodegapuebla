@@ -19,6 +19,7 @@ import {
   listMyBodegas,
   listMembers,
   addMemberByEmail,
+  listWorkerInvitations,
   updateMembership,
   removeMembership,
   listRolesAndPerms,
@@ -50,7 +51,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin · Vinea Control" }] }),
+  head: () => ({ meta: [{ title: "Administración · Vinea Control" }, { name: "description", content: "Gestión de usuarios, centros y permisos de Vinea Control." }, { property: "og:title", content: "Administración · Vinea Control" }, { property: "og:description", content: "Administración de accesos y centros de trabajo." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: AdminPage,
 });
 
@@ -633,23 +634,32 @@ function UsersTab({ bodegaId }: { bodegaId: string }) {
   const fnList = useServerFn(listMembers);
   const fnRoles = useServerFn(listRolesAndPerms);
   const fnAdd = useServerFn(addMemberByEmail);
+  const fnInvitations = useServerFn(listWorkerInvitations);
   const fnUpdate = useServerFn(updateMembership);
   const fnRemove = useServerFn(removeMembership);
 
   const membersQ = useQuery({ queryKey: ["admin", "members", bodegaId], queryFn: () => fnList({ data: { bodegaId } }) });
+  const invitationsQ = useQuery({ queryKey: ["admin", "invitations", bodegaId], queryFn: () => fnInvitations({ data: { bodegaId } }) });
   const rolesQ = useQuery({ queryKey: ["admin", "rolesAndPerms", bodegaId], queryFn: () => fnRoles({ data: { bodegaId } }) });
 
   const [email, setEmail] = useState("");
   const [roleId, setRoleId] = useState<string>("");
+  const [invitationResult, setInvitationResult] = useState<string | null>(null);
 
   const addMut = useMutation({
     mutationFn: (vars: { email: string; roleId: string }) => fnAdd({ data: { bodegaId, ...vars } }),
-    onSuccess: () => {
-      toast.success("Usuario añadido");
+    onSuccess: (result) => {
+      toast.success(result.message);
+      setInvitationResult(result.message);
       setEmail("");
       qc.invalidateQueries({ queryKey: ["admin", "members", bodegaId] });
+      qc.invalidateQueries({ queryKey: ["admin", "invitations", bodegaId] });
     },
-    onError: (e: any) => toast.error(e.message ?? "Error"),
+    onError: (e: any) => {
+      toast.error(e.message ?? "Error");
+      setInvitationResult(e.message ?? "No se pudo enviar la invitación.");
+      qc.invalidateQueries({ queryKey: ["admin", "invitations", bodegaId] });
+    },
   });
 
   const updateMut = useMutation({
@@ -671,9 +681,11 @@ function UsersTab({ bodegaId }: { bodegaId: string }) {
   return (
     <div className="space-y-6">
       <div className="scada-panel p-4 md:p-5">
-        <div className="text-sm font-medium mb-3">Añadir usuario</div>
+        <div className="text-sm font-medium mb-3">Invitar trabajador al centro seleccionado</div>
         <div className="flex flex-col md:flex-row gap-2">
           <Input
+            type="email"
+            aria-label="Correo del trabajador"
             placeholder="email@ejemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -691,13 +703,26 @@ function UsersTab({ bodegaId }: { bodegaId: string }) {
             onClick={() => addMut.mutate({ email, roleId })}
             disabled={!email || !roleId || addMut.isPending}
           >
-            <Plus className="size-4 mr-1" /> Añadir
+            <Mail className="size-4 mr-1" /> {addMut.isPending ? "Enviando…" : "Invitar"}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          El usuario debe haber creado una cuenta previamente.
-        </p>
+        {invitationResult && <p className="text-sm mt-3" role="status">{invitationResult}</p>}
       </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium">Invitaciones pendientes</h2>
+        {invitationsQ.error && <p className="text-destructive text-sm">No se pudieron cargar las invitaciones.</p>}
+        {invitationsQ.isPending && <p className="text-muted-foreground text-sm">Cargando…</p>}
+        {(invitationsQ.data ?? []).filter((i) => i.estado === "pendiente").map((i) => <div key={i.id} className="flex flex-wrap items-center gap-3 border-b border-border py-3">
+          <div className="flex-1 min-w-0"><div className="text-sm break-all">{i.email}</div><div className="text-xs text-muted-foreground">{i.roles?.nombre} · {i.send_error ? "Correo no enviado" : i.sent_at ? "Pendiente de activación" : "Pendiente de envío"}</div></div>
+          <Badge variant="outline">Sin acceso</Badge>
+          <Button variant="outline" size="sm" disabled={addMut.isPending} onClick={() => {
+            const invite = (invitationsQ.data ?? []).find((row) => row.id === i.id);
+            if (invite) addMut.mutate({ email: invite.email, roleId: invite.role_id });
+          }}><Mail className="size-4 mr-1" /> Reenviar</Button>
+        </div>)}
+        {invitationsQ.data && !invitationsQ.data.some((i) => i.estado === "pendiente") && <p className="text-sm text-muted-foreground">Sin invitaciones pendientes</p>}
+      </section>
 
       <div className="scada-panel overflow-hidden">
         <div className="px-4 py-3 border-b border-border text-sm font-medium">
@@ -710,7 +735,7 @@ function UsersTab({ bodegaId }: { bodegaId: string }) {
                 <div className="font-medium text-sm truncate">{m.profiles?.nombre ?? m.profiles?.email}</div>
                 <div className="text-xs text-muted-foreground truncate">{m.profiles?.email}</div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
                   style={{ borderColor: m.roles?.color, color: m.roles?.color }}
