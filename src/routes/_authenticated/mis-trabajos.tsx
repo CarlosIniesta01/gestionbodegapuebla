@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { PlanificacionResumen } from "@/components/trabajos/PlanificacionResumen";
 
 export const Route = createFileRoute("/_authenticated/mis-trabajos")({
   head: () => ({ meta: [
@@ -103,6 +104,7 @@ function MisTrabajos() {
                   : responsable && <div className="text-xs text-muted-foreground">Responsable: {responsable.nombre}</div>}
                 {otros.length > 0 && <div className="text-xs text-muted-foreground">Participantes: {otros.map((o: any) => o.nombre).join(", ")}</div>}
                 {t.instrucciones && <div className="text-sm rounded-md bg-muted p-2 whitespace-pre-wrap"><b className="text-xs uppercase tracking-wider">Instrucciones</b><br />{t.instrucciones}</div>}
+                <PlanificacionResumen datos={t.datos} />
                 {t.descripcion && <div className="text-xs text-muted-foreground whitespace-pre-wrap">{t.descripcion}</div>}
                 {a.motivo_rechazo && <div className="text-xs text-destructive">Motivo de rechazo: {a.motivo_rechazo}</div>}
                 {a.activa && a.estado_participacion === "asignado" && t.estado === "pendiente" && (

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PlanificacionResumen } from "./PlanificacionResumen";
 
 const toLocal = (iso?: string | null) => {
   if (!iso) return "";
@@ -41,6 +42,7 @@ export function ProgramacionTab({ bodegaId, trabajoId }: { bodegaId: string; tra
   const historial = (q.data?.eventos ?? []).filter((e: any) => e.tipo === "programacion");
   return (
     <div className="space-y-3">
+      <PlanificacionResumen datos={t.datos} />
       <div className="grid sm:grid-cols-2 gap-3">
         <div><Label>Fecha y hora previstas</Label><Input type="datetime-local" disabled={!editable} value={fecha} onChange={(e) => setFecha(e.target.value)} /></div>
         <div><Label>Prioridad</Label>

@@ -1,8 +1,10 @@
 import * as React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { createTrabajo } from "@/lib/api/trabajos.functions";
+import { createTrabajo, getContextoPlanificacion } from "@/lib/api/trabajos.functions";
+import { plantillaParaOperacion } from "@/lib/plantillas-trabajo";
+import { PlanificacionFields, PLANIFICACION_VACIA, construirPlanificacion, errorPlanificacion, type PlanificacionValue } from "@/components/trabajos/PlanificacionFields";
 import { AsignacionPicker, ASIGNACION_VACIA, type AsignacionValue } from "@/components/asignacion/AsignacionPicker";
 import { TRABAJO_TIPOS, TIPO_META, type TrabajoTipo } from "@/lib/trabajo-meta";
 import { useBodegaMap } from "@/lib/use-bodega-map";
@@ -46,6 +48,12 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const [destino, setDestino] = React.useState<string>("");
   const [datos, setDatos] = React.useState<Record<string, string>>({});
   const [asig, setAsig] = React.useState<AsignacionValue>(ASIGNACION_VACIA);
+  const [planValue, setPlanValue] = React.useState<PlanificacionValue>(PLANIFICACION_VACIA);
+  const plantilla = plantillaParaOperacion(operacion);
+  const contextoFn = useServerFn(getContextoPlanificacion);
+  const contextoQ = useQuery({ queryKey: ["contexto-planificacion", bodegaId], queryFn: () => contextoFn({ data: { bodegaId } }), enabled: open && plantilla !== null, staleTime: 0 });
+  React.useEffect(() => { setPlanValue(PLANIFICACION_VACIA); setOrigen(defaultOrigen ?? ""); setDestino(defaultDestino ?? ""); }, [open, bodegaId, operacion?.id, defaultOrigen, defaultDestino]);
+  const errorPlan = plantilla && contextoQ.data ? errorPlanificacion(plantilla, planValue, contextoQ.data, origen, destino) : null;
   type ProdRow = { producto: string; dosis: string; lote: string };
   const [productos, setProductos] = React.useState<ProdRow[]>([{ producto: "", dosis: "", lote: "" }]);
 
@@ -79,13 +87,14 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
   const Icon = meta.icon;
 
   function submit() {
+    if (plantilla && (!contextoQ.data || errorPlan)) { toast.error(errorPlan ?? "No se han cargado los datos del centro"); return; }
     const datosNum: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(datos)) {
       if (v === "") continue;
       const n = Number(v);
       datosNum[k] = Number.isFinite(n) && /^[\d.,-]+$/.test(v) ? n : v;
     }
-    if (tipo === "producto") {
+    if (tipo === "producto" && !plantilla) {
       const limpios = productos
         .filter((p) => p.producto.trim() || p.dosis.trim() || p.lote.trim())
         .map((p) => ({
@@ -99,6 +108,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
       delete (datosNum as any).dosis;
       delete (datosNum as any).lote;
     }
+    if (plantilla) datosNum.planificacion = construirPlanificacion(plantilla, planValue);
     // Autotítulo si no se ha escrito
     const autoBits = [operacion?.nombre ?? meta.label, origen, destino].filter(Boolean).join(" · ");
     const finalTitulo = titulo.trim() || autoBits || meta.label;
@@ -224,7 +234,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`${plantilla ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="size-9 rounded-lg flex items-center justify-center"
@@ -266,7 +276,12 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
           </div>
 
           <div className="border-t border-border pt-3 space-y-3">
-            {renderSpecificFields()}
+            {plantilla ? (
+              contextoQ.isError ? <div role="alert" className="text-sm text-destructive">{contextoQ.error.message}</div>
+              : contextoQ.data ? <PlanificacionFields plantilla={plantilla} contexto={contextoQ.data} origen={origen} destino={destino} onOrigenChange={setOrigen} onDestinoChange={setDestino} value={planValue} onChange={setPlanValue} />
+              : <div className="text-sm text-muted-foreground">Cargando datos del centro…</div>
+            ) : renderSpecificFields()}
+            {errorPlan && planValue.litros && <div role="alert" className="text-sm text-destructive">{errorPlan}</div>}
           </div>
 
           <div>
@@ -279,7 +294,7 @@ export function TrabajoFormDialog({ open, onOpenChange, bodegaId, defaultTipo, d
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={m.isPending || (asig.trabajadores.length > 1 && !asig.responsableId)}>{m.isPending ? "Guardando…" : "Crear trabajo"}</Button>
+          <Button onClick={submit} disabled={m.isPending || (asig.trabajadores.length > 1 && !asig.responsableId) || (plantilla !== null && (!contextoQ.data || contextoQ.isFetching || errorPlan !== null))}>{m.isPending ? "Guardando…" : "Crear trabajo"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

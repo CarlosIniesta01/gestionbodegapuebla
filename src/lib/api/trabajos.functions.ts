@@ -3,6 +3,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { validarCentro, validarOperacionCentro } from "./embotellado-validacion";
+import { obtenerContextoPlanificacion, prepararPlanificacion } from "./planificacion-trabajo";
+
+export const getContextoPlanificacion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bodegaId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    await assertMember(context.supabase, data.bodegaId, context.userId);
+    return obtenerContextoPlanificacion(context.supabase, data.bodegaId);
+  });
 
 const TipoEnum = z.enum([
   "trasiego",
@@ -111,6 +120,13 @@ export const createTrabajo = createServerFn({ method: "POST" })
     // Centro de destino: acceso, operación habilitada y depósitos del propio centro.
     await validarCentro(supabase, data.bodegaId, [data.deposito_origen, data.deposito_destino].filter(Boolean) as string[]);
     await validarOperacionCentro(supabase, data.bodegaId, data.operacion_catalogo_id);
+    const planificacion = await prepararPlanificacion(supabase, data.bodegaId, data.operacion_catalogo_id, data.datos.planificacion, data.deposito_origen, data.deposito_destino);
+    if (planificacion) {
+      const { data: permitido, error: permisoError } = await supabase.rpc("has_permission", { _bodega: data.bodegaId, _perm: "tareas.crear" });
+      if (permisoError) throw new Error(permisoError.message);
+      if (!permitido) throw new Error("Sin permiso para crear órdenes en este centro");
+      if (data.estado !== "pendiente") throw new Error("Una planificación solo se puede guardar pendiente de ejecución");
+    }
     const payload = {
       operacion_catalogo_id: data.operacion_catalogo_id ?? null,
       bodega_id: data.bodegaId,
@@ -123,7 +139,7 @@ export const createTrabajo = createServerFn({ method: "POST" })
       deposito_destino: data.deposito_destino ?? null,
       asignado_a: data.asignado_a ?? null,
       scheduled_at: data.scheduled_at ?? null,
-      datos: data.datos,
+      datos: planificacion ? { ...data.datos, litros_previstos: planificacion.litros_previstos, planificacion } : data.datos,
       instrucciones: data.instrucciones?.trim() || null,
       created_by: userId,
     };
@@ -134,7 +150,7 @@ export const createTrabajo = createServerFn({ method: "POST" })
       trabajo_id: row.id,
       user_id: userId,
       tipo: "creado",
-      contenido: `Trabajo creado (${data.tipo})`,
+      contenido: planificacion ? `Trabajo creado (${data.tipo}); plantilla ${planificacion.plantilla_id} v${planificacion.plantilla_version}; ${planificacion.litros_previstos} L previstos` : `Trabajo creado (${data.tipo})`,
     });
     await insertarAsignacionInicial(supabase, data.bodegaId, row.id, userId, trabs, data.asignacion?.responsableId);
     return row;
