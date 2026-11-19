@@ -43,6 +43,13 @@
       "when": 1795074498671,
       "tag": "0005_b2_usos_preliminares_trazables",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795075742327,
+      "tag": "0006_permissions_read_active_members",
+      "breakpoints": true
     }
   ]
 }
